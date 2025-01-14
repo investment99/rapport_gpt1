@@ -146,8 +146,10 @@ def generate_market_data(investment_sector, city):
     else:
         return {}
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
+    if request.method == 'POST':
+        return generate_report()
     return "Bienvenue sur le serveur Flask. L'API est prête à recevoir des requêtes !"
 
 @app.route('/generate_report', methods=['POST'])
