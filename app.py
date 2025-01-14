@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, url_for
 from openai import OpenAI
 import os
 import logging
@@ -16,6 +16,7 @@ from PIL import Image as PILImage
 import sys
 from datetime import datetime
 import tempfile
+import requests
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -32,8 +33,7 @@ def log_to_file(message):
 
 @app.route('/test_key', methods=['GET'])
 def test_key():
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-
+    api_key = os.getenv("OPENAI_API_KEY")
     if api_key:
         return f"Key loaded successfully: {api_key[:6]}...hidden", 200
     return "API key not found", 500
@@ -152,6 +152,11 @@ def home():
         return generate_report()
     return "Bienvenue sur le serveur Flask. L'API est prête à recevoir des requêtes !"
 
+def download_image(url, output_path):
+    response = requests.get(url)
+    with open(output_path, 'wb') as file:
+        file.write(response.content)
+
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
     try:
@@ -195,10 +200,10 @@ def generate_report():
         styles = getSampleStyleSheet()
 
         cover_images = [
-            "cover_image.png",
-            "cover_image1.png",
-            "cover_image2.png",
-            "cover_image3.png"
+            "static/cover_image.png",
+            "static/cover_image1.png",
+            "static/cover_image2.png",
+            "static/cover_image3.png"
         ]
 
         resized_images = []
