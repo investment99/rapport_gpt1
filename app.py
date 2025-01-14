@@ -179,7 +179,6 @@ def generate_report():
 
         from flask import Flask, url_for
 
-app = Flask(__name__)
 
 @app.route('/generate_pdf')
 def generate_pdf():
