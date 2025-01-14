@@ -5,6 +5,7 @@ import logging
 import ssl
 import unicodedata
 import re
+import openai
 from flask_cors import CORS
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -176,22 +177,58 @@ def generate_report():
         elements = []
         styles = getSampleStyleSheet()
 
-        cover_images = [
-    "/Users/tourbenamara/Desktop/Documents_rapport_gpt1/cover_image.png",
-    "/Users/tourbenamara/Desktop/Documents_rapport_gpt1/cover_image1.png",
-    "/Users/tourbenamara/Desktop/Documents_rapport_gpt1/cover_image2.png",
-    "/Users/tourbenamara/Desktop/Documents_rapport_gpt1/cover_image3.png"
-]
+        from flask import Flask, url_for
 
-        resized_images = []
-        for i, image_path in enumerate(cover_images):
-            output_path = f"/tmp/resized_cover_image_{i}.png"
-            resize_image(image_path, output_path)
-            resized_images.append(output_path)
+app = Flask(__name__)
 
-        for image_path in resized_images:
-            elements.append(Image(image_path, width=469, height=716))
-            elements.append(PageBreak())
+@app.route('/generate_pdf')
+def generate_pdf():
+    # Générer les URLs dynamiquement dans le contexte Flask
+    cover_images = [
+        url_for('static', filename='cover_image.png', _external=True),
+        url_for('static', filename='cover_image1.png', _external=True),
+        url_for('static', filename='cover_image2.png', _external=True),
+        url_for('static', filename='cover_image3.png', _external=True)
+    ]
+
+    # Liste pour stocker les chemins locaux des images redimensionnées
+    resized_images = []
+    for i, image_url in enumerate(cover_images):
+        # Télécharger l'image depuis l'URL générée
+        local_image_path = f"/tmp/cover_image_{i}.png"
+        download_image(image_url, local_image_path)
+
+        # Redimensionner l'image
+        output_path = f"/tmp/resized_cover_image_{i}.png"
+        resize_image(local_image_path, output_path)
+        resized_images.append(output_path)
+
+    # Ajouter les images redimensionnées au PDF
+    elements = []
+    for image_path in resized_images:
+        elements.append(Image(image_path, width=469, height=716))
+        elements.append(PageBreak())
+
+    # Logique de création du PDF ici...
+    return "PDF généré avec succès !"  # Remplacez par l'envoi du fichier PDF
+
+def download_image(url, output_path):
+    """Télécharge une image depuis une URL."""
+    import requests
+    response = requests.get(url)
+    with open(output_path, 'wb') as file:
+        file.write(response.content)
+
+def resize_image(image_path, output_path, target_size=(469, 716)):
+    """Redimensionne une image."""
+    from PIL import Image as PILImage
+    with PILImage.open(image_path) as img:
+        img = img.resize(target_size, PILImage.LANCZOS)
+        img.save(output_path)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 
         add_section_title(elements, "Informations du Client")
         client_info_data = [
