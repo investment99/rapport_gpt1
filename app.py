@@ -5,7 +5,6 @@ import logging
 import ssl
 import unicodedata
 import re
-import openai
 from flask_cors import CORS
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -14,6 +13,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch, cm
 from PIL import Image as PILImage
+import sys
+from datetime import datetime
+import tempfile
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -23,9 +25,20 @@ app = Flask(__name__)
 CORS(app)
 app.config['JSON_AS_ASCII'] = False
 
-import os
-openai.api_key = os.getenv("OPENAI_API_KEY")
+def log_to_file(message):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("app_log.txt", "a") as log_file:
+        log_file.write(f"{timestamp} - {message}\n")
 
+@app.route('/test_key', methods=['GET'])
+def test_key():
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+
+    if api_key:
+        return f"Key loaded successfully: {api_key[:6]}...hidden", 200
+    return "API key not found", 500
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 PDF_FOLDER = "./pdf_reports/"
 os.makedirs(PDF_FOLDER, exist_ok=True)
@@ -48,7 +61,7 @@ def add_section_title(elements, title):
     title_style = ParagraphStyle(
         'SectionTitle',
         fontSize=16,
-        fontName='Helvetica-Bold',
+        fontName='Helvetica',
         textColor=colors.HexColor("#00C7C4"),
         alignment=1,
         spaceAfter=12,
@@ -141,8 +154,10 @@ def home():
 def generate_report():
     try:
         logging.info("Requête reçue à /generate_report")
+        log_to_file("Début de la génération du rapport")
         form_data = request.json
         logging.debug(f"Données reçues : {form_data}")
+        log_to_file(f"Données du formulaire reçues : {form_data}")
 
         name = form_data.get('name', 'Client')
         analysis_date = form_data.get('analysis-date', 'Non précisé')
@@ -163,8 +178,8 @@ def generate_report():
 
         sections = [
             ("Introduction", 200),
-            ("Méthodologie", 250),
-            ("Contexte du secteur d'investissement", 300),
+            ("Contexte", 250),
+            ("Secteur d'investissement", 300),
             ("Analyse du marché", 400),
             ("Analyse du produit/service", 300),
             ("Évaluation des risques", 350),
@@ -177,57 +192,24 @@ def generate_report():
         elements = []
         styles = getSampleStyleSheet()
 
-        from flask import Flask, url_for
+        cover_images = [
+            "cover_image.png",
+            "cover_image1.png",
+            "cover_image2.png",
+            "cover_image3.png"
+        ]
 
+        resized_images = []
+        for i, image_name in enumerate(cover_images):
+            image_path = os.path.join(os.path.dirname(__file__), image_name)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+                output_path = temp_file.name
+                resize_image(image_path, output_path)
+                resized_images.append(output_path)
 
-@app.route('/generate_pdf')
-def generate_pdf():
-    # Générer les URLs dynamiquement dans le contexte Flask
-    cover_images = [
-        url_for('static', filename='cover_image.png', _external=True),
-        url_for('static', filename='cover_image1.png', _external=True),
-        url_for('static', filename='cover_image2.png', _external=True),
-        url_for('static', filename='cover_image3.png', _external=True)
-    ]
-
-    # Liste pour stocker les chemins locaux des images redimensionnées
-    resized_images = []
-    for i, image_url in enumerate(cover_images):
-        # Télécharger l'image depuis l'URL générée
-        local_image_path = f"/tmp/cover_image_{i}.png"
-        download_image(image_url, local_image_path)
-
-        # Redimensionner l'image
-        output_path = f"/tmp/resized_cover_image_{i}.png"
-        resize_image(local_image_path, output_path)
-        resized_images.append(output_path)
-
-    # Ajouter les images redimensionnées au PDF
-    elements = []
-    for image_path in resized_images:
-        elements.append(Image(image_path, width=469, height=716))
-        elements.append(PageBreak())
-
-    # Logique de création du PDF ici...
-    return "PDF généré avec succès !"  # Remplacez par l'envoi du fichier PDF
-
-def download_image(url, output_path):
-    """Télécharge une image depuis une URL."""
-    import requests
-    response = requests.get(url)
-    with open(output_path, 'wb') as file:
-        file.write(response.content)
-
-def resize_image(image_path, output_path, target_size=(469, 716)):
-    """Redimensionne une image."""
-    from PIL import Image as PILImage
-    with PILImage.open(image_path) as img:
-        img = img.resize(target_size, PILImage.LANCZOS)
-        img.save(output_path)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+        for image_path in resized_images:
+            elements.append(Image(image_path, width=469, height=716))
+            elements.append(PageBreak())
 
         add_section_title(elements, "Informations du Client")
         client_info_data = [
@@ -308,11 +290,9 @@ if __name__ == '__main__':
 
             elements.append(PageBreak())
 
-        footer = Paragraph("Rapport généré par : P.I INVESTMENT\nPOD 2, THE OLD STATION HOUSE, Blackrock, Dublin (IRL).", styles['Normal'])
-        elements.append(footer)
-
         doc.build(elements)
         logging.info(f"Rapport généré avec succès : {pdf_filename}")
+        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
 
         return send_file(pdf_filename, as_attachment=True)
     except Exception as e:
