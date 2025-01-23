@@ -113,41 +113,7 @@ def generate_section(client, section_prompt, max_tokens=1500):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Générez un rapport détaillé et approfondi sur l'analyse immobilière en suivant ces directives :
-
-1. Évolution des prix :
-   - Présentez un tableau détaillé de l'évolution des prix de l'immobilier sur les cinq dernières années.
-   - Incluez une analyse graphique de cette évolution.
-
-2. Analyse du marché :
-   - Fournissez une description très précise du marché immobilier local.
-   - Incluez des données sur l'offre, la demande, et les tendances actuelles.
-   - Analysez l'impact des facteurs économiques et démographiques sur le marché.
-
-3. Description du bien :
-   - Détaillez précisément les caractéristiques du bien (appartement, maison, villa, terrain).
-   - Incluez des informations sur la superficie, le nombre de pièces, l'état général, les équipements, et les particularités.
-   - Comparez ces caractéristiques avec les standards du marché local.
-
-4. Analyse approfondie :
-   - Pour chaque rubrique, fournissez une analyse détaillée basée sur des données concrètes.
-   - Incluez des comparaisons avec des biens similaires dans la zone.
-   - Analysez les forces et faiblesses du bien par rapport au marché actuel.
-
-5. Projection financière :
-   - Présentez une projection "logique" de l'évolution du prix du bien sur les 5 prochaines années.
-   - Basez cette projection sur l'analyse des tendances des dernières années.
-   - Incluez un graphique illustrant cette projection.
-
-6. Évitez les répétitions :
-   - Assurez-vous que chaque section apporte des informations nouvelles et pertinentes.
-   - Ne répétez pas les mêmes informations dans différentes rubriques.
-
-7. Présentation :
-   - Utilisez des tableaux, des graphiques et des listes à puces pour présenter les informations de manière claire et concise.
-   - Structurez le rapport avec des titres et sous-titres clairs.
-
-Veillez à ce que chaque partie du rapport soit détaillée, précise et apporte une valeur ajoutée à l'analyse globale."},
+            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial Générez un rapport détaillé et approfondi sur l'analyse immobilière en suivant ces directives précises. Le rapport doit être exhaustif, analytique et structuré, en se concentrant sur plusieurs aspects clés de l'analyse immobilière. Présentez un tableau détaillé de l'évolution des prix de l'immobilier sur les cinq dernières années, incluant une analyse graphique de cette évolution. Fournissez une description très précise du marché immobilier local avec des données concrètes sur l'offre, la demande et les tendances actuelles. Analysez l'impact des facteurs économiques et démographiques sur le marché. Détaillez précisément les caractéristiques du bien appartement, maison, villa, terrain en incluant des informations sur la superficie, le nombre de pièces, l'état général, les équipements et les particularités. Comparez ces caractéristiques avec les standards du marché local. Pour chaque rubrique, proposez une analyse approfondie basée sur des données concrètes, incluant des comparaisons avec des biens similaires dans la zone et une analyse des forces et faiblesses du bien par rapport au marché actuel. Réalisez une projection financière ,logique de l'évolution du prix du bien sur les 5 prochaines années, en vous basant sur l'analyse des tendances des dernières années et en incluant un graphique illustratif. Veillez à éviter toute répétition d'informations entre les différentes rubriques, en vous assurant que chaque section apporte des informations nouvelles et pertinentes. La présentation doit être claire et concise, utilisant des tableaux, des graphiques et des listes à puces, avec des titres et sous-titres bien structurés. L'objectif final est de produire un rapport détaillé, précis et à forte valeur ajoutée, offrant une analyse complète et perspicace du bien immobilier et de son environnement de marché."},
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
