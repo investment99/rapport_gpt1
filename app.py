@@ -113,7 +113,41 @@ def generate_section(client, section_prompt, max_tokens=1500):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial ainsi que dans les secteurs de l'automobile de luxe, de l'aviation privée, du yachting, de l'horlogerie, de la maroquinerie et de la bijouterie de luxe, ainsi que dans les domaines de l'art et des antiquités En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent des tableaux et graphiques pour une représentation visuelle des données des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre ainsi que des tendances du marché et des prévisions sur les évolutions à moyen et long terme Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel qui démontre une parfaite maîtrise des enjeux économiques et sectoriels"},
+            {"role": "system", "content": "Générez un rapport détaillé et approfondi sur l'analyse immobilière en suivant ces directives :
+
+1. Évolution des prix :
+   - Présentez un tableau détaillé de l'évolution des prix de l'immobilier sur les cinq dernières années.
+   - Incluez une analyse graphique de cette évolution.
+
+2. Analyse du marché :
+   - Fournissez une description très précise du marché immobilier local.
+   - Incluez des données sur l'offre, la demande, et les tendances actuelles.
+   - Analysez l'impact des facteurs économiques et démographiques sur le marché.
+
+3. Description du bien :
+   - Détaillez précisément les caractéristiques du bien (appartement, maison, villa, terrain).
+   - Incluez des informations sur la superficie, le nombre de pièces, l'état général, les équipements, et les particularités.
+   - Comparez ces caractéristiques avec les standards du marché local.
+
+4. Analyse approfondie :
+   - Pour chaque rubrique, fournissez une analyse détaillée basée sur des données concrètes.
+   - Incluez des comparaisons avec des biens similaires dans la zone.
+   - Analysez les forces et faiblesses du bien par rapport au marché actuel.
+
+5. Projection financière :
+   - Présentez une projection "logique" de l'évolution du prix du bien sur les 5 prochaines années.
+   - Basez cette projection sur l'analyse des tendances des dernières années.
+   - Incluez un graphique illustrant cette projection.
+
+6. Évitez les répétitions :
+   - Assurez-vous que chaque section apporte des informations nouvelles et pertinentes.
+   - Ne répétez pas les mêmes informations dans différentes rubriques.
+
+7. Présentation :
+   - Utilisez des tableaux, des graphiques et des listes à puces pour présenter les informations de manière claire et concise.
+   - Structurez le rapport avec des titres et sous-titres clairs.
+
+Veillez à ce que chaque partie du rapport soit détaillée, précise et apporte une valeur ajoutée à l'analyse globale."},
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
@@ -188,7 +222,7 @@ def generate_report():
             ("Contexte", 250),
             ("Secteur d'investissement", 300),
             ("Analyse du marché", 400),
-            ("Analyse du produit/service", 300),
+            ("Analyse du produit", 300),
             ("Évaluation des risques", 350),
             ("Conclusion et recommandations", 300)
         ]
