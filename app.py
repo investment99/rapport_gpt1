@@ -4,19 +4,17 @@ import os
 import logging
 import ssl
 import unicodedata
-import re
 from flask_cors import CORS
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.lib.units import inch, cm
+from reportlab.lib.units import cm
 from PIL import Image as PILImage
 from datetime import datetime
 import tempfile
-import requests
-from markdown import markdown
-from io import StringIO
+import markdown2
+from bs4 import BeautifulSoup
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -56,59 +54,43 @@ def clean_text(text):
 
 def markdown_to_elements(md_text):
     elements = []
-    lines = md_text.split('\n')
-    table_data = []
-    for line in lines:
-        if "|" in line and "---" not in line:
-            # C'est une ligne de tableau
-            row = line.split('|')
-            table_data.append([cell.strip() for cell in row if cell.strip()])
-        else:
-            if table_data:
-                # Traiter le tableau accumulé une fois qu'une ligne non-tableau est rencontrée
-                table_style = TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 12),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 11),
-                    ('TOPPADDING', (0, 1), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                ])
-                elements.append(Table(table_data, style=table_style))
-                table_data = []
-
-            if line.strip():
-                paragraph = Paragraph(clean_text(line), getSampleStyleSheet()['BodyText'])
-                elements.append(paragraph)
-                elements.append(Spacer(1, 12))
-
-    if table_data:
-        # Ajouter le dernier tableau s'il y en a un
-        table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 11),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ])
-        elements.append(Table(table_data, style=table_style))
+    html_content = markdown2.markdown(md_text)
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    for element in soup:
+        if element.name == 'p':
+            para = Paragraph(clean_text(str(element)), getSampleStyleSheet()['BodyText'])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
+        elif element.name == 'table':
+            data = []
+            for row in element.find_all('tr'):
+                cols = row.find_all(['td', 'th'])
+                data.append([col.get_text() for col in cols])
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 12))
+        elif element.name == 'h1':
+            para = Paragraph('<h1>' + clean_text(element.get_text()) + '</h1>', getSampleStyleSheet()['Heading1'])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
+        elif element.name == 'h2':
+            para = Paragraph('<h2>' + clean_text(element.get_text()) + '</h2>', getSampleStyleSheet()['Heading2'])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
+        elif element.name == 'h3':
+            para = Paragraph('<h3>' + clean_text(element.get_text()) + '</h3>', getSampleStyleSheet()['Heading3'])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
     return elements
 
 def add_section_title(elements, title):
