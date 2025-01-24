@@ -112,7 +112,28 @@ def generate_section(client, section_prompt, max_tokens=1500):
         model="gpt-4",
         messages=[
             {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels."},
-            {"role": "user", "content": "Votre tâche est de générer un rapport détaillé et professionnel répondant aux besoins spécifiques du client. Le rapport doit inclure :\n1. Une analyse des prix moyens au mètre carré pour le type de bien dans la ville mentionnée.\n2. Une évaluation de l'évolution des prix sur les 5 dernières années.\n3. Une analyse du rendement locatif potentiel pour le bien.\n4. Des recommandations de quartiers en fonction des critères du client : proximité des écoles, transports, etc.\n5. Une évaluation de la qualité des infrastructures disponibles : établissements scolaires, commerces, transports, etc.\n6. Des tendances du marché immobilier local et des prévisions à moyen et long terme.\n7. Des tableaux clairs pour illustrer les données, par exemple : évolution des prix, rendement locatif, etc.\n\nLe rapport doit être rigoureusement adapté aux critères spécifiques du client et refléter une parfaite maîtrise des enjeux économiques et sectoriels.\nSoyez clair, précis et professionnel."}
+            {"role": "user", "content": f"""
+Le client a fourni les informations suivantes dans le formulaire :
+- **Ville recherchée** : {city}
+- **Type de bien** : {property_type} (par exemple, appartement F4, maison, etc.)
+- **Surface souhaitée** : {surface} m²
+- **Budget maximum** : {budget} €
+- **Critères spécifiques** :
+  - Proximité des écoles : {school_proximity}
+  - Proximité des transports : {transport_proximity}
+  - Exigences supplémentaires : {additional_requirements}
+
+Votre tâche est de générer un rapport immobilier détaillé et professionnel en répondant aux besoins spécifiques de ce client. Le rapport doit inclure les éléments suivants :
+1. Une analyse des prix moyens au mètre carré pour le type de bien dans la ville mentionnée.
+2. Une évaluation de l'évolution des prix sur les 5 dernières années, avec des tendances claires.
+3. Une analyse du rendement locatif potentiel pour le bien dans les quartiers recommandés.
+4. Des recommandations sur les quartiers correspondant aux critères du client (proximité des écoles, des transports, et autres exigences spécifiques).
+5. Une évaluation de la qualité des infrastructures disponibles : établissements scolaires, commerces, accès aux transports, etc.
+6. Une analyse des tendances du marché immobilier local, accompagnée de prévisions à moyen et long terme.
+7. Des tableaux clairs pour illustrer les données pertinentes (par exemple : évolution des prix, rendement locatif, segmentation par quartier, etc.).
+
+Le rapport doit être rigoureusement adapté aux critères spécifiques du client et démontrer une parfaite maîtrise des enjeux économiques et sectoriels. Soyez clair, précis et professionnel.
+"""}
         ],
         max_tokens=max_tokens,
         temperature=0.7
