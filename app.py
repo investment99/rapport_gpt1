@@ -4,17 +4,19 @@ import os
 import logging
 import ssl
 import unicodedata
+import re
 from flask_cors import CORS
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.lib.units import cm
+from reportlab.lib.units import inch, cm
 from PIL import Image as PILImage
 from datetime import datetime
 import tempfile
-import markdown2
-from bs4 import BeautifulSoup
+import requests
+from markdown import markdown
+from io import StringIO
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -54,43 +56,59 @@ def clean_text(text):
 
 def markdown_to_elements(md_text):
     elements = []
-    html_content = markdown2.markdown(md_text)
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    for element in soup:
-        if element.name == 'p':
-            para = Paragraph(clean_text(str(element)), getSampleStyleSheet()['BodyText'])
-            elements.append(para)
-            elements.append(Spacer(1, 12))
-        elif element.name == 'table':
-            data = []
-            for row in element.find_all('tr'):
-                cols = row.find_all(['td', 'th'])
-                data.append([col.get_text() for col in cols])
-            table = Table(data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]))
-            elements.append(table)
-            elements.append(Spacer(1, 12))
-        elif element.name == 'h1':
-            para = Paragraph('<h1>' + clean_text(element.get_text()) + '</h1>', getSampleStyleSheet()['Heading1'])
-            elements.append(para)
-            elements.append(Spacer(1, 12))
-        elif element.name == 'h2':
-            para = Paragraph('<h2>' + clean_text(element.get_text()) + '</h2>', getSampleStyleSheet()['Heading2'])
-            elements.append(para)
-            elements.append(Spacer(1, 12))
-        elif element.name == 'h3':
-            para = Paragraph('<h3>' + clean_text(element.get_text()) + '</h3>', getSampleStyleSheet()['Heading3'])
-            elements.append(para)
-            elements.append(Spacer(1, 12))
+    lines = md_text.split('\n')
+    table_data = []
+    for line in lines:
+        if "|" in line and "---" not in line:
+            # C'est une ligne de tableau
+            row = line.split('|')
+            table_data.append([cell.strip() for cell in row if cell.strip()])
+        else:
+            if table_data:
+                # Traiter le tableau accumulé une fois qu'une ligne non-tableau est rencontrée
+                table_style = TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 11),
+                    ('TOPPADDING', (0, 1), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                ])
+                elements.append(Table(table_data, style=table_style))
+                table_data = []
+
+            if line.strip():
+                paragraph = Paragraph(clean_text(line), getSampleStyleSheet()['BodyText'])
+                elements.append(paragraph)
+                elements.append(Spacer(1, 12))
+
+    if table_data:
+        # Ajouter le dernier tableau s'il y en a un
+        table_style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 11),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ])
+        elements.append(Table(table_data, style=table_style))
     return elements
 
 def add_section_title(elements, title):
@@ -112,31 +130,10 @@ def generate_section(client, section_prompt, max_tokens=1500):
         model="gpt-4",
         messages=[
             {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels."},
-            {"role": "user", "content": f"""
-Le client a fourni les informations suivantes dans le formulaire :
-- **Ville recherchée** : {city}
-- **Type de bien** : {property_type} (par exemple, appartement F4, maison, etc.)
-- **Surface souhaitée** : {surface} m²
-- **Budget maximum** : {budget} €
-- **Critères spécifiques** :
-  - Proximité des écoles : {school_proximity}
-  - Proximité des transports : {transport_proximity}
-  - Exigences supplémentaires : {additional_requirements}
-
-Votre tâche est de générer un rapport immobilier détaillé et professionnel en répondant aux besoins spécifiques de ce client. Le rapport doit inclure les éléments suivants :
-1. Une analyse des prix moyens au mètre carré pour le type de bien dans la ville mentionnée.
-2. Une évaluation de l'évolution des prix sur les 5 dernières années, avec des tendances claires.
-3. Une analyse du rendement locatif potentiel pour le bien dans les quartiers recommandés.
-4. Des recommandations sur les quartiers correspondant aux critères du client (proximité des écoles, des transports, et autres exigences spécifiques).
-5. Une évaluation de la qualité des infrastructures disponibles : établissements scolaires, commerces, accès aux transports, etc.
-6. Une analyse des tendances du marché immobilier local, accompagnée de prévisions à moyen et long terme.
-7. Des tableaux clairs pour illustrer les données pertinentes (par exemple : évolution des prix, rendement locatif, segmentation par quartier, etc.).
-
-Le rapport doit être rigoureusement adapté aux critères spécifiques du client et démontrer une parfaite maîtrise des enjeux économiques et sectoriels. Soyez clair, précis et professionnel.
-"""}
+            {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
-        temperature=0.7
+        temperature=0.5
     )
     return markdown_to_elements(response.choices[0].message.content)
 
