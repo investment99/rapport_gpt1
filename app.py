@@ -115,7 +115,7 @@ def generate_section(client, section_prompt, max_tokens=1500):
             {"role": "user", "content": "Votre tâche est de générer un rapport détaillé et professionnel répondant aux besoins spécifiques du client. Le rapport doit inclure :\n1. Une analyse des prix moyens au mètre carré pour le type de bien dans la ville mentionnée.\n2. Une évaluation de l'évolution des prix sur les 5 dernières années.\n3. Une analyse du rendement locatif potentiel pour le bien.\n4. Des recommandations de quartiers en fonction des critères du client : proximité des écoles, transports, etc.\n5. Une évaluation de la qualité des infrastructures disponibles : établissements scolaires, commerces, transports, etc.\n6. Des tendances du marché immobilier local et des prévisions à moyen et long terme.\n7. Des tableaux clairs pour illustrer les données, par exemple : évolution des prix, rendement locatif, etc.\n\nLe rapport doit être rigoureusement adapté aux critères spécifiques du client et refléter une parfaite maîtrise des enjeux économiques et sectoriels.\nSoyez clair, précis et professionnel."}
         ],
         max_tokens=max_tokens,
-        temperature=0.5
+        temperature=0.7
     )
     return markdown_to_elements(response.choices[0].message.content)
 
