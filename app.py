@@ -6,14 +6,12 @@ import ssl
 import unicodedata
 import re
 from flask_cors import CORS
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 from reportlab.lib.units import inch, cm
 from PIL import Image as PILImage
-import sys
 from datetime import datetime
 import tempfile
 import requests
@@ -54,17 +52,63 @@ def clean_text(text):
     for old, new in replacements.items():
         text = text.replace(old, new)
     text = text.encode('ascii', errors='ignore').decode('ascii')
-    text = re.sub(r'(?<!\d)\.(?!\d|\)|\s[A-Z]|\s[a-z])(?!$)', '.<br/><br/>', text)
-    text = re.sub(r':(?!\s?\d|\))(?!$)', ':<br/><br/>', text)
     return text
 
 def markdown_to_elements(md_text):
-    html = markdown(md_text)
-    sio = StringIO(html)
     elements = []
-    for line in sio:
-        para = Paragraph(line, getSampleStyleSheet()['BodyText'])
-        elements.append(para)
+    lines = md_text.split('\n')
+    table_data = []
+    for line in lines:
+        if "|" in line and "---" not in line:
+            # C'est une ligne de tableau
+            row = line.split('|')
+            table_data.append([cell.strip() for cell in row if cell.strip()])
+        else:
+            if table_data:
+                # Traiter le tableau accumulé une fois qu'une ligne non-tableau est rencontrée
+                table_style = TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 11),
+                    ('TOPPADDING', (0, 1), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                ])
+                elements.append(Table(table_data, style=table_style))
+                table_data = []
+
+            if line.strip():
+                paragraph = Paragraph(clean_text(line), getSampleStyleSheet()['BodyText'])
+                elements.append(paragraph)
+                elements.append(Spacer(1, 12))
+
+    if table_data:
+        # Ajouter le dernier tableau s'il y en a un
+        table_style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 11),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ])
+        elements.append(Table(table_data, style=table_style))
     return elements
 
 def add_section_title(elements, title):
@@ -81,50 +125,11 @@ def add_section_title(elements, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 12))
 
-def add_text(elements, text):
-    styles = getSampleStyleSheet()
-    normal_style = ParagraphStyle(
-        'NormalText',
-        fontSize=12,
-        fontName='Helvetica',
-        alignment=0,
-        leading=16,
-    )
-    elements.append(Paragraph(text, normal_style))
-    elements.append(Spacer(1, 12))
-
-def add_table(elements, data, column_widths=None):
-    if column_widths is None:
-        column_widths = [2 * inch] * len(data[0])
-    table = Table(data, colWidths=column_widths, repeatRows=1)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#00C7C4")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ('TOPPADDING', (0, 1), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-    ]))
-    elements.append(KeepTogether(table))
-    elements.append(Spacer(1, 12))
-
-def resize_image(image_path, output_path, target_size=(469, 716)):
-    with PILImage.open(image_path) as img:
-        img = img.resize(target_size, PILImage.LANCZOS)
-        img.save(output_path)
-
 def generate_section(client, section_prompt, max_tokens=1500):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent des tableaux et graphiques pour une représentation visuelle des données des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre ainsi que des tendances du marché et des prévisions sur les évolutions à moyen et long terme Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel qui démontre une parfaite maîtrise des enjeux économiques et sectoriels"},
+            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels."},
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
@@ -163,10 +168,10 @@ def home():
         return generate_report()
     return "Bienvenue sur le serveur Flask. L'API est prête à recevoir des requêtes !"
 
-def download_image(url, output_path):
-    response = requests.get(url)
-    with open(output_path, 'wb') as file:
-        file.write(response.content)
+def resize_image(image_path, output_path, target_size=(469, 716)):
+    with PILImage.open(image_path) as img:
+        img = img.resize(target_size, PILImage.LANCZOS)
+        img.save(output_path)
 
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
