@@ -17,6 +17,8 @@ import sys
 from datetime import datetime
 import tempfile
 import requests
+from markdown import markdown
+from io import StringIO
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -55,6 +57,15 @@ def clean_text(text):
     text = re.sub(r'(?<!\d)\.(?!\d|\)|\s[A-Z]|\s[a-z])(?!$)', '.<br/><br/>', text)
     text = re.sub(r':(?!\s?\d|\))(?!$)', ':<br/><br/>', text)
     return text
+
+def markdown_to_elements(md_text):
+    html = markdown(md_text)
+    sio = StringIO(html)
+    elements = []
+    for line in sio:
+        para = Paragraph(line, getSampleStyleSheet()['BodyText'])
+        elements.append(para)
+    return elements
 
 def add_section_title(elements, title):
     styles = getSampleStyleSheet()
@@ -119,7 +130,7 @@ def generate_section(client, section_prompt, max_tokens=1500):
         max_tokens=max_tokens,
         temperature=0.5
     )
-    return clean_text(response.choices[0].message.content)
+    return markdown_to_elements(response.choices[0].message.content)
 
 def generate_market_data(investment_sector, city):
     if investment_sector.lower() == "immobilier":
@@ -258,42 +269,7 @@ def generate_report():
             """
             section_content = generate_section(client, section_prompt)
             add_section_title(elements, section_title)
-            add_text(elements, section_content)
-
-            if section_title == "Analyse du produit/service":
-                elements.append(PageBreak())
-                add_section_title(elements, "Évolution du Prix du Bien Recherché (2020-2024)")
-                data = [
-                    ["Année", "Valeur estimée (EUR)", "Variation annuelle (%)"],
-                    ["2020", "1,000,000", "+5.0"],
-                    ["2021", "1,050,000", "+5.0"],
-                    ["2022", "1,102,500", "+5.0"],
-                    ["2023", "1,157,625", "+5.0"],
-                    ["2024", "1,215,506", "+5.0"]
-                ]
-                add_table(elements, data, [2 * inch, 2 * inch, 2 * inch])
-
-                elements.append(PageBreak())
-                add_section_title(elements, "Évolution des Prix de l'Immobilier (2020-2024)")
-                additional_data_1 = [
-                    ["Année", "Prix moyen au m² (EUR)", "Variation annuelle (%)"],
-                    ["2020", "5,700", "+4.5"],
-                    ["2021", "5,985", "+5.0"],
-                    ["2022", "6,285", "+5.0"],
-                    ["2023", "6,600", "+5.0"],
-                    ["2024", "6,930", "+5.0"]
-                ]
-                add_table(elements, additional_data_1, [2 * inch, 2 * inch, 2 * inch])
-
-                elements.append(PageBreak())
-                add_section_title(elements, "Caractéristiques et leur Impact sur la Valeur")
-                additional_data_2 = [
-                    ["Caractéristique", "Impact sur la Valeur (%)", "Justification"],
-                    ["Cuisine fermée", "+10", "Pratique et très prisée dans l'immobilier de luxe"],
-                    ["Piscine", "+15", "Élément de confort majeur"],
-                    ["Parking couvert", "+5", "Atout en centre-ville"]
-                ]
-                add_table(elements, additional_data_2, [2 * inch, 2 * inch, 3 * inch])
+            elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
 
             elements.append(PageBreak())
 
