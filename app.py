@@ -272,8 +272,15 @@ def generate_report():
 
             {market_data_str}
 
-            Générez la section '{section_title}' du rapport d'analyse. 
-            Cette section doit contenir au minimum {min_words} mots.
+            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Le rapport doit inclure :
+
+- Une introduction succincte du contexte général.
+- Des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
+- Des recommandations spécifiques aux critères de {name}, en s'appuyant sur les aspirations mentionnées telles que {investment_sector}.
+- Intégrez au moins un tableau ou graphique (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques.
+- D'autres détails utiles pourraient inclure l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
+
+Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
             """
             section_content = generate_section(client, section_prompt)
             add_section_title(elements, section_title)
