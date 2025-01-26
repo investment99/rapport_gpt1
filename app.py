@@ -282,12 +282,41 @@ Pour la section '{section_title}' :
 - Analyse du produit: Développez les caractéristiques spéciales ou uniques du produit.
 - Évaluation des risques: Limitez votre réponse à l'évaluation des risques.
 - Conclusion et recommandations: Limitez ensuite le contenu pour finaliser les déductions et fournir des recommandations finales.
+Pour la section '{section_title}' du rapport d'analyse :
+- Fournissez uniquement le contenu pertinent pour cette section. Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
+- Assurez-vous que les tableaux sont bien formés et intégrés pour couvrir la largeur complète de la page, illustrant les données pertinentes uniquement pour cette section.
 - Une introduction succincte du contexte général basé sur le formulaire que le client à remplie, en respectant les sections Introduction,Contexte,Secteur d'investissement,Analyse du marché,Analyse du produit,Évaluation des risques,Conclusion et recommandations.
 - Des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
 - Des recommandations spécifiques aux critères de {name}, en s'appuyant sur les aspirations mentionnées telles que {investment_sector}.
 - Intégrez au moins un tableau intégralement en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques.
 - D'autres détails utiles pourraient inclure l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
+### Ajustement des Tableaux
 
+1. **Enlever les Bordures Indésirables des Markdown:**
+
+   Assurez-vous que le Markdown est correctement transformé pour éliminer les bordures superflues. Vérifiez les lignes de séparation dans le texte Markdown et assurez-vous qu’elles suivent le bon format.
+
+2. **Assurer la Pleine Largeur:**
+
+   Vérifiez que le calcul des largeurs des colonnes utilise toute la largeur disponible :
+
+   ```python
+   def create_full_width_table(data, page_width):
+       num_columns = len(data[0])
+       col_widths = [page_width / num_columns] * num_columns
+
+       table_style = TableStyle([
+           ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+           ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+           ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+           ('FONTSIZE', (0, 0), (-1, 0), 12),
+           ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+           ('TEXTCOLOR', (0, 1), (-1, -1), 'BLACK'),
+           ('GRID', (0, 0), (-1, -1), 0.5, colors.black)
+       ])
+       return Table(data, colWidths=col_widths, style=table_style)
+   ```
 Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
             """
             section_content = generate_section(client, section_prompt)
