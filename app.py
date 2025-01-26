@@ -125,7 +125,7 @@ def add_section_title(elements, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 12))
 
-def generate_section(client, section_prompt, max_tokens=1500):
+def generate_section(client, section_prompt, max_tokens=2000):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -133,7 +133,10 @@ def generate_section(client, section_prompt, max_tokens=1500):
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
-        temperature=0.5
+        temperature=0.7,
+        top_p=1,
+        frequency_penalty=0.3,  
+        presence_penalty=0.3,
     )
     return markdown_to_elements(response.choices[0].message.content)
 
