@@ -268,6 +268,27 @@ def generate_report():
             {summary}
 
             {market_data_str}
+            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Le rapport doit inclure :
+- Introduction: Limitez-vous aux informations contextuelles et préliminaires. Ne donnez pas de conclusions.
+- Contexte: Concentrez-vous sur l'information historique et les conditions du marché.
+- Secteur d'investissement: Analysez uniquement les facteurs touchant directement l'investissement.
+- Analyse du marché: Examinez seulement les données de marché, comparaisons historiques, etc.
+- Analyse du produit: Développez les caractéristiques spéciales ou uniques du produit.
+- Évaluation des risques: Limitez votre réponse à l'évaluation des risques.
+- Conclusion et recommandations: Limitez ensuite le contenu pour finaliser les déductions et fournir des recommandations finales.
+Pour la section '{section_title}' du rapport d'analyse :
+- Fournissez uniquement le contenu pertinent pour cette section. Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
+- Assurez-vous que les tableaux sont bien formés et intégrés pour couvrir la largeur complète de la page, illustrant les données pertinentes uniquement pour cette section.
+- Une introduction succincte du contexte général basé sur le formulaire que le client à remplie, en respectant les sections Introduction,Contexte,Secteur d'investissement,Analyse du marché,Analyse du produit,Évaluation des risques,Conclusion et recommandations.
+- Des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
+- Des recommandations spécifiques aux critères de {name}, en s'appuyant sur les aspirations mentionnées telles que {investment_sector}.
+- Intégrez au moins un tableau intégralement en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques.
+- D'autres détails utiles pourraient inclure l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
+
+
+Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots
+
+
 
             Générez la section '{section_title}' du rapport d'analyse. 
             Cette section doit contenir au minimum {min_words} mots.
