@@ -4,46 +4,52 @@ import os
 import logging
 import ssl
 import unicodedata
-import re
 from flask_cors import CORS
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.lib.units import inch, cm
+from reportlab.lib.units import cm
 from PIL import Image as PILImage
 from datetime import datetime
 import tempfile
-import requests
-from markdown import markdown
-from io import StringIO
+import markdown2
+from bs4 import BeautifulSoup
 
+# Désactiver la vérification SSL (à utiliser avec précaution)
 ssl._create_default_https_context = ssl._create_unverified_context
 
+# Configurer le logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
 
+# Créer l'application Flask
 app = Flask(__name__)
 CORS(app)
 app.config['JSON_AS_ASCII'] = False
 
 def log_to_file(message):
+    """Journaliser les messages dans un fichier"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("app_log.txt", "a") as log_file:
         log_file.write(f"{timestamp} - {message}\n")
 
 @app.route('/test_key', methods=['GET'])
 def test_key():
+    """Tester la clé API OpenAI"""
     api_key = os.getenv("OPENAI_API_KEY")
     if api_key:
         return f"Key loaded successfully: {api_key[:6]}...hidden", 200
     return "API key not found", 500
 
+# Initialiser le client OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Créer le dossier pour les rapports PDF
 PDF_FOLDER = "./pdf_reports/"
 os.makedirs(PDF_FOLDER, exist_ok=True)
 
 def clean_text(text):
+    """Nettoyer le texte des caractères spéciaux"""
     text = ''.join(c for c in unicodedata.normalize('NFKD', text) if not unicodedata.combining(c))
     replacements = {
         '€': 'EUR', '£': 'GBP', '©': '(c)', '®': '(R)', '™': '(TM)',
@@ -55,63 +61,41 @@ def clean_text(text):
     return text
 
 def markdown_to_elements(md_text):
+    """Convertir le Markdown en éléments ReportLab"""
     elements = []
-    lines = md_text.split('\n')
-    table_data = []
-    for line in lines:
-        if "|" in line and "---" not in line:
-            # C'est une ligne de tableau
-            row = line.split('|')
-            table_data.append([cell.strip() for cell in row if cell.strip()])
-        else:
-            if table_data:
-                # Traiter le tableau accumulé une fois qu'une ligne non-tableau est rencontrée
-                table_style = TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 12),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 11),
-                    ('TOPPADDING', (0, 1), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                ])
-                elements.append(Table(table_data, style=table_style))
-                table_data = []
-
-            if line.strip():
-                paragraph = Paragraph(clean_text(line), getSampleStyleSheet()['BodyText'])
-                elements.append(paragraph)
-                elements.append(Spacer(1, 12))
-
-    if table_data:
-        # Ajouter le dernier tableau s'il y en a un
-        table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 11),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ])
-        elements.append(Table(table_data, style=table_style))
+    html_content = markdown2.markdown(md_text)
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    for element in soup:
+        if element.name == 'p':
+            para = Paragraph(clean_text(str(element)), getSampleStyleSheet()['BodyText'])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
+        elif element.name == 'table':
+            data = []
+            for row in element.find_all('tr'):
+                cols = row.find_all(['td', 'th'])
+                data.append([col.get_text() for col in cols])
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 12))
+        elif element.name in ['h1', 'h2', 'h3']:
+            para = Paragraph('<{}>{}</{}>'.format(element.name, clean_text(element.get_text()), element.name), getSampleStyleSheet()[element.name.capitalize()])
+            elements.append(para)
+            elements.append(Spacer(1, 12))
     return elements
 
 def add_section_title(elements, title):
+    """Ajouter un titre de section au PDF"""
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'SectionTitle',
@@ -126,18 +110,22 @@ def add_section_title(elements, title):
     elements.append(Spacer(1, 12))
 
 def generate_section(client, section_prompt, max_tokens=1500):
+    """Générer une section du rapport via OpenAI"""
+    logging.info(f"Generating section with prompt: {section_prompt}")
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels."},
+            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière. Fournissez un rapport détaillé avec des données chiffrées, des tableaux, des graphiques et des analyses approfondies, en format Markdown."},
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
-        temperature=0.7
+        temperature=0.5
     )
+    logging.debug(f"API response: {response}")
     return markdown_to_elements(response.choices[0].message.content)
 
 def generate_market_data(investment_sector, city):
+    """Générer des données de marché basées sur le secteur et la ville"""
     if investment_sector.lower() == "immobilier":
         city_data = {
             "Nice": {
@@ -164,17 +152,20 @@ def generate_market_data(investment_sector, city):
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    """Route d'accueil"""
     if request.method == 'POST':
         return generate_report()
     return "Bienvenue sur le serveur Flask. L'API est prête à recevoir des requêtes !"
 
 def resize_image(image_path, output_path, target_size=(469, 716)):
+    """Redimensionner une image"""
     with PILImage.open(image_path) as img:
         img = img.resize(target_size, PILImage.LANCZOS)
         img.save(output_path)
 
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
+    """Générer un rapport PDF basé sur les données du formulaire"""
     try:
         logging.info("Requête reçue à /generate_report")
         log_to_file("Début de la génération du rapport")
@@ -264,13 +255,8 @@ def generate_report():
         elements.append(Spacer(1, 12))
 
         for section_title, min_words in sections:
+            # Génération du prompt pour OpenAI en utilisant les données spécifiques du client
             section_prompt = f"""
-             {summary}
-
-             {market_data_str}
-
-            Générez la section '{section_title}' du rapport d'analyse. 
-            Cette section doit contenir au minimum {min_words} mots.
             Résumé des informations fournies par le client :
 
             Nom : {name}
@@ -282,14 +268,14 @@ def generate_report():
 
             Données spécifiques au marché immobilier à {city} :
             - Prix moyen au mètre carré :
-            {', '.join([f"{quartier}: {prix} EUR" for quartier, prix in market_data.get('prix_moyen', {}).items()])}
+              {', '.join([f"{quartier}: {prix} EUR" for quartier, prix in market_data.get('prix_moyen', {}).items()])}
             - Taux d'évolution des prix : {market_data.get('evolution_prix', 'Non spécifié')}%.
             - Quartiers en développement : {', '.join(market_data.get('quartiers_developpement', []))}.
             - Segmentation du marché :
-            {', '.join([f"{cat}: {part}%" for cat, part in market_data.get('segmentation', {}).items()])}.
+              {', '.join([f"{cat}: {part}%" for cat, part in market_data.get('segmentation', {}).items()])}.
 
             Contexte :
-            Le client souhaite un rapport professionnel pour évaluer les opportunités d'investissement dans l'immobilier résidentiel ou   commercial à {city}. L'objectif est de fournir des recommandations personnalisées basées sur des données chiffrées et des analyses locales.
+            Le client souhaite un rapport professionnel pour évaluer les opportunités d'investissement dans l'immobilier résidentiel ou commercial à {city}. L'objectif est de fournir des recommandations personnalisées basées sur des données chiffrées et des analyses locales.
 
             Votre tâche :
             Générez la section '{section_title}' du rapport d'analyse. Cette section doit :
@@ -300,11 +286,47 @@ def generate_report():
 
             Ton attendu : Clair, professionnel et démontrant une expertise approfondie en immobilier.
             """
+
+            # Génération du contenu de la section via OpenAI
             section_content = generate_section(client, section_prompt)
+
+            # Ajout du titre de la section au PDF
             add_section_title(elements, section_title)
-            elements.extend(section_content)# Ajoutez les éléments Markdown convertis ici
+
+            # Intégration du contenu généré dans le rapport
+            elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
+
+            # Si la section est "Analyse du marché", ajouter un tableau
+            if section_title.lower() == "analyse du marché":
+                table_data = [["Quartier", "Prix moyen au m² (EUR)"]]
+                for quartier, prix in market_data.get("prix_moyen", {}).items():
+                    table_data.append([quartier, f"{prix} EUR"])
+                
+                # Définir le style du tableau
+                table_style = TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#00C7C4")),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 11),
+                    ('TOPPADDING', (0, 1), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                ])
+                table = Table(table_data, style=table_style)
+                elements.append(table)
+                elements.append(Spacer(1, 12))
+
+            # Ajout d'un saut de page après chaque section
             elements.append(PageBreak())
 
+        # Construire le document PDF
         doc.build(elements)
         logging.info(f"Rapport généré avec succès : {pdf_filename}")
         log_to_file(f"Rapport généré avec succès : {pdf_filename}")
