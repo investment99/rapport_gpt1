@@ -265,17 +265,38 @@ def generate_report():
 
         for section_title, min_words in sections:
             section_prompt = f"""
-            {summary}
+            Résumé des informations fournies par le client :
 
-            {market_data_str}
+            Nom : {name}
+            Secteur d'investissement : {investment_sector}
+            Adresse : {address}
+            Email : {email}
+            Téléphone : {phone}
+            Ville : {city}
 
-            Générez la section '{section_title}' du rapport d'analyse. 
-            Cette section doit contenir au minimum {min_words} mots.
+            Données spécifiques au marché immobilier à {city} :
+            - Prix moyen au mètre carré :
+            {', '.join([f"{quartier}: {prix} EUR" for quartier, prix in market_data.get('prix_moyen', {}).items()])}
+            - Taux d'évolution des prix : {market_data.get('evolution_prix', 'Non spécifié')}%.
+            - Quartiers en développement : {', '.join(market_data.get('quartiers_developpement', []))}.
+            - Segmentation du marché :
+            {', '.join([f"{cat}: {part}%" for cat, part in market_data.get('segmentation', {}).items()])}.
+
+            Contexte :
+            Le client souhaite un rapport professionnel pour évaluer les opportunités d'investissement dans l'immobilier résidentiel ou   commercial à {city}. L'objectif est de fournir des recommandations personnalisées basées sur des données chiffrées et des analyses locales.
+
+            Votre tâche :
+            Générez la section '{section_title}' du rapport d'analyse. Cette section doit :
+            1. Contenir au minimum {min_words} mots.
+            2. Être structurée de manière claire avec des sous-sections (si pertinent).
+            3. Intégrer des données chiffrées du marché, des analyses qualitatives, et des exemples concrets.
+            4. Inclure des recommandations adaptées aux objectifs du client.
+
+            Ton attendu : Clair, professionnel et démontrant une expertise approfondie en immobilier.
             """
             section_content = generate_section(client, section_prompt)
             add_section_title(elements, section_title)
-            elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
-
+            elements.extend(section_content)
             elements.append(PageBreak())
 
         doc.build(elements)
