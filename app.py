@@ -267,63 +267,83 @@ def generate_report():
         elements.append(Spacer(1, 12))
 
         for section_title, min_words in sections:
+            if section_title in generated_sections:
+                continue  # Évite les répétitions
+
             section_prompt = f"""
             {summary}
 
             {market_data_str}
 
-            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Le rapport doit inclure :
-Pour la section '{section_title}' :
+            Votre tâche est de générer la section '{section_title}' du rapport d'analyse. Assurez-vous que :
+            - Chaque section contient uniquement le contenu pertinent pour cette partie.
+            - Les sous-sections ne répètent pas les informations d'autres sections.
+            - Les données présentées dans les tableaux sont spécifiques à cette section et correspondent aux attentes du client.
 
-- Introduction: Limitez-vous aux informations contextuelles et préliminaires. Ne donnez pas de conclusions.
-- Contexte: Concentrez-vous sur l'information historique et les conditions du marché.
-- Secteur d'investissement: Analysez uniquement les facteurs touchant directement l'investissement.
-- Analyse du marché: Examinez seulement les données de marché, comparaisons historiques, etc.
-- Analyse du produit: Développez les caractéristiques spéciales ou uniques du produit.
-- Évaluation des risques: Limitez votre réponse à l'évaluation des risques.
-- Conclusion et recommandations: Limitez ensuite le contenu pour finaliser les déductions et fournir des recommandations finales.
-Pour la section '{section_title}' du rapport d'analyse :
-- Fournissez uniquement le contenu pertinent pour cette section. Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
-- Assurez-vous que les tableaux sont bien formés et intégrés pour couvrir la largeur complète de la page, illustrant les données pertinentes uniquement pour cette section.
-- Une introduction succincte du contexte général basé sur le formulaire que le client à remplie, en respectant les sections Introduction,Contexte,Secteur d'investissement,Analyse du marché,Analyse du produit,Évaluation des risques,Conclusion et recommandations.
-- Des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
-- Des recommandations spécifiques aux critères de {name}, en s'appuyant sur les aspirations mentionnées telles que {investment_sector}.
-- Intégrez au moins un tableau intégralement en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques.
-- D'autres détails utiles pourraient inclure l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
-### Ajustement des Tableaux
+            ### Format attendu :
+            - Introduction : Limitez-vous au contexte sans conclusions.
+            - Contexte : Concentrez-vous sur les informations générales et historiques.
+            - Secteur d'investissement : Fournissez des données spécifiques sur le secteur choisi.
+            - Analyse du marché : Incluez les comparaisons pertinentes, telles que l'évolution des prix au mètre carré.
+            - Analyse du produit : Développez les caractéristiques spécifiques du produit.
+            - Évaluation des risques : Fournissez une évaluation concise des risques.
+            - Conclusion et recommandations : Résumez les points clés et proposez des recommandations finales.
 
-1. **Enlever les Bordures Indésirables des Markdown:**
+            ### Tableaux et Mise en page :
+            - Intégrez un tableau qui utilise toute la largeur de la page et présente les données importantes pour cette section.
+            - Ajoutez une description sous chaque tableau pour clarifier les données.
 
-   Assurez-vous que le Markdown est correctement transformé pour éliminer les bordures superflues. Vérifiez les lignes de séparation dans le texte Markdown et assurez-vous qu’elles suivent le bon format.
-
-2. **Assurer la Pleine Largeur:**
-
-   Vérifiez que le calcul des largeurs des colonnes utilise toute la largeur disponible :
-
-   ```python
-   def create_full_width_table(data, page_width):
-       num_columns = len(data[0])
-       col_widths = [page_width / num_columns] * num_columns
-
-       table_style = TableStyle([
-           ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-           ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-           ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-           ('FONTSIZE', (0, 0), (-1, 0), 12),
-           ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-           ('TEXTCOLOR', (0, 1), (-1, -1), 'BLACK'),
-           ('GRID', (0, 0), (-1, -1), 0.5, colors.black)
-       ])
-       return Table(data, colWidths=col_widths, style=table_style)
-   ```
-Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
+            Exemple de données pertinentes :
+            - Prix moyen au mètre carré à {{address}} : {{average_price}}.
+            - Comparaison historique : {{historical_data}}.
+            - Recommandations spécifiques aux objectifs de {{name}}, en fonction des critères mentionnés tels que {{investment_sector}}.
             """
+
             section_content = generate_section(client, section_prompt)
             add_section_title(elements, section_title)
             elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
-
             elements.append(PageBreak())
+
+            generated_sections.add(section_title)
+
+        # Exemple d'ajout de tableau Markdown
+        headers = ["Année", "Prix moyen au m²"]
+        data = [
+            [2020, "8500 €"],
+            [2021, "9000 €"],
+            [2022, "9200 €"],
+            [2023, "9500 €"],
+            [2024, "9800 €"],
+            [2025, "10000 €"]
+        ]
+        markdown_table = generate_markdown_table(headers, data)
+        elements.append(markdown_table)
+        elements.append("\n*Tableau 1 : Evolution des prix moyens au m² dans le centre de Nice entre 2020 et 2025.*\n")
+
+        # Conversion Markdown en HTML puis PDF
+        markdown_content = "\n".join(elements)
+        html_content = markdown2.markdown(markdown_content)
+        HTML(string=html_content).write_pdf(output_file)
+
+        # Exemple d'utilisation
+        summary = "Résumé de l'analyse"
+        market_data_str = "Données du marché immobilier"
+        client = {"name": "Benamara Eric", "address": "Nice Centre", "investment_sector": "Immobilier"}
+        sections = [
+            ("Introduction", 100),
+            ("Contexte", 150),
+            ("Secteur d'Investissement", 200),
+            ("Analyse du Marché", 250),
+            ("Analyse du Produit", 200),
+            ("Évaluation des Risques", 150),
+            ("Conclusion et Recommandations", 100)
+        ]
+
+        section_content = generate_section(client, section_prompt)
+        add_section_title(elements, section_title)
+        elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
+
+        elements.append(PageBreak())
 
         doc.build(elements)
         logging.info(f"Rapport généré avec succès : {pdf_filename}")
