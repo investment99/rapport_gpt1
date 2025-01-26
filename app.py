@@ -7,7 +7,7 @@ import unicodedata
 from flask_cors import CORS
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle, StyleSheet1
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from PIL import Image as PILImage
@@ -66,9 +66,14 @@ def markdown_to_elements(md_text):
     html_content = markdown2.markdown(md_text)
     soup = BeautifulSoup(html_content, 'html.parser')
     
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='H1', fontSize=24, leading=28, spaceAfter=12))
+    styles.add(ParagraphStyle(name='H2', fontSize=18, leading=22, spaceAfter=12))
+    styles.add(ParagraphStyle(name='H3', fontSize=14, leading=18, spaceAfter=12))
+
     for element in soup:
         if element.name == 'p':
-            para = Paragraph(clean_text(str(element)), getSampleStyleSheet()['BodyText'])
+            para = Paragraph(clean_text(str(element)), styles['BodyText'])
             elements.append(para)
             elements.append(Spacer(1, 12))
         elif element.name == 'table':
@@ -89,7 +94,7 @@ def markdown_to_elements(md_text):
             elements.append(table)
             elements.append(Spacer(1, 12))
         elif element.name in ['h1', 'h2', 'h3']:
-            para = Paragraph('<{}>{}</{}>'.format(element.name, clean_text(element.get_text()), element.name), getSampleStyleSheet()[element.name.capitalize()])
+            para = Paragraph('<{}>{}</{}>'.format(element.name, clean_text(element.get_text()), element.name), styles[element.name.upper()])
             elements.append(para)
             elements.append(Spacer(1, 12))
     return elements
