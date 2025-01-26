@@ -265,6 +265,12 @@ def generate_report():
 
         for section_title, min_words in sections:
             section_prompt = f"""
+             {summary}
+
+             {market_data_str}
+
+            Générez la section '{section_title}' du rapport d'analyse. 
+            Cette section doit contenir au minimum {min_words} mots.
             Résumé des informations fournies par le client :
 
             Nom : {name}
@@ -296,7 +302,7 @@ def generate_report():
             """
             section_content = generate_section(client, section_prompt)
             add_section_title(elements, section_title)
-            elements.extend(section_content)
+            elements.extend(section_content)# Ajoutez les éléments Markdown convertis ici
             elements.append(PageBreak())
 
         doc.build(elements)
