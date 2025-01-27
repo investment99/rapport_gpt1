@@ -79,7 +79,10 @@ def markdown_to_elements(md_text):
             font_size = 12
             if col_width < 2 * cm:  # Si les colonnes deviennent trop étroites
                 font_size = 10  # Réduire la taille de la police
-
+            # Ajuster la taille des titres si le tableau est large
+            title_font_size = 12
+            if col_width < 2.5 * cm:  # Si les colonnes sont trop étroites
+                title_font_size = 10  # Réduire la taille des titres
             # Appliquer le style avec la taille de police ajustée
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -376,10 +379,14 @@ Générez une évaluation complète des risques liés à l'investissement, inclu
 ---
 
 #### **7. Conclusion et recommandations**
-Générez une conclusion complète, incluant :
+Générez une conclusion complète, incluant :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
 - Une recommandation claire sur l'opportunité d'investir .
-- Un tableau final illustrant l'évolution des prix au m² sur les 5 dernières années.
+- Une évaluation globale de l'opportunité d'investissement.
+- Les principales tendances observées sur le marché immobilier.
+- Des recommandations concrètes adaptées aux objectifs du client.
+
+Ne fournissez aucun tableau dans cette section.
 
 ---
 
