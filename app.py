@@ -81,8 +81,8 @@ def markdown_to_elements(md_text):
                 font_size = 10  # Réduire la taille de la police
             # Ajuster la taille des titres si le tableau est large
             title_font_size = 12
-            if col_width < 2.5 * cm:  # Si les colonnes sont trop étroites
-                title_font_size = 10  # Réduire la taille des titres
+            if col_width < 1 * cm:  # Si les colonnes sont trop étroites
+                title_font_size = 8  # Réduire la taille des titres
             # Appliquer le style avec la taille de police ajustée
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
