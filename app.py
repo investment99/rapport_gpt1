@@ -271,65 +271,110 @@ def generate_report():
             {summary}
 
             {market_data_str}
-Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Respectez strictement les consignes suivantes pour chaque section :
-
-1. **Structure et clarté** :
-   - Ne répétez pas les informations des autres sections. Chaque section doit contenir uniquement son contenu spécifique.
-   - Évitez les sous-menus ou sous-sections supplémentaires.
-
-2. **Utilisation des tableaux** :
-   - Conservez les tableaux exactement tels qu'ils sont générés par OpenAI.
-   - Insérez les tableaux au format Markdown sans les modifier ou transformer leur structure.
-   - Chaque tableau doit être unique à la section et accompagné d'une description concise expliquant son contenu et son importance.
-
-3. **Organisation des sections** :
-   - **Introduction** : Une vue d'ensemble de l'objectif d'investissement, avec un aperçu rapide du marché local.
-   - **Contexte** : Une analyse historique et démographique, incluant des tendances générales sur l'immobilier et la population locale.
-   - **Secteur d'investissement** : Inclure l'évolution des prix au mètre carré sur 5 ans et le rendement locatif moyen sur 2020-2025.
-   - **Analyse du marché** : Comprendre les facteurs qui influencent le marché, l'évolution des prix immobiliers (2020-2025), et une comparaison détaillée entre différents quartiers.
-   - **Analyse du produit** : Évaluer les caractéristiques spécifiques de l'appartement cible et son potentiel locatif ou de valorisation.
-   - **Évaluation des risques** : Examiner les risques liés à l'investissement, comme la vacance locative, les fluctuations du marché, ou les coûts inattendus.
-   - **Conclusion et recommandations** : Fournir une synthèse des données clés et des recommandations claires pour le client.
-
-4. **Détails à inclure** :
-   - Fournissez des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ..." et des comparaisons historiques (exemple : l'évolution sur les 5 dernières années).
-   - Ajoutez des informations pertinentes sur les infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
-   - Incluez au moins un exemple de quartier pour contextualiser l'analyse.
-
-5. **Exemple de tableaux attendus** :
-   - Évolution des prix au mètre carré :
-     ```markdown
-     | Année | Prix Moyen au m² (€) |
-     |-------|-----------------------|
-     | 2019  | 3,800                |
-     | 2020  | 4,000                |
-     | 2021  | 4,200                |
-     | 2022  | 4,400                |
-     | 2023  | 4,600                |
-
-     *Description : Ce tableau montre l'évolution des prix moyens au m² sur une période de 5 ans, illustrant une tendance à la hausse dans la ville {address}.*
-     ```
-
-   - Comparaison entre quartiers :
-     ```markdown
-     | Quartier      | Prix Moyen au m² (€) | Rendement Locatif (%) | Distance aux Commerces (m) | Distance aux Écoles (m) |
-     |---------------|-----------------------|------------------------|----------------------------|-------------------------|
-     | Centre-Ville  | 5,400                | 4.0                   | 300                        | 500                     |
-     | Cimiez        | 4,900                | 3.8                   | 500                        | 800                     |
-     | Libération    | 4,700                | 3.7                   | 600                        | 900                     |
-     | Mont-Boron    | 6,200                | 4.2                   | 400                        | 450                     |
-
-     *Description : Ce tableau compare différents quartiers en termes de prix moyens au m², rendements locatifs, et accessibilités.*
-     ```
-
-6. **Présentation et qualité** :
-   - Assurez-vous que le texte soit clair, précis, et bien structuré.
-   - Chaque tableau doit être suivi d'une description qui résume son contenu et son utilité pour le rapport.
-
-7. **Longueur minimale** :
-   - Fournissez un contenu détaillé et pertinent avec un minimum de {min_words} mots pour chaque section.
+Votre tâche est de générer la section '{section_title}' du rapport d'analyse immobilier, en fournissant des informations de qualité professionnelle adaptées à la ville {address} choisie par le client. Suivez scrupuleusement les consignes suivantes :
 
 ---
+
+### Instructions Générales
+
+1. **Structure et Clarté** :
+   - Ne répétez pas les informations des autres sections.
+   - Évitez les sous-menus ou sous-sections supplémentaires.
+
+2. **Utilisation des Tableaux** :
+   - Tous les tableaux doivent être générés dynamiquement par OpenAI en fonction des données pour la ville {address}.
+   - Les tableaux doivent être insérés tels qu'ils sont générés, au format Markdown.
+   - Ne reconstruisez pas les tableaux ou leur format.
+   - Assurez-vous que chaque tableau soit unique à la section et suivi d'une description claire expliquant son contenu et sa pertinence.
+
+3. **Organisation des Sections** :
+   - **Introduction** : Vue d'ensemble des objectifs d'investissement et aperçu rapide du marché local.
+   - **Contexte** : Analyse historique et démographique détaillée de la ville {address}, incluant des données sur la population, les infrastructures et le développement économique.
+   - **Secteur d'investissement** : Inclure l'évolution des prix au m² (5 dernières années) et le rendement locatif moyen (2020-2025) pour la ville {address}.
+   - **Analyse du marché** : Inclure l'évolution des prix immobiliers (2020-2025), un tableau comparatif des quartiers dans la ville {address} (prix au m², rendement locatif, distances), et les facteurs influençant le marché local.
+   - **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.
+   - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville {address}.
+   - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
+
+4. **Détails à Inclure** :
+   - Donnez un aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à {address}.
+   - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
+   - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m² à {address} est de ...", et comparez plusieurs quartiers.
+   - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville {address}.
+
+5. **Exemple attendu pour les tableaux générés dynamiquement** :
+   - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
+   - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie ({address}) avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
+
+---
+
+### Instructions par Section
+
+#### **1. Introduction**
+Générez une introduction qui inclut :
+- Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m² à {address} pour un usage locatif).
+- Une explication rapide de l'importance du marché local pour cet investissement.
+- Aucun tableau dans cette section.
+
+---
+
+#### **2. Contexte**
+Générez une analyse détaillée du contexte local, incluant :
+- Une présentation générale de la ville {address} : population, attractivité économique, infrastructures clés.
+- Une analyse des tendances immobilières et démographiques sur les 5 dernières années.
+- Aucun tableau dans cette section, uniquement des informations textuelles détaillées.
+
+---
+
+#### **3. Secteur d'investissement**
+Générez une analyse détaillée du secteur d'investissement, incluant :
+- Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville {address} sur les 5 dernières années.
+- Un tableau dynamique illustrant le rendement locatif moyen de la ville {address} pour la période 2020-2025.
+- Une description claire expliquant les tendances et leur pertinence pour l'investissement.
+
+---
+
+#### **4. Analyse du marché**
+Générez une analyse approfondie du marché immobilier local, incluant :
+- Un tableau dynamique montrant l'évolution des prix immobiliers à {address} sur la période 2020-2025.
+- Un tableau comparatif dynamique entre différents quartiers de {address}, avec les colonnes suivantes :
+  - Prix moyen au m².
+  - Rendement locatif (%).
+  - Distances moyennes aux commerces et écoles.
+- Une analyse expliquant les facteurs influençant les prix et les rendements locatifs.
+
+---
+
+#### **5. Analyse du produit**
+Générez une analyse détaillée du produit immobilier ciblé par le client, incluant :
+- Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
+- Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé à {address}.
+
+---
+
+#### **6. Évaluation des risques**
+Générez une évaluation complète des risques liés à l'investissement, incluant :
+- Une analyse des risques de marché (vacance locative, fluctuations des prix).
+- Un tableau illustrant les variations annuelles des prix au m² pour évaluer la stabilité du marché.
+
+---
+
+#### **7. Conclusion et recommandations**
+Générez une conclusion complète, incluant :
+- Une synthèse des données clés (prix au m², rendement locatif, etc.).
+- Une recommandation claire sur l'opportunité d'investir à {address}.
+- Un tableau final illustrant l'évolution des prix au m² sur les 5 dernières années.
+
+---
+
+### Règles Générales
+
+1. **Dynamisme des Données** : Toutes les données, y compris les tableaux, doivent être générées dynamiquement en fonction de la ville choisie {address}.
+2. **Respect des Formats** : Les tableaux doivent être insérés exactement tels qu'ils sont générés par OpenAI. Aucun tableau fixe ou reconstruit.
+3. **Descriptions Sous les Tableaux** : Chaque tableau doit être suivi d'une description expliquant son contenu et son importance.
+4. **Longueur Minimale** : Fournissez un contenu détaillé avec un minimum de {min_words} mots par section.
+
+
 
 Pour la section '{section_title}', concentrez-vous uniquement sur les éléments spécifiques à cette section. Ne répétez pas les informations des autres sections ou des parties déjà couvertes ailleurs. Si la section nécessite des comparaisons (comme pour l'analyse du marché), incluez plusieurs perspectives (par exemple, entre quartiers ou types de biens).
 
