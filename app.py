@@ -56,59 +56,29 @@ def clean_text(text):
 
 def markdown_to_elements(md_text):
     elements = []
-    lines = md_text.split('\n')
-    table_data = []
-    for line in lines:
-        if "|" in line and "---" not in line:
-            # C'est une ligne de tableau
-            row = line.split('|')
-            table_data.append([cell.strip() for cell in row if cell.strip()])
-        else:
-            if table_data:
-                # Traiter le tableau accumulé une fois qu'une ligne non-tableau est rencontrée
-                table_style = TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 12),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 11),
-                    ('TOPPADDING', (0, 1), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                ])
-                elements.append(Table(table_data, style=table_style))
-                table_data = []
+    html_content = md_to_html(md_text, extras=["tables"])  # Convert Markdown en HTML avec support des tableaux
+    soup = BeautifulSoup(html_content, "html.parser")
 
-            if line.strip():
-                paragraph = Paragraph(clean_text(line), getSampleStyleSheet()['BodyText'])
-                elements.append(paragraph)
-                elements.append(Spacer(1, 12))
+    for elem in soup.contents:
+        if elem.name == "table":
+            table_data = []
+            for row in elem.find_all("tr"):
+                table_data.append([cell.get_text(strip=True) for cell in row.find_all(["td", "th"])])
+            table_style = TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ])
+            elements.append(Table(table_data, style=table_style))
+        elif elem.name:
+            paragraph = Paragraph(clean_text(elem.get_text(strip=True)), getSampleStyleSheet()['BodyText'])
+            elements.append(paragraph)
+            elements.append(Spacer(1, 12))
 
-    if table_data:
-        # Ajouter le dernier tableau s'il y en a un
-        table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 11),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ])
-        elements.append(Table(table_data, style=table_style))
     return elements
 
 def add_section_title(elements, title):
@@ -282,29 +252,38 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Évitez les sous-menus ou sous-sections supplémentaires.
 
 2. **Utilisation des Tableaux** :
-   - Tous les tableaux doivent être générés dynamiquement par OpenAI en fonction des données pour la ville {address}.
+   - Tous les tableaux doivent être générés dynamiquement par OpenAI en fonction des données du formulaire client.
    - Les tableaux doivent être insérés tels qu'ils sont générés, au format Markdown.
    - Ne reconstruisez pas les tableaux ou leur format.
    - Assurez-vous que chaque tableau soit unique à la section et suivi d'une description claire expliquant son contenu et sa pertinence.
 
 3. **Organisation des Sections** :
    - **Introduction** : Vue d'ensemble des objectifs d'investissement et aperçu rapide du marché local.
-   - **Contexte** : Analyse historique et démographique détaillée de la ville {address}, incluant des données sur la population, les infrastructures et le développement économique.
+   - **Contexte** : Analyse historique et démographique détaillée de la ville , incluant des données sur la population, les infrastructures et le développement économique.
    - **Secteur d'investissement** : Inclure l'évolution des prix au m² (5 dernières années) et le rendement locatif moyen (2020-2025) pour la ville {address}.
-   - **Analyse du marché** : Inclure l'évolution des prix immobiliers (2020-2025), un tableau comparatif des quartiers dans la ville {address} (prix au m², rendement locatif, distances), et les facteurs influençant le marché local.
+   - **Analyse du marché** : Inclure l'évolution des prix immobiliers (2020-2025), un tableau comparatif des quartiers dans la ville (prix au m², rendement locatif, distances), et les facteurs influençant le marché local.
    - **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.
-   - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville {address}.
+   - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville .
    - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
 
 4. **Détails à Inclure** :
-   - Donnez un aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à {address}.
+   - Donnez un aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à .
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
-   - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m² à {address} est de ...", et comparez plusieurs quartiers.
-   - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville {address}.
+   - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
+   - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
 
 5. **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
-   - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie ({address}) avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
+   - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
+
+2. **Tableaux au format Markdown** :
+   - Tous les tableaux doivent être générés en Markdown, avec une première ligne contenant les en-têtes (séparés par |) et une deuxième ligne définissant les séparateurs avec "---".
+   - Voici un exemple de format attendu :
+   ```markdown
+   | Année | Prix Moyen au m² (€) |
+   |-------|-----------------------|
+   | 2020  | 4,200                |
+   | 2021  | 4,350                |
 
 ---
 
@@ -312,7 +291,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
-- Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m² à {address} pour un usage locatif).
+- Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m²  pour un usage locatif).
 - Une explication rapide de l'importance du marché local pour cet investissement.
 - Aucun tableau dans cette section.
 
@@ -320,7 +299,7 @@ Générez une introduction qui inclut :
 
 #### **2. Contexte**
 Générez une analyse détaillée du contexte local, incluant :
-- Une présentation générale de la ville {address} : population, attractivité économique, infrastructures clés.
+- Une présentation générale de la ville  : population, attractivité économique, infrastructures clés.
 - Une analyse des tendances immobilières et démographiques sur les 5 dernières années.
 - Aucun tableau dans cette section, uniquement des informations textuelles détaillées.
 
@@ -328,15 +307,15 @@ Générez une analyse détaillée du contexte local, incluant :
 
 #### **3. Secteur d'investissement**
 Générez une analyse détaillée du secteur d'investissement, incluant :
-- Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville {address} sur les 5 dernières années.
-- Un tableau dynamique illustrant le rendement locatif moyen de la ville {address} pour la période 2020-2025.
+- Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville  sur les 5 dernières années.
+- Un tableau dynamique illustrant le rendement locatif moyen de la ville pour la période 2020-2025.
 - Une description claire expliquant les tendances et leur pertinence pour l'investissement.
 
 ---
 
 #### **4. Analyse du marché**
 Générez une analyse approfondie du marché immobilier local, incluant :
-- Un tableau dynamique montrant l'évolution des prix immobiliers à {address} sur la période 2020-2025.
+- Un tableau dynamique montrant l'évolution des prix immobiliers de la ville sur la période 2020-2025.
 - Un tableau comparatif dynamique entre différents quartiers de {address}, avec les colonnes suivantes :
   - Prix moyen au m².
   - Rendement locatif (%).
@@ -348,7 +327,7 @@ Générez une analyse approfondie du marché immobilier local, incluant :
 #### **5. Analyse du produit**
 Générez une analyse détaillée du produit immobilier ciblé par le client, incluant :
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
-- Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé à {address}.
+- Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
 
 ---
 
@@ -362,7 +341,7 @@ Générez une évaluation complète des risques liés à l'investissement, inclu
 #### **7. Conclusion et recommandations**
 Générez une conclusion complète, incluant :
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
-- Une recommandation claire sur l'opportunité d'investir à {address}.
+- Une recommandation claire sur l'opportunité d'investir .
 - Un tableau final illustrant l'évolution des prix au m² sur les 5 dernières années.
 
 ---
