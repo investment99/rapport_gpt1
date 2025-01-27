@@ -56,27 +56,46 @@ def clean_text(text):
 
 from markdown2 import markdown as md_to_html
 from bs4 import BeautifulSoup
+from reportlab.lib.pagesizes import A4
 
 def markdown_to_elements(md_text):
     elements = []
     html_content = md_to_html(md_text, extras=["tables"])  # Convert Markdown en HTML avec support des tableaux
     soup = BeautifulSoup(html_content, "html.parser")
 
+    PAGE_WIDTH = A4[0] - 4 * cm  # Largeur totale de la page moins les marges (2 cm de chaque côté)
+
     for elem in soup.contents:
         if elem.name == "table":
             table_data = []
             for row in elem.find_all("tr"):
                 table_data.append([cell.get_text(strip=True) for cell in row.find_all(["td", "th"])])
+
+            # Calculer la largeur des colonnes en fonction de la page
+            col_count = len(table_data[0])  # Nombre de colonnes
+            col_width = PAGE_WIDTH / col_count  # Largeur égale pour chaque colonne
+
+            # Ajuster la taille de la police si le tableau dépasse
+            font_size = 12
+            if col_width < 2 * cm:  # Si les colonnes deviennent trop étroites
+                font_size = 10  # Réduire la taille de la police
+
+            # Appliquer le style avec la taille de police ajustée
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('FONTSIZE', (0, 0), (-1, 0), font_size),
+                ('FONTSIZE', (0, 1), (-1, -1), font_size - 2),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ])
-            elements.append(Table(table_data, style=table_style))
+
+            # Créer le tableau avec les largeurs ajustées
+            table = Table(table_data, colWidths=[col_width] * col_count, style=table_style)
+            elements.append(table)
         elif elem.name:
             paragraph = Paragraph(clean_text(elem.get_text(strip=True)), getSampleStyleSheet()['BodyText'])
             elements.append(paragraph)
@@ -318,7 +337,7 @@ Générez une analyse détaillée du secteur d'investissement, incluant :
 #### **4. Analyse du marché**
 Générez une analyse approfondie du marché immobilier local, incluant :
 - Un tableau dynamique montrant l'évolution des prix immobiliers de la ville sur la période 2020-2025.
-- Un tableau comparatif dynamique entre différents quartiers de {address}, avec les colonnes suivantes :
+- Un tableau comparatif dynamique entre différents quartiers , avec les colonnes suivantes :
   - Prix moyen au m².
   - Rendement locatif (%).
   - Distances moyennes aux commerces et écoles.
@@ -330,7 +349,23 @@ Générez une analyse approfondie du marché immobilier local, incluant :
 Générez une analyse détaillée du produit immobilier ciblé par le client, incluant :
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
 - Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
+Pour la section 'Analyse du produit', générez un tableau qui compare les prix moyens au m² pour différents types de biens immobiliers dans le quartier ciblé, comme demandé par le client. Les informations doivent inclure :
 
+- Le type de bien (par exemple, Appartement Neuf, Appartement Ancien, Maison Individuelle).
+- La superficie (exemple : 120 m²).
+- Le prix moyen au m² pour chaque type de bien.
+
+Le tableau doit être clair et au format Markdown. Fournissez également une description concise sous le tableau expliquant les différences de prix entre les biens.
+
+Exemple attendu :
+
+| Type de bien                | Superficie (m²) | Prix moyen au m² (€) |
+|-----------------------------|-----------------|-----------------------|
+| Centre Ville Appartement Neuf  | 120             | 8,500                |
+| Centre Ville Appartement Ancien| 120             | 7,000                |
+| Centre Ville Maison Individuelle| 120            | 9,000                |
+
+Description : Ce tableau compare les prix moyens pour différents types de biens immobiliers dans le quartier cible, afin d'évaluer leur compétitivité sur le marché local.
 ---
 
 #### **6. Évaluation des risques**
