@@ -54,7 +54,8 @@ def clean_text(text):
     text = text.encode('ascii', errors='ignore').decode('ascii')
     return text
 
-from reportlab.lib.pagesizes import A4
+from markdown2 import markdown as md_to_html
+from bs4 import BeautifulSoup
 
 def markdown_to_elements(md_text):
     elements = []
