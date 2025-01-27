@@ -54,20 +54,34 @@ def clean_text(text):
     text = text.encode('ascii', errors='ignore').decode('ascii')
     return text
 
-from markdown2 import markdown as md_to_html
-from bs4 import BeautifulSoup
+from reportlab.lib.pagesizes import A4
 
 def markdown_to_elements(md_text):
     elements = []
     html_content = md_to_html(md_text, extras=["tables"])  # Convert Markdown en HTML avec support des tableaux
     soup = BeautifulSoup(html_content, "html.parser")
 
+    PAGE_WIDTH = A4[0] - 4 * cm  # Largeur totale de la page moins les marges (2 cm de chaque côté)
+
     for elem in soup.contents:
         if elem.name == "table":
             table_data = []
             for row in elem.find_all("tr"):
                 table_data.append([cell.get_text(strip=True) for cell in row.find_all(["td", "th"])])
-            table_style = TableStyle([
+
+            # Calcul dynamique des largeurs des colonnes
+            col_count = len(table_data[0])  # Nombre de colonnes
+            col_widths = []
+            max_column_lengths = [max(len(str(cell)) for cell in col) for col in zip(*table_data)]  # Longueur max par colonne
+            total_length = sum(max_column_lengths)
+
+            # Ajuster les colonnes pour ne pas dépasser la largeur de la page
+            for col_length in max_column_lengths:
+                col_widths.append(PAGE_WIDTH * (col_length / total_length))  # Ratio de la largeur max de la colonne
+
+            # Création du tableau avec les largeurs calculées
+            table = Table(table_data, colWidths=col_widths)
+            table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -75,8 +89,8 @@ def markdown_to_elements(md_text):
                 ('FONTSIZE', (0, 0), (-1, 0), 12),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ])
-            elements.append(Table(table_data, style=table_style))
+            ]))
+            elements.append(table)
         elif elem.name:
             paragraph = Paragraph(clean_text(elem.get_text(strip=True)), getSampleStyleSheet()['BodyText'])
             elements.append(paragraph)
