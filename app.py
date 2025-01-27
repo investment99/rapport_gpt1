@@ -271,38 +271,67 @@ def generate_report():
             {summary}
 
             {market_data_str}
-            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. sans sous-menus ni sous-sections supplémentaires :
-- Ne répétez pas les informations des autres sections.
-- Évitez les sous-menus ou sous-sections supplémentaires.
--Utilisez les tableaux exactement comme fournis par OpenAI.
-- Insérez les tableaux au format Markdown sans les modifier.
-- Ne transformez pas les tableaux en utilisant Markdown ou tout autre format.
-- Assurez-vous que les tableaux sont présentés tels qu'ils apparaissent dans l'exemple ci-dessous.
+Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Respectez strictement les consignes suivantes pour chaque section :
 
-Pour la section '{section_title}' du rapport d'analyse :
-- **Fournissez uniquement le contenu complet pour cette section.** Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
-- **Conservez les tableaux tels qu'ils sont fournis par OpenAI.** Ne les transformez pas en utilisant Markdown ou tout autre format. Assurez-vous qu'ils restent au format original.
-- **Ajoutez une description sous chaque tableau.** La description doit expliquer brièvement le contenu du tableau et son importance pour la section en cours.
-- **Évitez la répétition des secteurs.** Si un secteur est déjà mentionné, ne le réintroduisez pas dans les sous-menus ou les sous-sections.
-- **Assurez-vous que les tableaux couvrent la largeur complète de la page**, illustrant uniquement les données pertinentes pour cette section sans ajout de descriptions ou d'annotations excessives.
-- **Incluez une introduction du contexte général** basée sur le formulaire que le client a rempli, en respectant les sections Introduction, Contexte, Secteur d'investissement, Analyse du marché, Analyse du produit, Évaluation des risques, Conclusion et recommandations.
-- **Fournissez des insights précis et basés sur des chiffres**, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années) ,l'evolution de la populations , donner un exemples de quartiers .
-- **Proposez des recommandations spécifiques** aux critères de {name}, en vous appuyant sur les aspirations mentionnées telles que {investment_sector}.
-- **Intégrez des tableaux** en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques, avec une description concise située juste en dessous du tableau.
-- **Ajoutez d'autres détails utiles** tels que l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme, sans répéter les secteurs déjà mentionnés.
+1. **Structure et clarté** :
+   - Ne répétez pas les informations des autres sections. Chaque section doit contenir uniquement son contenu spécifique.
+   - Évitez les sous-menus ou sous-sections supplémentaires.
 
-Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
-**Exemple de Tableau à Utiliser :**
+2. **Utilisation des tableaux** :
+   - Conservez les tableaux exactement tels qu'ils sont générés par OpenAI.
+   - Insérez les tableaux au format Markdown sans les modifier ou transformer leur structure.
+   - Chaque tableau doit être unique à la section et accompagné d'une description concise expliquant son contenu et son importance.
 
-```markdown
-| Année | Prix Moyen au m² (€) |
-|-------|----------------------|
-| 2019  | 3,500                |
-| 2020  | 3,600                |
-| 2021  | 3,750                |
-| 2022  | 3,900                |
-| 2023  | 4,050                |
+3. **Organisation des sections** :
+   - **Introduction** : Une vue d'ensemble de l'objectif d'investissement, avec un aperçu rapide du marché local.
+   - **Contexte** : Une analyse historique et démographique, incluant des tendances générales sur l'immobilier et la population locale.
+   - **Secteur d'investissement** : Inclure l'évolution des prix au mètre carré sur 5 ans et le rendement locatif moyen sur 2020-2025.
+   - **Analyse du marché** : Comprendre les facteurs qui influencent le marché, l'évolution des prix immobiliers (2020-2025), et une comparaison détaillée entre différents quartiers.
+   - **Analyse du produit** : Évaluer les caractéristiques spécifiques de l'appartement cible et son potentiel locatif ou de valorisation.
+   - **Évaluation des risques** : Examiner les risques liés à l'investissement, comme la vacance locative, les fluctuations du marché, ou les coûts inattendus.
+   - **Conclusion et recommandations** : Fournir une synthèse des données clés et des recommandations claires pour le client.
 
+4. **Détails à inclure** :
+   - Fournissez des insights précis et basés sur des chiffres, comme "le prix moyen au mètre carré à {address} est de ..." et des comparaisons historiques (exemple : l'évolution sur les 5 dernières années).
+   - Ajoutez des informations pertinentes sur les infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme.
+   - Incluez au moins un exemple de quartier pour contextualiser l'analyse.
+
+5. **Exemple de tableaux attendus** :
+   - Évolution des prix au mètre carré :
+     ```markdown
+     | Année | Prix Moyen au m² (€) |
+     |-------|-----------------------|
+     | 2019  | 3,800                |
+     | 2020  | 4,000                |
+     | 2021  | 4,200                |
+     | 2022  | 4,400                |
+     | 2023  | 4,600                |
+
+     *Description : Ce tableau montre l'évolution des prix moyens au m² sur une période de 5 ans, illustrant une tendance à la hausse dans la ville {address}.*
+     ```
+
+   - Comparaison entre quartiers :
+     ```markdown
+     | Quartier      | Prix Moyen au m² (€) | Rendement Locatif (%) | Distance aux Commerces (m) | Distance aux Écoles (m) |
+     |---------------|-----------------------|------------------------|----------------------------|-------------------------|
+     | Centre-Ville  | 5,400                | 4.0                   | 300                        | 500                     |
+     | Cimiez        | 4,900                | 3.8                   | 500                        | 800                     |
+     | Libération    | 4,700                | 3.7                   | 600                        | 900                     |
+     | Mont-Boron    | 6,200                | 4.2                   | 400                        | 450                     |
+
+     *Description : Ce tableau compare différents quartiers en termes de prix moyens au m², rendements locatifs, et accessibilités.*
+     ```
+
+6. **Présentation et qualité** :
+   - Assurez-vous que le texte soit clair, précis, et bien structuré.
+   - Chaque tableau doit être suivi d'une description qui résume son contenu et son utilité pour le rapport.
+
+7. **Longueur minimale** :
+   - Fournissez un contenu détaillé et pertinent avec un minimum de {min_words} mots pour chaque section.
+
+---
+
+Pour la section '{section_title}', concentrez-vous uniquement sur les éléments spécifiques à cette section. Ne répétez pas les informations des autres sections ou des parties déjà couvertes ailleurs. Si la section nécessite des comparaisons (comme pour l'analyse du marché), incluez plusieurs perspectives (par exemple, entre quartiers ou types de biens).
 
             Générez la section '{section_title}' du rapport d'analyse. 
             Cette section doit contenir au minimum {min_words} mots.
