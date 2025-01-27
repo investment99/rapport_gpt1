@@ -125,7 +125,7 @@ def add_section_title(elements, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 12))
 
-def generate_section(client, section_prompt, max_tokens=1500):
+def generate_section(client, section_prompt, max_tokens=2000):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -133,7 +133,10 @@ def generate_section(client, section_prompt, max_tokens=1500):
             {"role": "user", "content": section_prompt}
         ],
         max_tokens=max_tokens,
-        temperature=0.5
+        temperature=0.7,
+        top_p=1,
+        frequency_penalty=0.3,  
+        presence_penalty=0.3,
     )
     return markdown_to_elements(response.choices[0].message.content)
 
@@ -277,15 +280,15 @@ def generate_report():
 - Assurez-vous que les tableaux sont présentés tels qu'ils apparaissent dans l'exemple ci-dessous.
 
 Pour la section '{section_title}' du rapport d'analyse :
-- **Fournissez uniquement le contenu pertinent pour cette section.** Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
+- **Fournissez uniquement le contenu complet pour cette section.** Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
 - **Conservez les tableaux tels qu'ils sont fournis par OpenAI.** Ne les transformez pas en utilisant Markdown ou tout autre format. Assurez-vous qu'ils restent au format original.
 - **Ajoutez une description sous chaque tableau.** La description doit expliquer brièvement le contenu du tableau et son importance pour la section en cours.
 - **Évitez la répétition des secteurs.** Si un secteur est déjà mentionné, ne le réintroduisez pas dans les sous-menus ou les sous-sections.
 - **Assurez-vous que les tableaux couvrent la largeur complète de la page**, illustrant uniquement les données pertinentes pour cette section sans ajout de descriptions ou d'annotations excessives.
-- **Incluez une introduction succincte du contexte général** basée sur le formulaire que le client a rempli, en respectant les sections Introduction, Contexte, Secteur d'investissement, Analyse du marché, Analyse du produit, Évaluation des risques, Conclusion et recommandations.
-- **Fournissez des insights précis et basés sur des chiffres**, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
+- **Incluez une introduction du contexte général** basée sur le formulaire que le client a rempli, en respectant les sections Introduction, Contexte, Secteur d'investissement, Analyse du marché, Analyse du produit, Évaluation des risques, Conclusion et recommandations.
+- **Fournissez des insights précis et basés sur des chiffres**, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années) ,l'evolution de la populations , donner un exemples de quartiers .
 - **Proposez des recommandations spécifiques** aux critères de {name}, en vous appuyant sur les aspirations mentionnées telles que {investment_sector}.
-- **Intégrez au moins un tableau** en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques, avec une description concise située juste en dessous du tableau.
+- **Intégrez des tableaux** en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques, avec une description concise située juste en dessous du tableau.
 - **Ajoutez d'autres détails utiles** tels que l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme, sans répéter les secteurs déjà mentionnés.
 
 Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
