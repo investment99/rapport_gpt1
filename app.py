@@ -271,7 +271,7 @@ def generate_report():
             {summary}
 
             {market_data_str}
-Votre tâche est de générer la section '{section_title}' du rapport d'analyse immobilier, en fournissant des informations de qualité professionnelle adaptées à la ville {address} choisie par le client. Suivez scrupuleusement les consignes suivantes :
+Votre tâche est de générer la section '{section_title}' du rapport d'analyse immobilier, en fournissant des informations de qualité professionnelle adaptées et choisie par le client. Suivez scrupuleusement les consignes suivantes :
 
 ---
 
