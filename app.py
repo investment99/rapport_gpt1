@@ -268,28 +268,54 @@ def generate_report():
             {summary}
 
             {market_data_str}
-            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Le rapport doit inclure :
-- Introduction : Limitez-vous aux informations contextuelles et préliminaires. Ne donnez pas de conclusions.
-- Contexte : Concentrez-vous sur l'information historique et les conditions du marché.
-- Secteur d'investissement : Analysez uniquement les facteurs touchant directement l'investissement.
-- Analyse du marché : Examinez seulement les données de marché, comparaisons historiques, etc.
-- Analyse du produit : Développez les caractéristiques spéciales ou uniques du produit.
-- Évaluation des risques : Limitez votre réponse à l'évaluation des risques.
-- Conclusion et recommandations : Limitez ensuite le contenu pour finaliser les déductions et fournir des recommandations finales.
+            Votre tâche est de générer la section '{section_title}' du rapport d'analyse qui doit comporter des informations de qualité professionnelle. Le rapport doit inclure les sections suivantes sans sous-menus ni sous-sections supplémentaires :
+- Introduction
+- Contexte
+- Secteur d'investissement
+- Analyse du marché
+- Analyse du produit
+- Évaluation des risques
+- Conclusion et recommandations
 
 Pour la section '{section_title}' du rapport d'analyse :
-- **Fournissez uniquement le contenu pertinent pour cette section.** Ne répétez pas les sous-sections déjà couvertes ailleurs. Par exemple, dans 'Secteur d'Investissement', ne répétez pas 'Introduction' ou 'Contexte'.
-- **Conservez les tableaux tels qu'ils sont fournis par OpenAI.** Ne les transformez pas en utilisant Markdown ou tout autre format. Assurez-vous qu'ils restent au format original.
-- **Ajoutez une description sous chaque tableau.** La description doit expliquer brièvement le contenu du tableau et son importance pour la section en cours.
-- **Évitez la répétition des secteurs.** Si un secteur est déjà mentionné, ne le réintroduisez pas dans les sous-menus ou les sous-sections.
-- **Assurez-vous que les tableaux couvrent la largeur complète de la page**, illustrant uniquement les données pertinentes pour cette section sans ajout de descriptions ou d'annotations excessives.
-- **Incluez une introduction succincte du contexte général** basée sur le formulaire que le client a rempli, en respectant les sections Introduction, Contexte, Secteur d'investissement, Analyse du marché, Analyse du produit, Évaluation des risques, Conclusion et recommandations.
-- **Fournissez des insights précis et basés sur des chiffres**, comme "le prix moyen au mètre carré à {address} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
-- **Proposez des recommandations spécifiques** aux critères de {name}, en vous appuyant sur les aspirations mentionnées telles que {investment_sector}.
-- **Intégrez au moins un tableau** en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques, avec une description concise située juste en dessous du tableau.
-- **Ajoutez d'autres détails utiles** tels que l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme, sans répéter les secteurs déjà mentionnés.
 
-Assurez-vous que le libellé est clair, précis, et bien structuré avec un minimum de {min_words} mots.
+1. **Fournissez uniquement le contenu pertinent pour cette section.**
+   - Ne répétez pas les informations des autres sections.
+   - Évitez les sous-menus ou sous-sections supplémentaires.
+
+2. **Utilisez les tableaux exactement comme fournis par OpenAI.**
+   - Insérez les tableaux au format Markdown sans les modifier.
+   - Ne transformez pas les tableaux en utilisant Markdown ou tout autre format.
+   - Assurez-vous que les tableaux sont présentés tels qu'ils apparaissent dans l'exemple ci-dessous.
+
+3. **Ajoutez une description concise sous chaque tableau.**
+   - La description doit expliquer brièvement le contenu du tableau et son importance pour la section en cours.
+
+4. **Évitez la répétition des secteurs.**
+   - Si un secteur est déjà mentionné, ne le réintroduisez pas dans la section actuelle.
+
+5. **Assurez-vous que les tableaux couvrent la largeur complète de la page**, illustrant uniquement les données pertinentes pour cette section sans descriptions ou annotations excessives.
+
+6. **Incluez une introduction succincte du contexte général** basée sur le formulaire que le client a rempli, en respectant les sections Introduction, Contexte, Secteur d'investissement, Analyse du marché, Analyse du produit, Évaluation des risques, Conclusion et recommandations.
+
+7. **Fournissez des insights précis et basés sur des chiffres**, comme "le prix moyen au mètre carré à {client_data['address']} est de ...", et des comparaisons historiques (par exemple, l'évolution sur les 5 dernières années).
+
+8. **Proposez des recommandations spécifiques** aux critères de {client_data['name']}, en vous appuyant sur les aspirations mentionnées telles que {client_data['investment_sector']}.
+
+9. **Intégrez au moins un tableau** en utilisant la largeur de la page (format texte Markdown) représentant des statistiques pertinentes pour le quartier ou les tendances démographiques, avec une description concise située juste en dessous du tableau.
+
+10. **Ajoutez d'autres détails utiles** tels que l'impact des infrastructures locales, des comparaisons inter-quartiers, et des projections à moyen terme, sans répéter les secteurs déjà mentionnés.
+
+**Exemple de Tableau à Utiliser :**
+
+```markdown
+| Année | Prix Moyen au m² (€) |
+|-------|----------------------|
+| 2019  | 3,500                |
+| 2020  | 3,600                |
+| 2021  | 3,750                |
+| 2022  | 3,900                |
+| 2023  | 4,050                |
 
 
 
