@@ -44,14 +44,21 @@ PDF_FOLDER = "./pdf_reports/"
 os.makedirs(PDF_FOLDER, exist_ok=True)
 
 def clean_text(text):
-    text = ''.join(c for c in unicodedata.normalize('NFKD', text) if not unicodedata.combining(c))
+    # Conserver les caractères accentués
+    text = ''.join(c for c in unicodedata.normalize('NFC', text) if unicodedata.category(c)[0] != 'M')
+    
     replacements = {
         '€': 'EUR', '£': 'GBP', '©': '(c)', '®': '(R)', '™': '(TM)',
         '…': '...', '—': '-', '–': '-', '"': '"', '"': '"', "'": "'", "'": "'",
     }
+    
+    # Appliquer les remplacements
     for old, new in replacements.items():
         text = text.replace(old, new)
-    text = text.encode('ascii', errors='ignore').decode('ascii')
+    
+    # Supprimer les caractères non imprimables
+    text = ''.join(c for c in text if c.isprintable() or c.isspace())
+    
     return text
 
 from markdown2 import markdown as md_to_html
@@ -76,13 +83,13 @@ def markdown_to_elements(md_text):
             col_width = PAGE_WIDTH / col_count  # Largeur égale pour chaque colonne
 
             # Ajuster la taille de la police si le tableau dépasse
-            font_size = 12
+            font_size = 10
             if col_width < 2 * cm:  # Si les colonnes deviennent trop étroites
-                font_size = 10  # Réduire la taille de la police
+                font_size = 8  # Réduire la taille de la police
             # Ajuster la taille des titres si le tableau est large
-            title_font_size = 12
+            title_font_size = 8
             if col_width < 1 * cm:  # Si les colonnes sont trop étroites
-                title_font_size = 8  # Réduire la taille des titres
+                title_font_size = 5  # Réduire la taille des titres
             # Appliquer le style avec la taille de police ajustée
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -315,6 +322,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
+- Cher(e) {client_name},Ce rapport a été préparé spécifiquement pour votre projet d'investissement : {investment_objective}. Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
 - Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m²  pour un usage locatif).
 - Une explication rapide de l'importance du marché local pour cet investissement.
 - Aucun tableau dans cette section.
@@ -379,7 +387,8 @@ Générez une évaluation complète des risques liés à l'investissement, inclu
 ---
 
 #### **7. Conclusion et recommandations**
-Générez une conclusion complète, incluant :	
+Générez une conclusion complète, incluant :
+- Cher(e) {client_name},En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
 - Une recommandation claire sur l'opportunité d'investir .
 - Une évaluation globale de l'opportunité d'investissement.
