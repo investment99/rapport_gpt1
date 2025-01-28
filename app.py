@@ -359,6 +359,7 @@ Générez une analyse approfondie du marché immobilier local, incluant :
 #### **5. Analyse du produit**
 Générez une analyse détaillée du produit immobilier ciblé par le client, incluant :
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
+- Un tableau dynamique montrant l'évolution des prix immobiliers des villes voisines sur la période 2020-2025.
 - Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
 Pour la section 'Analyse du produit', générez un tableau qui compare les prix moyens au m² pour différents types de biens immobiliers dans le quartier ciblé, comme demandé par le client. Les informations doivent inclure :
 
