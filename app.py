@@ -322,7 +322,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
-- Cher(e) {client_name},Ce rapport a été préparé spécifiquement pour votre projet d'investissement : {investment_objective}. Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
+- Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),Ce rapport a été préparé spécifiquement pour votre projet d'investissement : {investment_objective}. Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
 - Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m²  pour un usage locatif).
 - Une explication rapide de l'importance du marché local pour cet investissement.
 - Aucun tableau dans cette section.
@@ -388,7 +388,7 @@ Générez une évaluation complète des risques liés à l'investissement, inclu
 
 #### **7. Conclusion et recommandations**
 Générez une conclusion complète, incluant :
-- Cher(e) {client_name},En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
+- Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
 - Une recommandation claire sur l'opportunité d'investir .
 - Une évaluation globale de l'opportunité d'investissement.
