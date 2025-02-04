@@ -216,11 +216,11 @@ def generate_report():
         sections = [
             ("Introduction", 200),
             ("Contexte", 250),
-            ("Secteur d'investissement", 300),
-            ("Analyse du marché", 400),
-            ("Analyse du produit", 300),
-            ("Évaluation des risques", 350),
-            ("Conclusion et recommandations", 300)
+            ("Secteur d'investissement", 400),
+            ("Analyse du marché", 500),
+            ("Analyse du produit", 500),
+            ("Évaluation des risques", 450),
+            ("Conclusion et recommandations", 400)
         ]
 
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
