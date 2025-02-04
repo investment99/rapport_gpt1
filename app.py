@@ -76,7 +76,13 @@ def markdown_to_elements(md_text):
         if elem.name == "table":
             table_data = []
             for row in elem.find_all("tr"):
-                table_data.append([cell.get_text(strip=True) for cell in row.find_all(["td", "th"])])
+    row_data = []
+    for cell in row.find_all(["td", "th"]):
+        cell_text = cell.get_text(strip=True)
+        para = Paragraph(cell_text, styles['BodyText'])
+        row_data.append(para)
+    table_data.append(row_data)
+
 
             # Calculer la largeur des colonnes en fonction de la page
             col_count = len(table_data[0])  # Nombre de colonnes
