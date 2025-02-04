@@ -308,10 +308,14 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
 
 4. **Détails à Inclure** :
-   - Donnez un aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à .
+   - Donnez un ou deux aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à .
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
    - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
    - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
+   - Fournissez une recommandation claire sur l'opportunité d'investir.
+   - Proposez une évaluation globale de l'investissement.
+   - Indiquez les principales tendances observées sur le marché immobilier.
+   - **Ajoutez un conseil personnalisé** : en fonction du budget du client et en vous basant sur l'analyse de la rentabilité des investissements immobiliers, recommandez d'investir dans un appartement de type F4 ou, si le budget le permet, plusieurs appartements afin d'optimiser la rentabilité.
 
 5. **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
