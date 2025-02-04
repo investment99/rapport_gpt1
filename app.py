@@ -425,9 +425,16 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
             Cette section doit contenir au minimum {min_words} mots.
             """
             section_content = generate_section(client, section_prompt)
+    
+            # Si le premier élément est un Paragraph dont le texte correspond exactement au titre, le supprimer
+            if section_content and hasattr(section_content[0], "getPlainText"):
+                first_text = section_content[0].getPlainText().strip().lower()
+                if first_text == section_title.strip().lower():
+                    section_content.pop(0)
+    
+            # Ajout du titre de section dans le document
             add_section_title(elements, section_title)
-            elements.extend(section_content)  # Ajoutez les éléments Markdown convertis ici
-
+            elements.extend(section_content)  # Ajoute le contenu de la section sans duplication du titre
             elements.append(PageBreak())
 
         doc.build(elements)
