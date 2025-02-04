@@ -67,36 +67,40 @@ from reportlab.lib.pagesizes import A4
 
 def markdown_to_elements(md_text):
     elements = []
-    html_content = md_to_html(md_text, extras=["tables"])  # Convert Markdown en HTML avec support des tableaux
+    # Conversion du Markdown en HTML avec support des tableaux
+    html_content = md_to_html(md_text, extras=["tables"])
     soup = BeautifulSoup(html_content, "html.parser")
+    styles = getSampleStyleSheet()  # Récupère les styles par défaut de ReportLab
 
-    PAGE_WIDTH = A4[0] - 4 * cm  # Largeur totale de la page moins les marges (2 cm de chaque côté)
+    # Calcul de la largeur de la page disponible (A4 moins les marges de 2 cm de chaque côté)
+    PAGE_WIDTH = A4[0] - 4 * cm
 
     for elem in soup.contents:
         if elem.name == "table":
             table_data = []
             for row in elem.find_all("tr"):
-    row_data = []
-    for cell in row.find_all(["td", "th"]):
-        cell_text = cell.get_text(strip=True)
-        para = Paragraph(cell_text, styles['BodyText'])
-        row_data.append(para)
-    table_data.append(row_data)
-
-
-            # Calculer la largeur des colonnes en fonction de la page
-            col_count = len(table_data[0])  # Nombre de colonnes
+                row_data = []
+                for cell in row.find_all(["td", "th"]):
+                    # Récupération du texte de la cellule
+                    cell_text = cell.get_text(strip=True)
+                    # Création d'un Paragraph pour activer le wrapping
+                    para = Paragraph(cell_text, styles['BodyText'])
+                    row_data.append(para)
+                table_data.append(row_data)
+            
+            # Détermination du nombre de colonnes (on suppose que toutes les lignes ont le même nombre de cellules)
+            col_count = len(table_data[0]) if table_data and table_data[0] else 1
             col_width = PAGE_WIDTH / col_count  # Largeur égale pour chaque colonne
 
-            # Ajuster la taille de la police si le tableau dépasse
+            # Ajustement de la taille de la police selon la largeur des colonnes
             font_size = 10
-            if col_width < 2 * cm:  # Si les colonnes deviennent trop étroites
-                font_size = 8  # Réduire la taille de la police
-            # Ajuster la taille des titres si le tableau est large
+            if col_width < 2 * cm:
+                font_size = 8
             title_font_size = 8
-            if col_width < 1 * cm:  # Si les colonnes sont trop étroites
-                title_font_size = 5  # Réduire la taille des titres
-            # Appliquer le style avec la taille de police ajustée
+            if col_width < 1 * cm:
+                title_font_size = 5
+
+            # Définition du style du tableau
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -109,15 +113,15 @@ def markdown_to_elements(md_text):
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ])
 
-            # Créer le tableau avec les largeurs ajustées
             table = Table(table_data, colWidths=[col_width] * col_count, style=table_style)
             elements.append(table)
         elif elem.name:
-            paragraph = Paragraph(clean_text(elem.get_text(strip=True)), getSampleStyleSheet()['BodyText'])
+            # Pour tout autre élément HTML, on crée un Paragraph simple
+            paragraph = Paragraph(clean_text(elem.get_text(strip=True)), styles['BodyText'])
             elements.append(paragraph)
             elements.append(Spacer(1, 12))
-
     return elements
+
 def add_section_title(elements, title):
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
