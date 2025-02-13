@@ -306,6 +306,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.
    - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville .
    - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
+   - **Analyse prédictive et argumentée** : Projection sur l'évolution future des prix immobiliers pour les 5 à 10 prochaines années, analyse argumentée sur le type de bien le plus judicieux à acquérir, et recommandations basées sur les tendances du marché et données économiques.
 
 4. **Détails à Inclure** :
    - Donnez un ou deux aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à .
@@ -407,6 +408,14 @@ Générez une conclusion complète, incluant :
 - Des recommandations concrètes adaptées aux objectifs du client.
 
 Ne fournissez aucun tableau dans cette section.
+
+#### **8. Analyse prédictive et argumentée**
+Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
+- Une projection sur l'évolution des prix immobiliers pour les 5 à 10 prochaines années.
+- Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
+- Des recommandations basées sur les tendances du marché, les données économiques et démographiques.
+- Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
+
 
 ---
 
