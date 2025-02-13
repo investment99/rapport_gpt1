@@ -221,7 +221,7 @@ def generate_report():
     ("Analyse du produit", 500),
     ("Évaluation des risques", 450),
     ("Conclusion et recommandations", 400),
-    ("Analyse prédictive et argumentée", 400)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
+    ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
 ]
 
 
@@ -413,12 +413,18 @@ Ne fournissez aucun tableau dans cette section.
 
 #### **8. Analyse prédictive et argumentée**
 Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
-- Une projection sur l'évolution des prix immobiliers pour les 5 à 10 prochaines années.
+- Une projection sur l'évolution des prix immobiliers avec des chiffres et des pourcentages pour les 5 à 10 prochaines années.
 - Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
-- Des recommandations basées sur les tendances du marché, les données économiques et démographiques.
+- Des recommandations basées sur les tendances du marché, les données économiques et démographiquesavec un tableau .
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
 - Une étude argumentée sur quel type de bien il est plus judicieux d'aquerir dans le secteur choisi par le client pour faire un investissement locatif en tenant compte de la clientéle locative de ce secteur.
-
+- Une analyse argumentée détaillée sur le type de bien le plus judicieux à acquérir pour un investissement. Comparez par exemple un appartement neuf, un appartement ancien et une maison individuelle, en indiquant pour chacun :
+   - Le taux de rendement moyen,
+   - Les coûts d'acquisition et d'entretien,
+   - Le potentiel de valorisation,
+   - La demande locative et les tendances démographiques.
+- Des recommandations chiffrées basées sur les tendances du marché et des données économiques.
+- Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
 ---
 
 ### Règles Générales
