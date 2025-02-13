@@ -214,15 +214,16 @@ def generate_report():
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
         sections = [
-            ("Introduction", 200),
-            ("Contexte", 250),
-            ("Secteur d'investissement", 400),
-            ("Analyse du marché", 500),
-            ("Analyse du produit", 500),
-            ("Évaluation des risques", 450),
-            ("Conclusion et recommandations", 400)
-            ("Analyse prédictive et argumentée", 400)
-        ]
+    ("Introduction", 200),
+    ("Contexte", 250),
+    ("Secteur d'investissement", 400),
+    ("Analyse du marché", 500),
+    ("Analyse du produit", 500),
+    ("Évaluation des risques", 450),
+    ("Conclusion et recommandations", 400),
+    ("Analyse prédictive et argumentée", 400)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
+]
+
 
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         doc = SimpleDocTemplate(pdf_filename, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm, leftMargin=2*cm, rightMargin=2*cm)
@@ -416,7 +417,7 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
 - Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
 - Des recommandations basées sur les tendances du marché, les données économiques et démographiques.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
-- Une étude argumentée sur quel type de bien il est plus judicieux d'aquerir dans le secteur choisi par le clientpour faire un investissement locatif en tenant compte de la clientéle locative de ce secteur.
+- Une étude argumentée sur quel type de bien il est plus judicieux d'aquerir dans le secteur choisi par le client pour faire un investissement locatif en tenant compte de la clientéle locative de ce secteur.
 
 ---
 
