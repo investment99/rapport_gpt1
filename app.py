@@ -221,6 +221,7 @@ def generate_report():
             ("Analyse du produit", 500),
             ("Évaluation des risques", 450),
             ("Conclusion et recommandations", 400)
+            ("Analyse prédictive et argumentée", 400)
         ]
 
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
@@ -415,7 +416,7 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
 - Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
 - Des recommandations basées sur les tendances du marché, les données économiques et démographiques.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
-
+- Une étude argumentée sur quel type de bien il est plus judicieux d'aquerir dans le secteur choisi par le clientpour faire un investissement locatif en tenant compte de la clientéle locative de ce secteur.
 
 ---
 
