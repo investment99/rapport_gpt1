@@ -222,8 +222,8 @@ def generate_report():
     ("Analyse du produit", 500),
     ("Évaluation des risques", 450),
     ("Conclusion et recommandations", 400),
-    ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
-    ("AAnalyse Environnementale et de Durabilité", 300)
+    ("Analyse prédictive et argumentée", 600), # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
+    ("Analyse Environnementale et de Durabilité", 300),
 ]
 
 
@@ -439,7 +439,7 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
 
 #### **9. Analyse Environnementale et de Durabilité**
--La section doit expliquer brièvement pourquoi l'analyse environnementale est importante dans un investissement immobilier. Décrivez l'impact des certifications énergétiques BBC, HQE, Passivhaus, la présence d'infrastructures écologiques espaces verts, écoquartiers et les risques liés aux changements climatiques, et concluez sur leur influence positive sur la valorisation du bien.
+- La section doit expliquer brièvement pourquoi l'analyse environnementale est importante dans un investissement immobilier. Décrivez l'impact des certifications énergétiques BBC, HQE, Passivhaus, la présence d'infrastructures écologiques espaces verts, écoquartiers et les risques liés aux changements climatiques, et concluez sur leur influence positive sur la valorisation du bien.
 ---
 
 ### Règles Générales
