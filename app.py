@@ -233,7 +233,7 @@ def generate_report():
 
         cover_images = [
             "static/cover_image.png",
-            "static/cover_image1.png",
+            "static/cover_image1.svg",
             "static/cover_image2.png",
             "static/cover_image3.png"
         ]
