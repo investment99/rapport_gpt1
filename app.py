@@ -315,7 +315,12 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
    - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
    - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
-   
+   - - Une recommandation avec un tableau comparatif des meilleurs quartiers dansla ville choisie.
+Pour la section 'Analyse du produit', générez un tableau qui compare les prix moyens au m² pour différents types de biens immobiliers dans le quartier ciblé, comme demandé par le client. Les informations doivent inclure :
+   - D écrivez les projets et politiques locales en temps réel pour la ville choisie visant à promouvoir un urbanisme durable écoquartiers, espaces verts, pistes cyclables, zones piétonnes, etc..
+
+
+
    **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
    - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
@@ -366,7 +371,7 @@ Générez une analyse approfondie du marché immobilier local, incluant :
   - Rendement locatif (%).
   - Distances moyennes aux commerces et écoles.
 - Une analyse expliquant les facteurs influençant les prix et les rendements locatifs.
-- D écrivez les projets et politiques locales en temps réel pour la ville choisie visant à promouvoir un urbanisme durable écoquartiers, espaces verts, pistes cyclables, zones piétonnes, etc..
+- Décrivez les projets et politiques locales en temps réel pour la ville choisie visant à promouvoir un urbanisme durable écoquartiers, espaces verts, pistes cyclables, zones piétonnes, etc..
 
 ---
 
