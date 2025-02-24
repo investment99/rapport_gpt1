@@ -214,7 +214,6 @@ def generate_report():
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
         sections = [
-    ("Sommaire", 400),
     ("Introduction", 200),
     ("Contexte", 250),
     ("Secteur d'investissement", 400),
@@ -222,8 +221,7 @@ def generate_report():
     ("Analyse du produit", 500),
     ("Évaluation des risques", 450),
     ("Conclusion et recommandations", 400),
-    ("Analyse prédictive et argumentée", 600), # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
-    ("Analyse Environnementale et de Durabilité", 300),
+    ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
 ]
 
 
@@ -235,6 +233,7 @@ def generate_report():
 
         cover_images = [
             "static/cover_image.png",
+            "static/cover_image1.png",
             
         ]
 
@@ -293,7 +292,6 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 1. **Structure et Clarté** :
    - Ne répétez pas les informations des autres sections.
    - Évitez les sous-menus ou sous-sections supplémentaires.
-   - les titres de la section sommaire doivent etre en gras et de couleur identique au titres des secteurs.
 
 2. **Utilisation des Tableaux** :
    - Tous les tableaux doivent être générés dynamiquement par OpenAI en fonction des données du formulaire client.
@@ -334,20 +332,6 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 
 ### Instructions par Section
 
-#### **0. Sommaire**
-Votre tâche est de générer un sommaire pour un rapport d'analyse immobilier. Le sommaire doit présenter chaque élément sur une ligne distincte, avec le titre de l'élément affiché en gras dans la même couleur que les titres des sections et suivi d'une brève description. 
-- Introduction.
-- Contexte.
-- Secteur d'investissement.
-- Analyse du marché.
-- Analyse du produit.
-- Évaluation des risques.
-- Conclusion et recommandations.
-- Analyse prédictive et argumentée.
-- Analyse Environnementale et de Durabilité.
-
----
-
 #### **1. Introduction**
 Générez une introduction qui inclut :
 - Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),Ce rapport a été préparé spécifiquement pour votre projet d'investissement . Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
@@ -376,6 +360,7 @@ Générez une analyse détaillée du secteur d'investissement, incluant :
 #### **4. Analyse du marché**
 Générez une analyse approfondie du marché immobilier local, incluant :
 - Un tableau dynamique montrant l'évolution des prix immobiliers de la ville sur la période 2020-2025.
+- Un tableau dynamique montrant l'évolution des prix immobiliers dans les ville voisines sur la période 2020-2025.
 - Un tableau comparatif dynamique entre différents quartiers , avec les colonnes suivantes :
   - Prix moyen au m².
   - Rendement locatif (%).
@@ -440,9 +425,6 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
    - La demande locative et les tendances démographiques.
 - Des recommandations chiffrées basées sur les tendances du marché et des données économiques.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
-
-#### **9. Analyse Environnementale et de Durabilité**
-- La section doit expliquer brièvement pourquoi l'analyse environnementale est importante dans un investissement immobilier. Décrivez l'impact des certifications énergétiques BBC, HQE, Passivhaus, la présence d'infrastructures écologiques espaces verts, écoquartiers et les risques liés aux changements climatiques, et concluez sur leur influence positive sur la valorisation du bien.
 ---
 
 ### Règles Générales
