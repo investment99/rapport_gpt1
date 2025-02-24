@@ -315,8 +315,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
    - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
    - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
-   - Complétez la section par un comparatif basé sur des données en temps réel. Analysez les performances locatives et les prix au m² du produit ciblé par rapport à d'autres biens similaires du marché.
-   - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel,avec un tableau comparatif à l'appuie si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
+   
    **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
    - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
@@ -409,7 +408,7 @@ Générez une conclusion complète, incluant :
 - Une évaluation globale de l'opportunité d'investissement.
 - Les principales tendances observées sur le marché immobilier.
 - Des recommandations concrètes adaptées aux objectifs du client.
-
+- Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
 Ne fournissez aucun tableau dans cette section.
 
 #### **8. Analyse prédictive et argumentée**
