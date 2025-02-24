@@ -366,6 +366,7 @@ Générez une analyse approfondie du marché immobilier local, incluant :
   - Rendement locatif (%).
   - Distances moyennes aux commerces et écoles.
 - Une analyse expliquant les facteurs influençant les prix et les rendements locatifs.
+- D écrivez les projets et politiques locales en temps réel pour la ville choisie visant à promouvoir un urbanisme durable écoquartiers, espaces verts, pistes cyclables, zones piétonnes, etc..
 
 ---
 
@@ -374,6 +375,7 @@ Générez une analyse détaillée du produit immobilier ciblé par le client, in
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
 - Un tableau dynamique montrant l'évolution des prix immobiliers des villes voisines sur la période 2020-2025.
 - Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
+- Une recommandation avec un tableau comparatif des meilleurs quartiers dna sla ville choisie.
 Pour la section 'Analyse du produit', générez un tableau qui compare les prix moyens au m² pour différents types de biens immobiliers dans le quartier ciblé, comme demandé par le client. Les informations doivent inclure :
 
 - Le type de bien (par exemple, Appartement Neuf, Appartement Ancien, Maison Individuelle).
@@ -408,8 +410,8 @@ Générez une conclusion complète, incluant :
 - Une évaluation globale de l'opportunité d'investissement.
 - Les principales tendances observées sur le marché immobilier.
 - Des recommandations concrètes adaptées aux objectifs du client.
-
-Ne fournissez aucun tableau dans cette section.
+- Complétez la section par un comparatif basé sur des données en temps réel. Analysez les performances locatives et les prix au m² du produit ciblé par rapport à d'autres biens similaires du marché.
+-Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel,avec un tableau comparatif à l'appuie si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
 
 #### **8. Analyse prédictive et argumentée**
 Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
