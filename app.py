@@ -294,6 +294,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Ne répétez pas les informations des autres sections.
    - Évitez les sous-menus ou sous-sections supplémentaires.
    - les titres de la section sommaire doivent etre en gras et de couleur identique au titres des secteurs.
+
 2. **Utilisation des Tableaux** :
    - Tous les tableaux doivent être générés dynamiquement par OpenAI en fonction des données du formulaire client.
    - Les tableaux doivent être insérés tels qu'ils sont générés, au format Markdown.
@@ -334,7 +335,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 ### Instructions par Section
 
 #### **0. Sommaire**
-Votre tâche est de générer un sommaire pour un rapport d'analyse immobilier. Le sommaire doit présenter chaque élément sur une ligne distincte, avec le titre de l'élément affiché en gras dans la même couleur que les titres des sections par exemple, #00C7C4 et suivi d'une brève description. Les éléments à inclure sont :
+Votre tâche est de générer un sommaire pour un rapport d'analyse immobilier. Le sommaire doit présenter chaque élément sur une ligne distincte, avec le titre de l'élément affiché en gras dans la même couleur que les titres des sections et suivi d'une brève description. 
 - Introduction.
 - Contexte.
 - Secteur d'investissement.
