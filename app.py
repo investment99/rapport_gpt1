@@ -334,7 +334,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 ### Instructions par Section
 
 #### **0. Sommaire**
-Générez une sommaire du rapport d'analyse immobilier. La section doit inclure les éléments suivants, chacun sur une ligne distincte les titres avec la meme couleur que les titres des sections avec une brève description ,qui inclut :
+Votre tâche est de générer un sommaire pour un rapport d'analyse immobilier. Le sommaire doit présenter chaque élément sur une ligne distincte, avec le titre de l'élément affiché dans la même couleur que les titres des sections par exemple, #00C7C4 et suivi d'une brève description. Les éléments à inclure sont :
 - Introduction.
 - Contexte.
 - Secteur d'investissement.
@@ -344,6 +344,9 @@ Générez une sommaire du rapport d'analyse immobilier. La section doit inclure 
 - Conclusion et recommandations.
 - Analyse prédictive et argumentée.
 - Analyse Environnementale et de Durabilité.
+Utilisez un langage clair, professionnel et concis. Assurez-vous que chaque titre (par exemple Introduction, Contexte, etc. soit affiché dans la couleur #00C7C4, suivi d'une description synthétique sur la même ligne ou avec un saut de ligne pour une meilleure lisibilité.
+
+---
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
