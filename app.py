@@ -214,6 +214,7 @@ def generate_report():
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
         sections = [
+    ("Sommaire", 400),
     ("Introduction", 200),
     ("Contexte", 250),
     ("Secteur d'investissement", 400),
@@ -222,6 +223,7 @@ def generate_report():
     ("Évaluation des risques", 450),
     ("Conclusion et recommandations", 400),
     ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
+    ("AAnalyse Environnementale et de Durabilité", 300)
 ]
 
 
@@ -341,6 +343,7 @@ Générez une introduction qui inclut :
 - Évaluation des risques.
 - Conclusion et recommandations.
 - Analyse prédictive et argumentée.
+- Analyse Environnementale et de Durabilité.
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
@@ -434,6 +437,9 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
    - La demande locative et les tendances démographiques.
 - Des recommandations chiffrées basées sur les tendances du marché et des données économiques.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
+
+#### **9. Analyse Environnementale et de Durabilité**
+-La section doit expliquer brièvement pourquoi l'analyse environnementale est importante dans un investissement immobilier. Décrivez l'impact des certifications énergétiques BBC, HQE, Passivhaus, la présence d'infrastructures écologiques espaces verts, écoquartiers et les risques liés aux changements climatiques, et concluez sur leur influence positive sur la valorisation du bien.
 ---
 
 ### Règles Générales
