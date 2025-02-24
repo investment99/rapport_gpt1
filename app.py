@@ -214,16 +214,15 @@ def generate_report():
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
         sections = [
-    ("Introduction", 200),
-    ("Contexte", 250),
-    ("Secteur d'investissement", 400),
-    ("Analyse du marché", 500),
-    ("Analyse du produit", 500),
-    ("Évaluation des risques", 450),
-    ("Conclusion et recommandations", 400),
-    ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
-]
-
+            ("Introduction", 200),
+            ("Contexte", 250),
+            ("Secteur d'investissement", 400),
+            ("Analyse du marché", 500),
+            ("Analyse du produit", 500),
+            ("Évaluation des risques", 450),
+            ("Conclusion et recommandations", 400),
+            ("Analyse prédictive et argumentée", 600)
+        ]
 
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         doc = SimpleDocTemplate(pdf_filename, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm, leftMargin=2*cm, rightMargin=2*cm)
@@ -231,24 +230,97 @@ def generate_report():
         elements = []
         styles = getSampleStyleSheet()
 
-        cover_images = [
-            "static/cover_image.png",
-            "static/cover_image1.svg",
-            "static/cover_image2.png",
-            "static/cover_image3.png"
-        ]
+        # 1. Première page de garde avec cover_image.png
+        cover_image_path = os.path.join(os.path.dirname(__file__), "static/cover_image.png")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+            output_path = temp_file.name
+            resize_image(cover_image_path, output_path)
+            elements.append(Image(output_path, width=469, height=716))
+        elements.append(PageBreak())
 
-        resized_images = []
-        for i, image_name in enumerate(cover_images):
-            image_path = os.path.join(os.path.dirname(__file__), image_name)
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-                output_path = temp_file.name
-                resize_image(image_path, output_path)
-                resized_images.append(output_path)
+        # 2. Remplacer cover_image1.png par la page SOMMAIRE (texte)
+        sommaire_title_style = ParagraphStyle(
+            'SommaireTitle',
+            fontSize=24,
+            alignment=1,  # Centré
+            textColor=colors.HexColor("#00C7C4"),
+            spaceAfter=20
+        )
+        sommaire_body_style = ParagraphStyle(
+            'SommaireBody',
+            fontSize=14,
+            alignment=1,  # Centré
+            textColor=colors.black,
+            leading=18,
+            spaceAfter=20
+        )
+        elements.append(Paragraph("SOMMAIRE", sommaire_title_style))
+        elements.append(Paragraph(
+            "Objectif et intérêt de ce rapport d'analyse vis-à-vis de votre investissement, et importance de la réalisation de cette étude.<br/><br/>"
+            "Méthodologie : Méthode utilisée pour la réalisation de cette analyse, et objectif.<br/><br/>"
+            "Contexte : Votre situation d'investisseur, votre projet d'investissement, et vos objectifs.<br/><br/>"
+            "Analyse du marché : Étude du marché dans lequel l'investissement est effectué, de la concurrence, des facteurs économiques, potentiel de croissance du marché, et leurs forces et faiblesses.<br/><br/>"
+            "Analyse du produit : Évaluation du produit dans lequel vous envisagez d'investir, analyse de sa rentabilité, son coût, sa position concurrentielle.<br/><br/>"
+            "Analyse des risques : Identification et analyse des risques potentiels liés à l'investissement. Évaluation de la probabilité et de l'impact de ces risques et proposition de mesures d'atténuation pour les gérer.<br/><br/>"
+            "Conclusion : Résumé des principaux points du rapport et conclusion sur l'opportunité de votre investissement. Formulation de recommandations claires et argumentées, et proposition d'actions spécifiques.",
+            sommaire_body_style))
+        elements.append(PageBreak())
 
-        for image_path in resized_images:
-            elements.append(Image(image_path, width=469, height=716))
-            elements.append(PageBreak())
+        # 3. Remplacer cover_image2.jpg par la page INTRODUCTION (texte)
+        intro_title_style = ParagraphStyle(
+            'IntroTitle',
+            fontSize=24,
+            alignment=1,
+            textColor=colors.HexColor("#00C7C4"),
+            spaceAfter=20
+        )
+        intro_body_style = ParagraphStyle(
+            'IntroBody',
+            fontSize=14,
+            alignment=1,
+            textColor=colors.black,
+            leading=18,
+            spaceAfter=20
+        )
+        elements.append(Paragraph("INTRODUCTION", intro_title_style))
+        elements.append(Paragraph(
+            "L'objectif et l'intérêt de ce rapport d'analyse vis-à-vis de votre investissement, et l'importance de réaliser une étude conseil, se justifient par divers arguments, comme :<br/><br/>"
+            "1. Une prise de décision éclairée : Un rapport d'analyse conseil fournit des informations approfondies sur l'investissement. Il analyse les facteurs économiques, financiers, sectoriels et réglementaires qui peuvent influencer la performance de l'investissement. Cela vous permettra de prendre des décisions éclairées et d'évaluer les risques associés.<br/><br/>"
+            "2. L'optimisation des rendements : Un rapport d'analyse conseil fournit des recommandations sur les investissements qui peuvent générer les meilleurs rendements. Il identifie les opportunités attractives et les stratégies qui peuvent maximiser les gains potentiels.<br/><br/>"
+            "3. La gestion des risques : Le rapport identifie les risques potentiels, qu'ils soient économiques, politiques ou liés au marché, et propose des mesures d'atténuation appropriées pour limiter les pertes potentielles.<br/><br/>"
+            "4. La réduction de la subjectivité : En se basant sur des données objectives, le rapport minimise la subjectivité souvent associée aux décisions d'investissement basées sur des émotions.<br/><br/>"
+            "5. Une communication claire : Il facilite la compréhension des avantages et des risques, aidant à convaincre les parties prenantes.",
+            intro_body_style))
+        elements.append(PageBreak())
+
+        # 4. Remplacer cover_image3.png par la page MÉTHODOLOGIE (texte)
+        method_title_style = ParagraphStyle(
+            'MethodTitle',
+            fontSize=24,
+            alignment=1,
+            textColor=colors.HexColor("#00C7C4"),
+            spaceAfter=20
+        )
+        method_body_style = ParagraphStyle(
+            'MethodBody',
+            fontSize=14,
+            alignment=1,
+            textColor=colors.black,
+            leading=18,
+            spaceAfter=20
+        )
+        elements.append(Paragraph("MÉTHODOLOGIE", method_title_style))
+        elements.append(Paragraph(
+            "La réalisation d'un rapport d'analyse conseil nécessite plusieurs étapes et méthodes pour garantir la précision et la pertinence des résultats obtenus.<br/><br/>"
+            "1. Définir l'objectif du rapport : Avant de commencer l'analyse, il est crucial de comprendre l'objectif du rapport et de définir les questions spécifiques à aborder.<br/><br/>"
+            "2. Collecte des études pertinentes : Identification des principales sources d'informations (rapports de recherche, articles académiques, données statistiques, etc.) en sélectionnant des études récentes et fiables.<br/><br/>"
+            "3. Analyse des données : Examiner les études en identifiant les critères et indicateurs pertinents, et organiser les données de manière claire à l'aide de tableaux et graphiques.<br/><br/>"
+            "4. Évaluation des études : Évaluer la crédibilité et la validité des sources en tenant compte de la méthodologie, de la qualité des données et de l'échantillonnage.<br/><br/>"
+            "5. Analyse comparative : Comparer les différentes options en identifiant les forces et faiblesses de chaque alternative.<br/><br/>"
+            "6. Formulation des conclusions et recommandations : Tirer des conclusions justifiées et formuler des recommandations basées sur l'analyse.<br/><br/>"
+            "7. Rédaction du rapport : Présenter les résultats de manière structurée et argumentée, conclure et proposer des actions concrètes.",
+            method_body_style))
+        elements.append(PageBreak())
 
         add_section_title(elements, "Informations du Client")
         client_info_data = [
@@ -315,7 +387,8 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
    - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
    - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
-   
+   - Complétez la section par un comparatif basé sur des données en temps réel. Analysez les performances locatives et les prix au m² du produit ciblé par rapport à d'autres biens similaires du marché.
+   - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel,avec un tableau comparatif à l'appui si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
    **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
    - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
