@@ -334,7 +334,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 ### Instructions par Section
 
 #### **0. Sommaire**
-Générez une introduction qui inclut :
+Générez une sommaire du rapport d'analyse immobilier. La section doit inclure les éléments suivants, chacun sur une ligne distincte avec une brève description ,qui inclut :
 - Introduction.
 - Contexte.
 - Secteur d'investissement.
