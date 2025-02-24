@@ -221,7 +221,7 @@ def generate_report():
     ("Analyse du produit", 500),
     ("Évaluation des risques", 450),
     ("Conclusion et recommandations", 400),
-    ("Analyse prédictive et argumentée", 600)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
+    ("Analyse prédictive et argumentée", 500)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
 ]
 
 
@@ -374,8 +374,6 @@ Générez une analyse détaillée du produit immobilier ciblé par le client, in
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
 - Un tableau dynamique montrant l'évolution des prix immobiliers des villes voisines sur la période 2020-2025.
 - Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
-Pour la section 'Analyse du produit', générez un tableau qui compare les prix moyens au m² pour différents types de biens immobiliers dans le quartier ciblé, comme demandé par le client. Les informations doivent inclure :
-
 - Le type de bien (par exemple, Appartement Neuf, Appartement Ancien, Maison Individuelle).
 - La superficie (exemple : 120 m²).
 - Le prix moyen au m² pour chaque type de bien.
