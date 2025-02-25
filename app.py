@@ -220,7 +220,7 @@ def generate_report():
     ("Analyse du marché", 500),
     ("Analyse du produit", 500),
     ("Évaluation des risques", 450),
-    ("Conclusion et recommandations", 400),
+    ("Conclusion et recommandations", 500),
     ("Analyse prédictive et argumentée", 500)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
 ]
 
@@ -314,7 +314,8 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
    - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
    - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
-   
+   - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. 
+
    **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
    - **Analyse du marché** : Tableau comparatif des quartiers dans la ville choisie avec des colonnes adaptées aux données locales (prix, rendement locatif, distances, etc.).
