@@ -25,8 +25,6 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(m
 app = Flask(__name__)
 CORS(app)
 app.config['JSON_AS_ASCII'] = False
-# Variable globale pour le suivi de la progression
-current_progress = 0
 
 def log_to_file(message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -195,7 +193,6 @@ def generate_report():
         logging.info("Requête reçue à /generate_report")
         log_to_file("Début de la génération du rapport")
         form_data = request.json
-        current_progress = 10
         logging.debug(f"Données reçues : {form_data}")
         log_to_file(f"Données du formulaire reçues : {form_data}")
 
@@ -215,7 +212,6 @@ def generate_report():
             summary += f"{key}: {value}\n"
 
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
-        current_progress = 20
 
         sections = [
     ("Introduction", 200),
@@ -248,8 +244,6 @@ def generate_report():
                 output_path = temp_file.name
                 resize_image(image_path, output_path)
                 resized_images.append(output_path)
-        current_progress = 30
-
 
         for image_path in resized_images:
             elements.append(Image(image_path, width=469, height=716))
@@ -283,9 +277,6 @@ def generate_report():
         ]))
         elements.append(t)
         elements.append(Spacer(1, 12))
-        current_progress = 40
-
-        current_progress = 50
 
         for section_title, min_words in sections:
             section_prompt = f"""
@@ -348,7 +339,6 @@ Générez une introduction qui inclut :
 - Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m²  pour un usage locatif).
 - Une explication rapide de l'importance du marché local pour cet investissement.
 - Aucun tableau dans cette section.
-current_progress += 5
 
 ---
 
@@ -357,7 +347,6 @@ Générez une analyse détaillée du contexte local, incluant :
 - Une présentation générale de la ville  : population, attractivité économique, infrastructures clés.
 - Une analyse des tendances immobilières et démographiques sur les 5 dernières années.
 - Aucun tableau dans cette section, uniquement des informations textuelles détaillées.
-current_progress += 5
 
 ---
 
@@ -366,7 +355,6 @@ Générez une analyse détaillée du secteur d'investissement, incluant :
 - Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville  sur les 5 dernières années.
 - Un tableau dynamique illustrant le rendement locatif moyen de la ville pour la période 2020-2025.
 - Une description claire expliquant les tendances et leur pertinence pour l'investissement.
-current_progress += 5
 
 ---
 
@@ -379,7 +367,6 @@ Générez une analyse approfondie du marché immobilier local, incluant :
   - Rendement locatif (%).
   - Distances moyennes aux commerces et écoles.
 - Une analyse expliquant les facteurs influençant les prix et les rendements locatifs.
-current_progress += 5
 
 ---
 
@@ -409,7 +396,6 @@ Description : Ce tableau compare les prix moyens pour différents types de biens
 Générez une évaluation complète des risques liés à l'investissement, incluant :
 - Une analyse des risques de marché (vacance locative, fluctuations des prix).
 - Un tableau illustrant les variations annuelles des prix au m² pour évaluer la stabilité du marché.
-current_progress += 5
 
 ---
 
@@ -423,7 +409,6 @@ Générez une conclusion complète, incluant :
 - Des recommandations concrètes adaptées aux objectifs du client.
 - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
 Ne fournissez aucun tableau dans cette section.
-current_progress += 5
 
 #### **8. Analyse prédictive et argumentée**
 Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
@@ -440,7 +425,6 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
 - Des recommandations chiffrées basées sur les tendances du marché et des données économiques.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
 ---
-current_progress += 5
 
 ### Règles Générales
 
@@ -470,10 +454,8 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
             elements.append(PageBreak())
 
         doc.build(elements)
-        current_progress = 90
         logging.info(f"Rapport généré avec succès : {pdf_filename}")
         log_to_file(f"Rapport généré avec succès : {pdf_filename}")
-        current_progress = 100
 
         return send_file(pdf_filename, as_attachment=True)
     except Exception as e:
