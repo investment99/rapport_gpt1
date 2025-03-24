@@ -204,6 +204,22 @@ def generate_report():
         phone = form_data.get('phone', 'Non spécifié')
         city = form_data.get('city', 'Nice')
 
+        # Récupérer la langue choisie dans le formulaire (valeurs attendues : 'fr', 'en', 'es', 'de', 'ru', 'pt', 'zh', 'nl', 'ja', 'ar')
+        language = form_data.get('language', 'fr')
+        language_mapping = {
+            'fr': 'Français',
+            'en': 'Anglais',
+            'es': 'Espagnol',
+            'de': 'Allemand',
+            'ru': 'Russe',
+            'pt': 'Portugais',
+            'zh': 'Chinois',
+            'nl': 'Hollandais',
+            'ja': 'Japonais',
+            'ar': 'Arabe'
+        }
+        language_name = language_mapping.get(language, 'Français')
+
         client_info = {key: value for key, value in form_data.items()}
         market_data = generate_market_data(investment_sector, city)
 
@@ -214,16 +230,15 @@ def generate_report():
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
         sections = [
-    ("Introduction", 200),
-    ("Contexte", 250),
-    ("Secteur d'investissement", 400),
-    ("Analyse du marché", 500),
-    ("Analyse du produit", 500),
-    ("Évaluation des risques", 450),
-    ("Conclusion et recommandations", 500),
-    ("Analyse prédictive et argumentée", 500)  # Assurez-vous qu'il y a bien une virgule ici et aucune parenthèse en trop.
-]
-
+            ("Introduction", 200),
+            ("Contexte", 250),
+            ("Secteur d'investissement", 400),
+            ("Analyse du marché", 500),
+            ("Analyse du produit", 500),
+            ("Évaluation des risques", 450),
+            ("Conclusion et recommandations", 500),
+            ("Analyse prédictive et argumentée", 500)
+        ]
 
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         doc = SimpleDocTemplate(pdf_filename, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm, leftMargin=2*cm, rightMargin=2*cm)
@@ -234,7 +249,6 @@ def generate_report():
         cover_images = [
             "static/cover_image.png",
             "static/cover_image1.png",
-            
         ]
 
         resized_images = []
@@ -283,6 +297,8 @@ def generate_report():
             {summary}
 
             {market_data_str}
+La langue du rapport doit être : {language_name}.
+
 Votre tâche est de générer la section '{section_title}' du rapport d'analyse immobilier, en fournissant des informations de qualité professionnelle adaptées et choisie par le client. Suivez scrupuleusement les consignes suivantes :
 
 ---
@@ -301,20 +317,20 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
 
 3. **Organisation des Sections** :
    - **Introduction** : Vue d'ensemble des objectifs d'investissement et aperçu rapide du marché local.
-   - **Contexte** : Analyse historique et démographique détaillée de la ville , incluant des données sur la population, les infrastructures et le développement économique.
+   - **Contexte** : Analyse historique et démographique détaillée de la ville, incluant des données sur la population, les infrastructures et le développement économique.
    - **Secteur d'investissement** : Inclure l'évolution des prix au m² (5 dernières années) et le rendement locatif moyen (2020-2025) pour la ville {address}.
    - **Analyse du marché** : Inclure l'évolution des prix immobiliers (2020-2025), un tableau comparatif des quartiers dans la ville (prix au m², rendement locatif, distances), et les facteurs influençant le marché local.
    - **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.
-   - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville .
+   - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville.
    - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
    - **Analyse prédictive et argumentée** : Projection sur l'évolution future des prix immobiliers pour les 5 à 10 prochaines années, analyse argumentée sur le type de bien le plus judicieux à acquérir, et recommandations basées sur les tendances du marché et données économiques.
 
 4. **Détails à Inclure** :
-   - Donnez un ou deux aperçu précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à .
-   - Ajoutez des données pertinentes sur la population, la demande locative, et les tendances démographiques.
-   - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m²  est de ...", et comparez plusieurs quartiers.
-   - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville .
-   - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. 
+   - Donnez un ou deux aperçus précis des infrastructures, des quartiers importants et des facteurs économiques spécifiques à la ville.
+   - Ajoutez des données pertinentes sur la population, la demande locative et les tendances démographiques.
+   - Fournissez des insights basés sur des chiffres, comme "le prix moyen au m² est de ...", et comparez plusieurs quartiers.
+   - Ajoutez au moins une projection à moyen terme pour les prix immobiliers dans la ville.
+   - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif.
 
    **Exemple attendu pour les tableaux générés dynamiquement** :
    - **Secteur d'investissement** : Tableau de l'évolution des prix au m² sur 5 ans et du rendement locatif moyen.
@@ -328,15 +344,14 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    |-------|-----------------------|
    | 2020  | 4,200                |
    | 2021  | 4,350                |
-
 ---
 
 ### Instructions par Section
 
 #### **1. Introduction**
 Générez une introduction qui inclut :
-- Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),Ce rapport a été préparé spécifiquement pour votre projet d'investissement . Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
-- Une présentation des objectifs d'investissement du formulaire client(exemple : investir dans un appartement de 120m²  pour un usage locatif).
+- Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),Ce rapport a été préparé spécifiquement pour votre projet d'investissement. Notre analyse vise à vous fournir une vue d'ensemble claire et détaillée du marché immobilier local pertinent pour votre objectif.
+- Une présentation des objectifs d'investissement du formulaire client (exemple : investir dans un appartement de 120m² pour un usage locatif).
 - Une explication rapide de l'importance du marché local pour cet investissement.
 - Aucun tableau dans cette section.
 
@@ -344,7 +359,7 @@ Générez une introduction qui inclut :
 
 #### **2. Contexte**
 Générez une analyse détaillée du contexte local, incluant :
-- Une présentation générale de la ville  : population, attractivité économique, infrastructures clés.
+- Une présentation générale de la ville : population, attractivité économique, infrastructures clés.
 - Une analyse des tendances immobilières et démographiques sur les 5 dernières années.
 - Aucun tableau dans cette section, uniquement des informations textuelles détaillées.
 
@@ -352,7 +367,7 @@ Générez une analyse détaillée du contexte local, incluant :
 
 #### **3. Secteur d'investissement**
 Générez une analyse détaillée du secteur d'investissement, incluant :
-- Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville  sur les 5 dernières années.
+- Un tableau dynamique montrant l'évolution des prix moyens au m² dans la ville sur les 5 dernières années.
 - Un tableau dynamique illustrant le rendement locatif moyen de la ville pour la période 2020-2025.
 - Une description claire expliquant les tendances et leur pertinence pour l'investissement.
 
@@ -361,8 +376,8 @@ Générez une analyse détaillée du secteur d'investissement, incluant :
 #### **4. Analyse du marché**
 Générez une analyse approfondie du marché immobilier local, incluant :
 - Un tableau dynamique montrant l'évolution des prix immobiliers de la ville sur la période 2020-2025.
-- Un tableau dynamique montrant l'évolution des prix immobiliers dans les ville voisines sur la période 2020-2025.
-- Un tableau comparatif dynamique entre différents quartiers , avec les colonnes suivantes :
+- Un tableau dynamique montrant l'évolution des prix immobiliers dans les villes voisines sur la période 2020-2025.
+- Un tableau comparatif dynamique entre différents quartiers, avec les colonnes suivantes :
   - Prix moyen au m².
   - Rendement locatif (%).
   - Distances moyennes aux commerces et écoles.
@@ -374,14 +389,12 @@ Générez une analyse approfondie du marché immobilier local, incluant :
 Générez une analyse détaillée du produit immobilier ciblé par le client, incluant :
 - Une description des caractéristiques de l'appartement cible (taille, emplacement, infrastructures à proximité).
 - Un tableau dynamique montrant l'évolution des prix immobiliers des villes voisines sur la période 2020-2025.
-- Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé .
+- Un tableau montrant les prix moyens au m² pour des biens similaires dans le quartier ciblé.
 - Le type de bien (par exemple, Appartement Neuf, Appartement Ancien, Maison Individuelle).
 - La superficie (exemple : 120 m²).
 - Le prix moyen au m² pour chaque type de bien.
 
 Le tableau doit être clair et au format Markdown. Fournissez également une description concise sous le tableau expliquant les différences de prix entre les biens.
-
-Exemple attendu :
 
 | Type de bien                | Superficie (m²) | Prix moyen au m² (€) |
 |-----------------------------|-----------------|-----------------------|
@@ -403,20 +416,20 @@ Générez une évaluation complète des risques liés à l'investissement, inclu
 Générez une conclusion complète, incluant :
 - Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
-- Une recommandation claire sur l'opportunité d'investir .
+- Une recommandation claire sur l'opportunité d'investir.
 - Une évaluation globale de l'opportunité d'investissement.
 - Les principales tendances observées sur le marché immobilier.
 - Des recommandations concrètes adaptées aux objectifs du client.
-- Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, si il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif. .
+- Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif.
 Ne fournissez aucun tableau dans cette section.
 
 #### **8. Analyse prédictive et argumentée**
 Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
 - Une projection sur l'évolution des prix immobiliers avec des chiffres et des pourcentages pour les 5 à 10 prochaines années.
 - Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
-- Des recommandations basées sur les tendances du marché, les données économiques et démographiquesavec un tableau .
+- Des recommandations basées sur les tendances du marché, les données économiques et démographiques avec un tableau.
 - Une conclusion synthétique avec des arguments solides pour soutenir la recommandation.
-- Une étude argumentée sur quel type de bien il est plus judicieux d'aquerir dans le secteur choisi par le client pour faire un investissement locatif en tenant compte de la clientéle locative de ce secteur.
+- Une étude argumentée sur quel type de bien il est plus judicieux d'acquérir dans le secteur choisi par le client pour faire un investissement locatif en tenant compte de la clientèle locative de ce secteur.
 - Une analyse argumentée détaillée sur le type de bien le plus judicieux à acquérir pour un investissement. Comparez par exemple un appartement neuf, un appartement ancien et une maison individuelle, en indiquant pour chacun :
    - Le taux de rendement moyen,
    - Les coûts d'acquisition et d'entretien,
@@ -432,8 +445,6 @@ Générez une analyse prédictive sur l'évolution future du marché immobilier,
 2. **Respect des Formats** : Les tableaux doivent être insérés exactement tels qu'ils sont générés par OpenAI. Aucun tableau fixe ou reconstruit.
 3. **Descriptions Sous les Tableaux** : Chaque tableau doit être suivi d'une description expliquant son contenu et son importance.
 4. **Longueur Minimale** : Fournissez un contenu détaillé avec un minimum de {min_words} mots par section.
-
-
 
 Pour la section '{section_title}', concentrez-vous uniquement sur les éléments spécifiques à cette section. Ne répétez pas les informations des autres sections ou des parties déjà couvertes ailleurs. Si la section nécessite des comparaisons (comme pour l'analyse du marché), incluez plusieurs perspectives (par exemple, entre quartiers ou types de biens).
 
