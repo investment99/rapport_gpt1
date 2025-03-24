@@ -209,14 +209,7 @@ def generate_report():
         language_mapping = {
             'fr': 'Français',
             'en': 'Anglais',
-            'es': 'Espagnol',
-            'de': 'Allemand',
-            'ru': 'Russe',
-            'pt': 'Portugais',
-            'zh': 'Chinois',
-            'nl': 'Hollandais',
-            'ja': 'Japonais',
-            'ar': 'Arabe'
+            
         }
         language_name = language_mapping.get(language, 'Français')
 
