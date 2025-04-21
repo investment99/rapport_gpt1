@@ -1,0 +1,76 @@
+/* Styles pour la section "Facteurs locaux importants" */
+
+/* Conteneur du groupe de cases à cocher */
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Style des labels contenant les cases à cocher */
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Au survol des labels */
+.checkbox-group label:hover {
+  color: #1EB4B6; /* Couleur turquoise utilisée dans votre site */
+}
+
+/* Style des cases à cocher */
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+/* Style des cases à cocher cochées */
+.checkbox-group input[type="checkbox"]:checked + span {
+  font-weight: bold;
+  color: #1EB4B6; /* Couleur turquoise utilisée dans votre site */
+}
+
+/* Titre de la section */
+label[for="localFactors"] {
+  font-weight: 500;
+  color: #444;
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Responsive : une seule colonne sur mobile */
+@media (max-width: 600px) {
+  .checkbox-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pour s'intégrer au style existant du questionnaire */
+.checkbox-group {
+  margin-bottom: 20px;
+}
+
+/* Effet visuel lorsqu'une case est cochée */
+.checkbox-group input[type="checkbox"]:checked {
+  accent-color: #1EB4B6; /* Couleur turquoise utilisée dans votre site */
+}
+
+/* Description de la section des facteurs locaux */
+.factors-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+  font-style: italic;
+}
