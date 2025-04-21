@@ -476,8 +476,37 @@ EXIGENCES NON NÉGOCIABLES pour cette section:
 3. Mentionnez les NOMS SPÉCIFIQUES de tous les établissements, lignes de transport, commerces, etc.
 4. Si une information précise vous semble manquante, précisez-le explicitement
 5. Cette section doit absolument refléter une connaissance APPROFONDIE et LOCALE du quartier, comme celle d'un agent immobilier expérimenté travaillant dans ce secteur depuis de nombreuses années
+6. FORMATAGE IMPÉRATIF: pour chaque facteur local, utilisez ce format précis:
+   * Titre en gras (ex: "**Transports en commun**")
+   * Un paragraphe de résumé synthétique
+   * Puis un SAUT DE LIGNE
+   * Puis la liste détaillée des éléments
+   * Un SAUT DE LIGNE entre chaque facteur différent
 """
                             section_prompt = section_prompt[:next_section_index] + factors_instructions + section_prompt[next_section_index:]
+            
+            # Ajout d'instructions de formatage spéciales pour l'évaluation des risques
+            if section_title == "Évaluation des risques":
+                risk_instructions = """
+FORMATAGE OBLIGATOIRE POUR CETTE SECTION:
+1. Après votre introduction générale, vous DEVEZ IMPÉRATIVEMENT inclure un TABLEAU récapitulatif des risques identifiés
+2. Le tableau doit avoir ce format (exemple):
+
+| Type de risque | Niveau (1-5) | Description | Impact potentiel |
+|----------------|--------------|-------------|------------------|
+| Risque de marché | 3 | Fluctuation des prix | Modéré |
+| Risque locatif | 2 | Vacance possible | Faible |
+| ... | ... | ... | ... |
+
+3. Après le tableau, analysez chaque risque individuellement avec un titre en gras suivi d'un paragraphe explicatif
+4. Insérez un saut de ligne entre chaque type de risque pour une meilleure lisibilité
+"""
+                # Trouver où insérer les instructions
+                risk_index = section_prompt.find("#### **6. Évaluation des risques**")
+                if risk_index != -1:
+                    next_section = section_prompt.find("---", risk_index)
+                    if next_section != -1:
+                        section_prompt = section_prompt[:next_section] + risk_instructions + section_prompt[next_section:]
             
             section_content = generate_section(client, section_prompt)
     
