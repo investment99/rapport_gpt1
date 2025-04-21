@@ -522,19 +522,61 @@ def process_local_factors(form_data):
     }
     
     factor_details = {
-        'transport': 'Analysez la qualité et la fréquence des transports en commun, les différentes options disponibles (bus, métro, train) et leur accessibilité depuis la zone concernée.',
-        'schools': 'Évaluez la proximité et la qualité des établissements scolaires (primaires, collèges, lycées, universités) dans la zone et leur impact sur la valeur immobilière.',
-        'shops': 'Détaillez l\'offre commerciale locale, types de commerces, grandes surfaces, marchés et services de proximité.',
-        'security': 'Analysez les indicateurs de sécurité du quartier, taux de criminalité comparé aux autres zones, présence policière et sentiment de sécurité.',
-        'development': 'Identifiez les projets d\'aménagement urbain prévus ou en cours (rénovations, constructions, infrastructures) et leur impact sur la valeur future des biens.',
-        'employment': 'Évaluez le dynamisme économique de la zone, les principaux employeurs, le taux de chômage, et les perspectives économiques à moyen terme.'
+        'transport': '''Faites un inventaire détaillé de TOUS les transports en commun disponibles dans le quartier:
+- Listez toutes les lignes de métro/RER avec leurs numéros/noms exacts et les stations les plus proches
+- Détaillez les lignes de bus avec leurs numéros et arrêts principaux
+- Mentionnez les lignes de tramway si présentes
+- Précisez la distance à pied (en minutes) jusqu'aux stations/arrêts principaux
+- Indiquez les fréquences moyennes de passage en heures de pointe
+- Analysez la connectivité globale avec le reste de la ville
+- Évaluez si le quartier est bien desservi ou non par rapport à d'autres quartiers similaires''',
+
+        'schools': '''Faites un inventaire complet des établissements scolaires à proximité:
+- Listez toutes les écoles maternelles et primaires du secteur avec leurs noms
+- Détaillez les collèges et lycées (publics et privés) accessibles
+- Mentionnez les établissements d'enseignement supérieur proches
+- Précisez les distances (en mètres ou minutes à pied) pour chaque établissement
+- Indiquez la qualité/réputation des établissements quand c'est possible (classements, taux de réussite)
+- Analysez si le secteur est particulièrement bien pourvu en établissements scolaires''',
+
+        'shops': '''Faites un inventaire détaillé de l'offre commerciale locale:
+- Listez tous les types de commerces disponibles (boulangerie, pharmacie, supermarchés, etc.)
+- Mentionnez les centres commerciaux/galeries marchandes à proximité
+- Précisez les marchés (couverts ou de plein air) et leur fréquence
+- Indiquez les distances approximatives (en mètres ou minutes à pied)
+- Évaluez la diversité et la qualité de l'offre commerciale
+- Comparez l'offre avec d'autres quartiers similaires de la ville''',
+
+        'security': '''Analysez en détail la sécurité du quartier:
+- Présentez des données chiffrées sur la criminalité si disponibles
+- Comparez les taux d'incidents avec la moyenne de la ville
+- Évaluez la présence policière dans le secteur
+- Mentionnez les dispositifs de sécurité (caméras, résidences sécurisées)
+- Décrivez l'ambiance générale du quartier (calme, animé, familial)
+- Analysez l'évolution de la sécurité sur les dernières années''',
+
+        'development': '''Détaillez tous les projets urbains qui pourraient impacter le quartier:
+- Listez les projets de construction/rénovation urbaine en cours
+- Mentionnez les projets d'infrastructure prévus (routes, transports)
+- Précisez les échéances prévues pour ces projets
+- Évaluez l'impact potentiel sur la valeur immobilière
+- Analysez les conséquences sur la qualité de vie
+- Indiquez les zones de développement prioritaires de la ville''',
+
+        'employment': '''Analysez en détail le bassin d'emploi local:
+- Listez les principaux employeurs du secteur
+- Identifiez les secteurs d'activité dominants
+- Présentez des données sur le taux d'emploi/chômage local
+- Comparez avec les moyennes régionales et nationales
+- Évaluez les perspectives de développement économique
+- Analysez l'attractivité du quartier pour les entreprises'''
     }
     
     local_factors_prompt = ""
     
     for factor in form_data.get('localFactors', []):
         if factor in factor_descriptions:
-            local_factors_prompt += f"- **{factor_descriptions[factor]}**: {factor_details[factor]}\n\n"
+            local_factors_prompt += f"- **{factor_descriptions[factor]}**: \n{factor_details[factor]}\n\n"
     
     return local_factors_prompt
 
