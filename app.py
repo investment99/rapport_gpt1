@@ -454,7 +454,7 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
                     # Intégrer les facteurs locaux directement dans les instructions pour l'analyse du produit
                     section_prompt = section_prompt.replace(
                         "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.",
-                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé, incluant une analyse des facteurs locaux importants."
+                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé, incluant une analyse EXTRÊMEMENT PRÉCISE et DÉTAILLÉE des facteurs locaux importants."
                     )
                     
                     # Ajuster la section des instructions pour l'analyse du produit
@@ -466,14 +466,16 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
                             # Insérer les instructions pour les facteurs locaux juste avant la fin de la section
                             factors_instructions = f"""
 
-En plus de l'analyse du produit, veuillez inclure une sous-section intitulée "Facteurs locaux importants" qui analyse en détail les facteurs suivants qui sont importants pour le client:
+En plus de l'analyse du produit, vous DEVEZ IMPÉRATIVEMENT inclure une sous-section intitulée "FACTEURS LOCAUX IMPORTANTS" qui analyse EN DÉTAIL et avec une EXTRÊME PRÉCISION les facteurs suivants qui sont importants pour le client.
+
 {local_factors_prompt.strip()}
 
-Pour chaque facteur listé, fournissez:
-- Une analyse détaillée de la situation actuelle dans la zone ciblée
-- L'impact potentiel de ce facteur sur la valeur et l'attractivité de l'investissement
-- Des données chiffrées si elles sont pertinentes (distances, nombre d'établissements, fréquence des transports, etc.)
-- Une comparaison avec d'autres zones de la ville
+EXIGENCES NON NÉGOCIABLES pour cette section:
+1. Ne générez JAMAIS d'informations génériques - fournissez UNIQUEMENT des données PRÉCISES et VÉRIFIABLES
+2. Utilisez SYSTÉMATIQUEMENT des CHIFFRES EXACTS (distances, nombres, pourcentages, etc.)
+3. Mentionnez les NOMS SPÉCIFIQUES de tous les établissements, lignes de transport, commerces, etc.
+4. Si une information précise vous semble manquante, précisez-le explicitement
+5. Cette section doit absolument refléter une connaissance APPROFONDIE et LOCALE du quartier, comme celle d'un agent immobilier expérimenté travaillant dans ce secteur depuis de nombreuses années
 """
                             section_prompt = section_prompt[:next_section_index] + factors_instructions + section_prompt[next_section_index:]
             
@@ -521,62 +523,131 @@ def process_local_factors(form_data):
         'employment': 'Bassin d\'emploi et activité économique'
     }
     
-    factor_details = {
-        'transport': '''Faites un inventaire détaillé de TOUS les transports en commun disponibles dans le quartier:
-- Listez toutes les lignes de métro/RER avec leurs numéros/noms exacts et les stations les plus proches
-- Détaillez les lignes de bus avec leurs numéros et arrêts principaux
-- Mentionnez les lignes de tramway si présentes
-- Précisez la distance à pied (en minutes) jusqu'aux stations/arrêts principaux
-- Indiquez les fréquences moyennes de passage en heures de pointe
-- Analysez la connectivité globale avec le reste de la ville
-- Évaluez si le quartier est bien desservi ou non par rapport à d'autres quartiers similaires''',
-
-        'schools': '''Faites un inventaire complet des établissements scolaires à proximité:
-- Listez toutes les écoles maternelles et primaires du secteur avec leurs noms
-- Détaillez les collèges et lycées (publics et privés) accessibles
-- Mentionnez les établissements d'enseignement supérieur proches
-- Précisez les distances (en mètres ou minutes à pied) pour chaque établissement
-- Indiquez la qualité/réputation des établissements quand c'est possible (classements, taux de réussite)
-- Analysez si le secteur est particulièrement bien pourvu en établissements scolaires''',
-
-        'shops': '''Faites un inventaire détaillé de l'offre commerciale locale:
-- Listez tous les types de commerces disponibles (boulangerie, pharmacie, supermarchés, etc.)
-- Mentionnez les centres commerciaux/galeries marchandes à proximité
-- Précisez les marchés (couverts ou de plein air) et leur fréquence
-- Indiquez les distances approximatives (en mètres ou minutes à pied)
-- Évaluez la diversité et la qualité de l'offre commerciale
-- Comparez l'offre avec d'autres quartiers similaires de la ville''',
-
-        'security': '''Analysez en détail la sécurité du quartier:
-- Présentez des données chiffrées sur la criminalité si disponibles
-- Comparez les taux d'incidents avec la moyenne de la ville
-- Évaluez la présence policière dans le secteur
-- Mentionnez les dispositifs de sécurité (caméras, résidences sécurisées)
-- Décrivez l'ambiance générale du quartier (calme, animé, familial)
-- Analysez l'évolution de la sécurité sur les dernières années''',
-
-        'development': '''Détaillez tous les projets urbains qui pourraient impacter le quartier:
-- Listez les projets de construction/rénovation urbaine en cours
-- Mentionnez les projets d'infrastructure prévus (routes, transports)
-- Précisez les échéances prévues pour ces projets
-- Évaluez l'impact potentiel sur la valeur immobilière
-- Analysez les conséquences sur la qualité de vie
-- Indiquez les zones de développement prioritaires de la ville''',
-
-        'employment': '''Analysez en détail le bassin d'emploi local:
-- Listez les principaux employeurs du secteur
-- Identifiez les secteurs d'activité dominants
-- Présentez des données sur le taux d'emploi/chômage local
-- Comparez avec les moyennes régionales et nationales
-- Évaluez les perspectives de développement économique
-- Analysez l'attractivité du quartier pour les entreprises'''
-    }
-    
     local_factors_prompt = ""
     
     for factor in form_data.get('localFactors', []):
         if factor in factor_descriptions:
-            local_factors_prompt += f"- **{factor_descriptions[factor]}**: \n{factor_details[factor]}\n\n"
+            if factor == 'transport':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour les transports en commun, vous DEVEZ IMPÉRATIVEMENT lister TOUS les moyens de transport du quartier avec leurs détails précis:
+1. Métro: indiquer TOUTES les stations dans un rayon de 1km avec les NUMÉROS EXACTS des lignes (ex: Ligne 4, Ligne 12) et les DISTANCES PRÉCISES en mètres et minutes de marche
+2. Bus: indiquer TOUS les numéros de lignes précis (ex: Bus 38, 67, 96) avec les noms des arrêts et leurs emplacements exacts
+3. RER/Trains: indiquer les stations, numéros de lignes (ex: RER A, RER B) et destinations accessibles
+4. Tramway: indiquer les lignes précises si disponibles dans le secteur
+5. Préciser la FRÉQUENCE DES PASSAGES (ex: toutes les 3 minutes en heure de pointe)
+6. Indiquer les TEMPS DE TRAJET précis vers les principaux pôles (gares, centres d'affaires, centre-ville)
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            elif factor == 'schools':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour les écoles, vous DEVEZ IMPÉRATIVEMENT:
+1. Lister TOUS les établissements scolaires dans un rayon de 1,5km: crèches, maternelles, primaires, collèges, lycées et établissements supérieurs
+2. Pour CHAQUE établissement, préciser:
+   - Le NOM EXACT de l'établissement
+   - Son TYPE précis (public/privé/international)
+   - Sa DISTANCE EXACTE en mètres et minutes à pied
+   - Ses SPÉCIFICITÉS (sections internationales, options spéciales)
+   - Ses RÉSULTATS académiques chiffrés quand disponibles (% réussite bac, classements)
+3. Indiquer la RÉPUTATION de chaque établissement avec des données objectives
+4. Mentionner les établissements d'excellence ou spécialisés dans le secteur
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            elif factor == 'shops':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour les commerces et services, vous DEVEZ IMPÉRATIVEMENT:
+1. Lister TOUS les commerces essentiels dans un rayon de 1km avec leurs NOMS EXACTS et DISTANCES PRÉCISES:
+   - Supermarchés/épiceries (préciser les enseignes exactes, ex: Carrefour City, Monoprix, etc.)
+   - Boulangeries (avec noms spécifiques)
+   - Pharmacies (nombres et emplacements précis)
+   - Restaurants (types de cuisine et gammes de prix)
+   - Services médicaux (médecins, spécialistes, centres médicaux)
+2. Indiquer les CENTRES COMMERCIAUX avec:
+   - Leurs NOMS EXACTS
+   - Le NOMBRE PRÉCIS de boutiques
+   - Les ENSEIGNES PRINCIPALES
+   - La DISTANCE EXACTE en mètres et minutes
+3. Préciser les MARCHÉS avec leurs JOURS et HORAIRES exacts
+4. Évaluer la DENSITÉ COMMERCIALE par rapport aux quartiers voisins
+5. Indiquer les COMMERCES SPÉCIALISÉS remarquables
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            elif factor == 'security':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour la sécurité du quartier, vous DEVEZ IMPÉRATIVEMENT fournir:
+1. Des DONNÉES CHIFFRÉES précises sur la criminalité:
+   - Taux d'infractions par catégorie (cambriolages, agressions, incivilités)
+   - COMPARAISON EXACTE avec la moyenne de la ville et des quartiers voisins
+   - ÉVOLUTION sur les 3 dernières années avec pourcentages précis
+2. Présence policière et sécuritaire:
+   - Distance du commissariat le plus proche (en mètres exacts)
+   - Fréquence des patrouilles
+   - Présence de caméras de surveillance
+3. Appréciation objective de l'ambiance:
+   - Sécurité ressentie de jour et de nuit
+   - Zones plus sensibles identifiées avec précision
+   - Témoignages de résidents si disponibles
+4. Facteurs influençant la sécurité:
+   - Éclairage public
+   - Configuration urbaine
+   - Mixité sociale
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            elif factor == 'development':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour les projets urbains, vous DEVEZ IMPÉRATIVEMENT:
+1. Lister TOUS les projets d'aménagement en cours ou prévus avec:
+   - NOMS EXACTS des projets
+   - DATES PRÉCISES (début/fin des travaux)
+   - BUDGETS EXACTS en millions d'euros
+   - NATURE DÉTAILLÉE (logements, commerces, infrastructures)
+2. Pour chaque projet majeur, préciser:
+   - Sa LOCALISATION EXACTE par rapport au bien
+   - Son IMPACT QUANTIFIÉ sur les prix immobiliers
+   - Les NOUVELLES INFRASTRUCTURES apportées
+3. Détailler les projets de transport:
+   - Nouvelles lignes/stations
+   - Améliorations prévues
+   - Calendrier précis de mise en service
+4. Identifier les zones de développement prioritaires:
+   - Quartiers en rénovation urbaine
+   - Zones d'aménagement concerté (ZAC)
+   - Pôles de croissance économique
+5. Évaluer l'impact de ces projets sur l'attractivité future
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            elif factor == 'employment':
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Pour le bassin d'emploi, vous DEVEZ IMPÉRATIVEMENT:
+1. Identifier TOUS les employeurs majeurs du secteur:
+   - NOMS EXACTS des entreprises/institutions
+   - NOMBRE PRÉCIS d'employés par structure
+   - SECTEURS D'ACTIVITÉ spécifiques
+   - DISTANCE EXACTE en km et minutes de transport
+2. Fournir des données économiques précises:
+   - TAUX DE CHÔMAGE du secteur (comparé à la moyenne ville/région/pays)
+   - REVENU MOYEN des habitants (chiffré exactement)
+   - CROISSANCE ÉCONOMIQUE locale avec pourcentages précis
+3. Détailler les zones d'activité:
+   - Parcs d'entreprises, zones industrielles, centres d'affaires
+   - Nombre exact d'entreprises et typologie
+   - Accessibilité en transport (temps précis)
+4. Analyser les perspectives d'évolution:
+   - Secteurs en développement/déclin
+   - Implantations futures confirmées
+   - Projets économiques structurants
+Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
+
+"""
+            else:
+                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
+Analysez ce facteur de manière extrêmement détaillée et précise avec des données chiffrées et factuelles.
+
+"""
     
     return local_factors_prompt
 
