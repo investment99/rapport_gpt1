@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulaire Projet en Ligne</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="steps-container">
+    <div class="step">
+      <div class="circle">
+        <span class="number">1</span>
+      </div>
+      <div class="text">
+        <h3>Analyse IA</h3>
+        <p>L'intelligence artificielle analyse vos données en temps réel pour un résultat personnalisé.</p>
+      </div>
+    </div>
+    <div class="line"></div>
+    <div class="step">
+      <div class="circle">
+        <span class="number">2</span>
+      </div>
+      <div class="text">
+        <h3>Rapport IA</h3>
+        <p>Recevez un rapport détaillé avec des recommandations adaptées à vos besoins.</p>
+      </div>
+    </div>
+    <div class="line"></div>
+    <div class="step">
+      <div class="circle">
+        <span class="number">3</span>
+      </div>
+      <div class="text">
+        <h3>Génération IA</h3>
+        <p>Notre IA génère des solutions clé en main pour votre projet.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const steps = document.querySelectorAll(".step");
+      steps.forEach((step, index) => {
+        setTimeout(() => {
+          step.classList.add("visible");
+        }, index * 500);
+      });
+    });
+  </script>
+
+  <div class="container">
+    <div id="form-container">
+      <div class="title-box">PROJET EN LIGNE</div>
+      <p>
+        Pour commencer l'analyse de vos clients, remplissez le questionnaire en ligne en veillant à indiquer uniquement les unités (par exemple, saisissez 100 plutôt que 100 € ou 20 plutôt que 20 m²). Fournissez des informations détaillées pour garantir une analyse optimale.
+      </p>
+      <p>
+        Une fois le formulaire complété, cliquez sur « Envoyer » pour générer le rapport. En fonction de la vitesse de votre connexion, le fichier sera automatiquement téléchargé sur votre ordinateur ou smartphone au format PDF. Lorsque le curseur atteint 90 %, veuillez patienter entre 2 et 5 minutes pour finaliser le téléchargement de votre rapport.
+      </p>
+
+      <form id="mon-formulaire-unique">
+        <!-- Informations personnelles -->
+        <fieldset>
+          <legend>Informations personnelles</legend>
+          <label for="analysis-date">Date / Heure de l'analyse</label>
+          <input type="datetime-local" id="analysis-date" name="analysis-date" required>
+
+          <label for="civilite">Civilité</label>
+          <select id="civilite" name="civilite" required>
+            <option value="">-- Sélectionnez --</option>
+            <option value="monsieur">Monsieur</option>
+            <option value="madame">Madame</option>
+          </select>
+
+          <label for="name">Nom Prénom</label>
+          <input type="text" id="name" name="name" required>
+
+          <label for="address-line1">Adresse Ligne 1</label>
+          <input type="text" id="address-line1" name="address-line1" required>
+
+          <label for="address-line2">Adresse Ligne 2</label>
+          <input type="text" id="address-line2" name="address-line2">
+
+          <label for="city">Ville</label>
+          <input type="text" id="city" name="city" required>
+
+          <label for="region">État / Province / Région</label>
+          <input type="text" id="region" name="region" required>
+
+          <label for="postal-code">Code Postal</label>
+          <input type="text" id="postal-code" name="postal-code" required>
+
+          <label for="country">Pays</label>
+          <input type="text" id="country" name="country" required>
+
+          <label for="phone">Téléphone</label>
+          <input type="tel" id="phone" name="phone" required>
+
+          <label for="agency-email">E-mail de votre Agence</label>
+          <input type="email" id="agency-email" name="agency-email" required>
+        </fieldset>
+
+        <!-- Questions générales -->
+        <fieldset>
+          <legend>Questions générales</legend>
+          <label for="investment-reason">Quelle est pour vous la principale raison qui vous motive pour réaliser cet investissement ?</label>
+          <textarea id="investment-reason" name="investment-reason" rows="4" required></textarea>
+
+          <label>Avez-vous déjà identifié des biens qui pourraient correspondre à votre recherche ?</label>
+          <select name="identified-property" required>
+            <option value="oui">Oui</option>
+            <option value="non">Non</option>
+          </select>
+
+          <label>Êtes-vous engagé par un mandat ou une exclusivité auprès d'un professionnel pour cette recherche ?</label>
+          <select name="exclusive-mandate" required>
+            <option value="oui">Oui</option>
+            <option value="non">Non</option>
+          </select>
+
+          <label>Avez-vous déjà réalisé une analyse précise sur le bien-fondé de votre projet d'investissement ?</label>
+          <select name="analysis-done" required>
+            <option value="oui">Oui</option>
+            <option value="non">Non</option>
+          </select>
+
+          <label for="investment-objective-time">Avez-vous un objectif dans le temps pour réaliser cet investissement ?</label>
+          <input type="text" id="investment-objective-time" name="investment-objective-time" required>
+
+          <label for="risk-tolerance">Quel est votre niveau de tolérance au risque ? (de 1 à 10)</label>
+          <input type="range" id="risk-tolerance" name="risk-tolerance" min="1" max="10" value="5">
+          <div id="risk-tolerance-value">Valeur sélectionnée : <span>5</span></div>
+        </fieldset>
+
+        <!-- Secteur d'investissement -->
+        <fieldset>
+          <legend>Secteur d'investissement</legend>
+          <label for="investment-sector">Dans quel secteur avez-vous ce projet d'investissement ?</label>
+          <!-- Seul le secteur IMMOBILIER est conservé -->
+          <select id="investment-sector" name="investment-sector" required>
+            <option value="">Sélectionnez un secteur</option>
+            <option value="IMMOBILIER">IMMOBILIER</option>
+          </select>
+        </fieldset>
+
+        <!-- Questions dynamiques (UNIQUEMENT IMMOBILIER) -->
+        <div id="sector-questions"></div>
+
+        <!-- Bouton d'envoi -->
+        <button type="submit">Envoyer et Générer</button>
+      </form>
+
+      <div id="response"></div>
+      <div id="progress-container" style="display: none;">
+        <div class="progress-bar">
+          <div id="progress-bar" class="progress"></div>
+        </div>
+        <p id="progress-text">Génération du rapport en cours...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Lors du changement du secteur, on affiche les questions IMMOBILIER
+    document.getElementById('investment-sector').addEventListener('change', function () {
+      const sector = this.value;
+      const sectorQuestions = document.getElementById('sector-questions');
+      sectorQuestions.innerHTML = '';
+      if (sector === 'IMMOBILIER') {
+        sectorQuestions.innerHTML = `<fieldset><legend>Questions IMMOBILIER</legend>${getImmobilierQuestions()}</fieldset>`;
+      }
+    });
+
+    // Fonction générant l'ensemble des questions IMMOBILIER
+    function getImmobilierQuestions() {
+      return `
+        <label>1) De quel type de bien parlons-nous ? (neuf ou ancien ?)</label>
+        <select name="type-bien" required>
+          <option value="neuf">Neuf</option>
+          <option value="ancien">Ancien</option>
+        </select>
+
+        <label>2) Quel type de bien recherchez-vous ?</label>
+        <select name="type-bien-recherche" id="type-bien-recherche" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="appartement">Appartement</option>
+          <option value="terrain">Terrain</option>
+          <option value="maison">Maison</option>
+          <option value="villa">Villa</option>
+        </select>
+
+        <!-- Question conditionnelle : affichage de l'architecture extérieure pour Maison/Villa -->
+        <div id="architecture-container" style="display:none;">
+          <label>Type d'architecture exterieur :</label>
+          <select name="architecture-exterieur">
+            <option value="">-- Sélectionnez --</option>
+            <option value="traditionnelle">Traditionnelle</option>
+            <option value="provencale">Provencale</option>
+            <option value="contemporaine">Contemporaine</option>
+            <option value="industrielle">Industrielle</option>
+            <option value="autres">Autres</option>
+          </select>
+        </div>
+
+        <label>3) Pourquoi recherchez-vous ce bien ? </label>
+        <select name="usage-bien" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="pour-y-vivre">Pour y vivre</option>
+          <option value="investissement">Investissement</option>
+        </select>
+
+        <label>4) Y a-t-il des éléments que vous souhaitez éviter ?</label>
+        <select name="elements-eviter" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="bruit">Oui, le bruit</option>
+          <option value="manque-luminosite">Oui, manque de luminosité</option>
+          <option value="aucun">Non</option>
+        </select>
+
+        <label>5) Serez-vous réactif, si nous avons la chance de trouver le bien idéal ?</label>
+        <select name="reactivite" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="oui-reactif">Oui, assez réactif</option>
+          <option value="oui-temps">Oui, avec un peu de temps</option>
+          <option value="non">Non, il me faut plus de temps</option>
+        </select>
+
+        <label>6) Quel style d'intérieur recherchez-vous ?</label>
+        <textarea name="architecture" rows="4" required></textarea>
+
+        <label>7) Dans quel secteur voyez-vous ce bien ?</label>
+        <textarea name="secteur" rows="4" required></textarea>
+
+        <label>8) Avez-vous une zone préférentielle plus précise, prioritaire ?</label>
+        <textarea name="zone-preferentielle" rows="4" required></textarea>
+
+        <label>10) Quelle superficie habitable recherchez-vous (en m²) ?</label>
+        <input type="number" name="superficie-habitable" required>
+
+        <label>11) Quelle superficie minimale recherchez-vous pour le salon (en m²) ?</label>
+        <input type="number" name="superficie-salon" required>
+
+        <label>12) Dans l'idéal, combien de chambres souhaitez-vous ?</label>
+        <select name="nombre-chambres" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="1">1 chambre</option>
+          <option value="2">2 chambres</option>
+          <option value="3">3 chambres</option>
+          <option value="4">4 chambres</option>
+          <option value="5">5 chambres</option>
+          <option value="6">6 chambres</option>
+          <option value="7">7 chambres</option>
+          <option value="8">8 chambres</option>
+        </select>
+
+        <label>13) Souhaitez-vous d'autres pièces pour d'autres fonctions ?</label>
+        <p>
+          <label><input type="checkbox" name="autres-pieces[]" value="bureau"> Bureau</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="buanderie"> Buanderie</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="dressing"> Dressing</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="cellier"> Cellier</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="garage"> Garage</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="cave"> Cave</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="veranda"> Véranda</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="loggia"> Loggia</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="terrasse"> Terrasse</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="balcon"> Balcon</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="salle-sport"> Salle de sport</label><br>
+          <label><input type="checkbox" name="autres-pieces[]" value="non"> Non</label>
+        </p>
+
+        <label>14) Combien de salles de bain ?</label>
+        <select name="nombre-salles-bain" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+
+        <label>15) Quel type de cuisine préférez-vous ?</label>
+        <select name="type-cuisine" required>
+          <option value="fermee">Fermée</option>
+          <option value="ouverte">Ouverte</option>
+        </select>
+
+        <label>16) Une cuisine dinatoire est-elle souhaitée ?</label>
+        <select name="cuisine-dinatoire" required>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </select>
+
+        <label>17) Nombre de places de parking ?</label>
+        <select name="places-parking" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+
+        <label>18) Les places doivent-elles être couvertes ?</label>
+        <select name="parking-couvert" required>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </select>
+
+        <label>19) Superficie du terrain souhaité (en m²) ?</label>
+        <input type="number" name="superficie-terrain" required>
+
+        <label>20) Souhaitez-vous une piscine ou que le terrain soit piscinable ?</label>
+        <select name="piscine" required>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+          <option value="non-imperatif">Ce n'est pas impératif</option>
+        </select>
+
+        <label>21) Êtes-vous contre un besoin de travaux pour que cette acquisition corresponde à vos attentes ?</label>
+        <select name="contre-travaux" required>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </select>
+
+        <label>23) Distance maximale souhaitée des principaux commerces ?</label>
+        <input type="text" name="distance-commerces" required>
+
+        <label>24) Distance maximale souhaitée des écoles primaires ?</label>
+        <input type="text" name="distance-ecoles-primaires" required>
+
+        <label>25) Distance maximale souhaitée des écoles secondaires ?</label>
+        <input type="text" name="distance-ecoles-secondaires" required>
+
+        <label>26) Distance maximale souhaitée de votre lieu de travail ?</label>
+        <input type="text" name="distance-lieu-travail" required>
+
+        <label>27) Quel est votre lieu de travail ?</label>
+        <textarea name="lieu-travail" rows="4"></textarea>
+
+        <label>28) Quel est votre budget idéal ?</label>
+        <input type="number" name="budget-ideal" required>
+
+        <label>29) Avez-vous une marge sur ce budget, pour un coup de cœur ? Si oui, de quel pourcentage ?</label>
+        <select name="marge-budget" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="non">Non</option>
+          <option value="5">Oui, 5%</option>
+          <option value="10">Oui, 10%</option>
+          <option value="15">Oui, 15%</option>
+          <option value="20">Oui, 20%</option>
+          <option value="25plus">Oui, plus de 25%</option>
+        </select>
+
+        <label>30) Avez-vous besoin de financer une partie de votre investissement ?</label>
+        <select name="besoin-financement" id="besoin-financement" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </select>
+
+        <!-- Question 31 cachée par défaut et affichée seulement si "oui" est sélectionné à la question 30 -->
+        <div id="question-31" style="display:none;">
+          <label>31) Quel montant pensez-vous devoir financer ?</label>
+          <input type="number" name="montant-financer">
+        </div>
+
+        <!-- Nouvelle section : Facteurs locaux importants -->
+        <label>32) Facteurs locaux importants</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="localFactors[]" value="transport"> Transports en commun</label><br>
+          <label><input type="checkbox" name="localFactors[]" value="schools"> Proximité écoles</label><br>
+          <label><input type="checkbox" name="localFactors[]" value="shops"> Commerces</label><br>
+          <label><input type="checkbox" name="localFactors[]" value="security"> Sécurité</label><br>
+          <label><input type="checkbox" name="localFactors[]" value="development"> Projets urbains</label><br>
+          <label><input type="checkbox" name="localFactors[]" value="employment"> Bassin d'emploi</label>
+        </div>
+
+        <!-- Nouveau champ pour le choix de langue -->
+        <label for="language">Choisissez la langue du rapport :</label>
+        <select name="language" id="language" required>
+          <option value="">-- Sélectionnez --</option>
+          <option value="fr">Français</option>
+          <option value="en">Anglais</option>
+         
+        </select>
+
+        <p>Le questionnaire est terminé. Le formulaire sera ensuite traité par notre BOT IA P.I investment pour générer votre rapport en PDF (patientez environ 4 à 5 minutes une fois le curseur à 90%). <span style="color:red;">Il ne faut surtout pas cliquer deux fois sur le bouton "Envoyer et Générer".</span></p>
+
+      `;
+    }
+
+    // Affichage conditionnel de la question d'architecture extérieure pour Maison/Villa avec gestion dynamique de l'attribut required
+    document.getElementById('sector-questions').addEventListener('change', function(e) {
+      if (e.target && e.target.id === "type-bien-recherche") {
+        const architectureContainer = document.getElementById("architecture-container");
+        const architectureSelect = architectureContainer.querySelector('select[name="architecture-exterieur"]');
+        if (e.target.value === "maison" || e.target.value === "villa") {
+          architectureContainer.style.display = "block";
+          architectureSelect.setAttribute('required', 'required');
+        } else {
+          architectureContainer.style.display = "none";
+          architectureSelect.removeAttribute('required');
+          architectureSelect.value = "";
+        }
+      }
+    });
+
+    // Affichage conditionnel de la question 31 selon la réponse à la question 30 avec gestion dynamique de l'attribut required
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.id === "besoin-financement") {
+        const question31 = document.getElementById("question-31");
+        const montantInput = question31.querySelector('input[name="montant-financer"]');
+        if (e.target.value === "oui") {
+          question31.style.display = "block";
+          montantInput.setAttribute('required', 'required');
+        } else {
+          question31.style.display = "none";
+          montantInput.removeAttribute('required');
+          montantInput.value = "";
+        }
+      }
+    });
+
+    // Soumission du formulaire avec affichage d'une barre de progression et téléchargement du PDF généré
+    document.getElementById('mon-formulaire-unique').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const formObject = Object.fromEntries(formData.entries());
+      
+      // Traitement spécial pour les cases à cocher (checkbox)
+      const localFactors = Array.from(document.querySelectorAll('input[name="localFactors[]"]:checked')).map(input => input.value);
+      const autresPieces = Array.from(document.querySelectorAll('input[name="autres-pieces[]"]:checked')).map(input => input.value);
+      
+      // Ajouter les tableaux aux données du formulaire
+      formObject.localFactors = localFactors;
+      formObject['autres-pieces'] = autresPieces;
+      
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+
+      progressContainer.style.display = 'block';
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `Génération du rapport en cours... ${progress}%`;
+        if (progress >= 90) {
+          clearInterval(interval);
+        }
+      }, 500);
+
+      fetch('https://rapport-gpt1.onrender.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formObject)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de la génération du rapport');
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        clearInterval(interval);
+        progressBar.value = 100;
+        progressText.textContent = 'Génération terminée !';
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'rapport_analyse.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        // Appel AJAX pour incrémenter le compteur de rapports
+        fetch('/wp-admin/admin-ajax.php?action=increment_report_counter', {
+          method: 'GET',
+          credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          // Vous pouvez vérifier la réponse ici si besoin
+        })
+        .catch(err => {
+          console.error("Erreur lors de l'incrémentation du compteur:", err);
+        });
+        
+        setTimeout(() => {
+          progressContainer.style.display = 'none';
+          alert('Le rapport a été généré avec succès. Le téléchargement va commencer.');
+        }, 1000);
+      })
+      .catch(error => {
+        clearInterval(interval);
+        progressContainer.style.display = 'none';
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la génération du rapport.');
+      });
+    });
+
+    // Mise à jour dynamique de la valeur affichée du curseur de risque
+    const riskSlider = document.getElementById('risk-tolerance');
+    const riskValue = document.getElementById('risk-tolerance-value').querySelector('span');
+    riskSlider.addEventListener('input', () => {
+      riskValue.textContent = riskSlider.value;
+    });
+  </script>
+</body>
+</html> 
+
