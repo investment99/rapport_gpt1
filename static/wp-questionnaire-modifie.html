@@ -315,21 +315,190 @@
 
       // Pour les questions spécifiques
       switch(fieldName) {
+        case 'analysis-date':
+          title = 'Date et heure de l\'analyse';
+          text = `
+            <p>Sélectionnez la date et l'heure actuelles pour cette analyse.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Utilisez le sélecteur de date et d'heure pour indiquer le moment où vous réalisez cette analyse.
+            </div>
+            <p>Cette information servira de référence temporelle pour votre rapport.</p>
+          `;
+          break;
+
+        case 'name':
+          title = 'Nom et prénom';
+          text = `
+            <p>Indiquez votre nom complet pour personnaliser le rapport.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Écrivez votre prénom suivi de votre nom de famille.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Jean Dupont</li>
+              <li>Marie Martin</li>
+            </ul>
+          `;
+          break;
+
+        case 'address-line1':
+        case 'address-line2':
+          title = 'Adresse';
+          text = `
+            <p>Indiquez votre adresse postale complète.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Saisissez le numéro et le nom de la rue sur la première ligne, puis les compléments éventuels sur la seconde ligne.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Ligne 1: 25 Avenue Victor Hugo</li>
+              <li>Ligne 2: Appartement 4B (si applicable)</li>
+            </ul>
+          `;
+          break;
+
+        case 'city':
+          title = 'Ville';
+          text = `
+            <p>Indiquez le nom de votre ville de résidence.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Écrivez le nom complet de la ville sans abréviations.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Nice</li>
+              <li>Paris</li>
+              <li>Lyon</li>
+            </ul>
+          `;
+          break;
+
+        case 'region':
+          title = 'État / Province / Région';
+          text = `
+            <p>Indiquez votre région administrative.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Écrivez le nom complet de votre région ou département.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Provence-Alpes-Côte d'Azur</li>
+              <li>Île-de-France</li>
+              <li>Alpes-Maritimes</li>
+            </ul>
+          `;
+          break;
+
+        case 'postal-code':
+          title = 'Code postal';
+          text = `
+            <p>Indiquez votre code postal.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Entrez les 5 chiffres de votre code postal sans espaces.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>06000</li>
+              <li>75001</li>
+            </ul>
+          `;
+          break;
+
+        case 'country':
+          title = 'Pays';
+          text = `
+            <p>Indiquez votre pays de résidence.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Écrivez le nom complet du pays.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>France</li>
+              <li>Belgique</li>
+              <li>Suisse</li>
+            </ul>
+          `;
+          break;
+
+        case 'phone':
+          title = 'Téléphone';
+          text = `
+            <p>Indiquez votre numéro de téléphone de contact.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Entrez votre numéro au format international ou national.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>+33612345678</li>
+              <li>06 12 34 56 78</li>
+            </ul>
+          `;
+          break;
+
+        case 'agency-email':
+          title = 'E-mail de votre Agence';
+          text = `
+            <p>Indiquez l'adresse e-mail de votre agence immobilière si vous travaillez avec une agence.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Entrez l'adresse e-mail complète.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>contact@agence-immobiliere.com</li>
+              <li>votre-agent@agence.fr</li>
+            </ul>
+            <p>Si vous n'avez pas d'agence, vous pouvez indiquer votre propre adresse e-mail.</p>
+          `;
+          break;
+
         case 'investment-reason':
           title = 'Raison de votre investissement';
           text = `
             <p>Expliquez pourquoi vous souhaitez réaliser cet investissement immobilier.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Décrivez votre motivation, vos objectifs à long terme, et ce que vous espérez en retirer.
+              <strong>Comment remplir :</strong> Décrivez votre motivation, vos objectifs à long terme, et ce que vous espérez en retirer. Soyez précis et détaillé.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
-              <li>Préparer ma retraite avec un revenu locatif mensuel</li>
-              <li>Constituer un patrimoine pour mes enfants</li>
-              <li>Diversifier mes investissements</li>
-              <li>Réduire mes impôts tout en investissant</li>
+              <li>Préparer ma retraite avec un revenu locatif mensuel de 1000€</li>
+              <li>Constituer un patrimoine pour mes enfants en vue de leur études supérieures</li>
+              <li>Diversifier mes investissements face à l'instabilité des marchés financiers</li>
+              <li>Réduire mes impôts tout en investissant dans la pierre</li>
             </ul>
             <p>Plus vos motivations sont claires, plus nous pourrons adapter nos recommandations.</p>
+          `;
+          break;
+
+        case 'identified-property':
+          title = 'Biens identifiés';
+          text = `
+            <p>Indiquez si vous avez déjà identifié des biens qui pourraient correspondre à votre recherche.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous avez déjà repéré des biens, "Non" dans le cas contraire.
+            </div>
+            <p>Si vous avez répondu "Oui", le rapport pourra prendre en compte des comparaisons avec des biens similaires.</p>
+          `;
+          break;
+
+        case 'exclusive-mandate':
+          title = 'Mandat ou exclusivité';
+          text = `
+            <p>Indiquez si vous êtes engagé par un mandat ou une exclusivité avec un professionnel.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous avez signé un mandat exclusif avec une agence, "Non" dans le cas contraire.
+            </div>
+            <p>Cette information est importante pour comprendre où vous en êtes dans votre recherche.</p>
+          `;
+          break;
+
+        case 'analysis-done':
+          title = 'Analyse préalable';
+          text = `
+            <p>Indiquez si vous avez déjà réalisé une analyse précise sur le bien-fondé de votre projet.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous avez déjà fait analyser votre projet, "Non" si c'est la première fois.
+            </div>
+            <p>Cela nous permet de savoir si vous disposez déjà d'informations sur la viabilité de votre projet.</p>
           `;
           break;
 
@@ -338,186 +507,209 @@
           text = `
             <p>Indiquez votre horizon temporel pour réaliser cet investissement.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Précisez la période dans laquelle vous souhaitez acquérir ce bien.
+              <strong>Comment remplir :</strong> Précisez exactement le délai dans lequel vous souhaitez acquérir ce bien.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
-              <li>Dans les 3 prochains mois</li>
-              <li>Avant la fin de l'année</li>
-              <li>Dans les 6 mois</li>
-              <li>Dès que possible</li>
+              <li>Dans les 3 prochains mois maximum</li>
+              <li>Avant la fin de l'année 2023</li>
+              <li>D'ici 6 mois, pas au-delà</li>
+              <li>Immédiatement, dès qu'une opportunité se présente</li>
+            </ul>
+            <p>La précision de cette information nous aide à adapter l'urgence des recommandations.</p>
+          `;
+          break;
+
+        case 'risk-tolerance':
+          title = 'Tolérance au risque';
+          text = `
+            <p>Indiquez votre niveau de tolérance au risque sur une échelle de 1 à 10.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Déplacez le curseur vers la gauche (1-3) pour une faible tolérance, au milieu (4-7) pour une tolérance moyenne, ou vers la droite (8-10) pour une haute tolérance.
+            </div>
+            <p><strong>Guide :</strong></p>
+            <ul>
+              <li><strong>1-3</strong> : Vous préférez la sécurité, même avec un rendement plus faible</li>
+              <li><strong>4-7</strong> : Vous acceptez un risque modéré pour un meilleur rendement</li>
+              <li><strong>8-10</strong> : Vous êtes prêt à prendre des risques importants pour maximiser le rendement</li>
             </ul>
           `;
           break;
-          
+
+        case 'investment-sector':
+          title = 'Secteur d\'investissement';
+          text = `
+            <p>Sélectionnez le secteur dans lequel vous souhaitez investir.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "IMMOBILIER" pour cette analyse (c'est actuellement la seule option disponible).
+            </div>
+            <p>Cette sélection déterminera les questions spécifiques qui vous seront posées ensuite.</p>
+          `;
+          break;
+
+        case 'type-bien':
+          title = 'Type de bien (neuf ou ancien)';
+          text = `
+            <p>Indiquez si vous préférez un bien neuf ou ancien.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Neuf" pour un bien récemment construit ou en VEFA, ou "Ancien" pour un bien existant.
+            </div>
+            <p><strong>Considérations :</strong></p>
+            <ul>
+              <li><strong>Neuf</strong> : Garanties constructeur, normes récentes, pas de travaux immédiats</li>
+              <li><strong>Ancien</strong> : Souvent moins cher au m², potentiel de plus-value après rénovation</li>
+            </ul>
+          `;
+          break;
+
+        case 'type-bien-recherche':
+          title = 'Type de bien recherché';
+          text = `
+            <p>Sélectionnez le type de bien immobilier que vous recherchez.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Choisissez parmi les options proposées celle qui correspond le mieux à votre recherche.
+            </div>
+            <p><strong>Options :</strong></p>
+            <ul>
+              <li><strong>Appartement</strong> : Logement dans un immeuble collectif</li>
+              <li><strong>Terrain</strong> : Parcelle constructible sans bâtiment</li>
+              <li><strong>Maison</strong> : Logement individuel standard</li>
+              <li><strong>Villa</strong> : Maison haut de gamme avec prestations supérieures</li>
+            </ul>
+          `;
+          break;
+
+        case 'architecture-exterieur':
+          title = 'Architecture extérieure';
+          text = `
+            <p>Pour une maison ou villa, indiquez le style architectural extérieur que vous préférez.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez le style qui correspond le mieux à vos goûts esthétiques.
+            </div>
+            <p><strong>Options :</strong></p>
+            <ul>
+              <li><strong>Traditionnelle</strong> : Style classique régional</li>
+              <li><strong>Provençale</strong> : Typique du sud de la France (tuiles romaines, enduit ocre...)</li>
+              <li><strong>Contemporaine</strong> : Design moderne avec lignes épurées</li>
+              <li><strong>Industrielle</strong> : Inspirée des lofts, avec métal, briques apparentes</li>
+            </ul>
+          `;
+          break;
+
+        case 'usage-bien':
+          title = 'Usage du bien';
+          text = `
+            <p>Indiquez pourquoi vous recherchez ce bien.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Pour y vivre" si vous comptez l'occuper vous-même, ou "Investissement" s'il s'agit d'un placement locatif.
+            </div>
+            <p>Cette information est cruciale car elle oriente complètement l'analyse de rentabilité et les recommandations.</p>
+          `;
+          break;
+
+        case 'elements-eviter':
+          title = 'Éléments à éviter';
+          text = `
+            <p>Indiquez les éléments que vous souhaitez absolument éviter dans votre bien.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez l'option qui correspond à votre préoccupation principale.
+            </div>
+            <p><strong>Options :</strong></p>
+            <ul>
+              <li><strong>Oui, le bruit</strong> : Vous êtes particulièrement sensible aux nuisances sonores</li>
+              <li><strong>Oui, manque de luminosité</strong> : Vous recherchez un bien lumineux</li>
+              <li><strong>Non</strong> : Vous n'avez pas de préoccupation particulière</li>
+            </ul>
+          `;
+          break;
+
+        case 'reactivite':
+          title = 'Réactivité pour l\'achat';
+          text = `
+            <p>Indiquez votre niveau de réactivité si un bien idéal est trouvé.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Évaluez honnêtement votre capacité à prendre une décision rapidement.
+            </div>
+            <p><strong>Options :</strong></p>
+            <ul>
+              <li><strong>Oui, assez réactif</strong> : Vous êtes prêt à faire une offre immédiatement</li>
+              <li><strong>Oui, avec un peu de temps</strong> : Vous avez besoin de quelques jours pour réfléchir</li>
+              <li><strong>Non, il me faut plus de temps</strong> : Vous préférez prendre votre temps pour décider</li>
+            </ul>
+          `;
+          break;
+
         case 'architecture':
           title = 'Style d\'intérieur recherché';
           text = `
-            <p>Décrivez le style d'intérieur que vous préférez pour votre bien.</p>
+            <p>Décrivez précisément le style d'intérieur que vous préférez pour votre bien.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Mentionnez les styles, matériaux, ambiances ou caractéristiques que vous recherchez.
+              <strong>Comment remplir :</strong> Détaillez les styles, matériaux, ambiances ou caractéristiques spécifiques que vous recherchez.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
-              <li>Style contemporain avec espaces ouverts</li>
-              <li>Intérieur chaleureux avec matériaux naturels (bois, pierre)</li>
-              <li>Aménagement moderne minimaliste</li>
-              <li>Style classique avec moulures et parquet</li>
+              <li>Style contemporain avec espaces ouverts, cuisine américaine et matériaux modernes comme le verre et l'acier</li>
+              <li>Intérieur chaleureux avec matériaux naturels (parquet massif chêne clair, pierres apparentes), poutres au plafond</li>
+              <li>Aménagement minimaliste avec grandes baies vitrées, murs blancs et rangements intégrés</li>
+              <li>Style haussmannien avec moulures, cheminées, parquet en point de Hongrie et hauts plafonds</li>
             </ul>
+            <p>Plus votre description est précise, plus nous pourrons orienter les recommandations vers des biens qui vous plairont.</p>
           `;
           break;
 
         case 'secteur':
           title = 'Quel secteur pour votre bien ?';
           text = `
-            <p>Dans ce champ, veuillez indiquer la localisation géographique où vous souhaitez investir. Soyez aussi précis que possible.</p>
+            <p>Dans ce champ, veuillez indiquer la localisation géographique précise où vous souhaitez investir.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Vous pouvez indiquer le nom de la ville, du quartier, de l'arrondissement ou même une adresse précise.
+              <strong>Comment remplir :</strong> Vous pouvez indiquer le nom de la ville, du quartier, de l'arrondissement ou même une adresse précise. Soyez aussi spécifique que possible.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
-              <li>Nice centre ville</li>
-              <li>Lyon 6ème arrondissement</li>
-              <li>Banlieue ouest de Paris</li>
-              <li>Côte d'Azur, région de Cannes</li>
-              <li>5 Avenue Jean Médecin, 06000 Nice</li>
-              <li>Quartier Libération à Nice</li>
+              <li>Nice centre ville - Quartier Musiciens</li>
+              <li>Lyon 6ème arrondissement - Secteur Brotteaux</li>
+              <li>Banlieue ouest de Paris - Rueil-Malmaison</li>
+              <li>Côte d'Azur, région de Cannes - Secteur La Californie</li>
+              <li>5 Avenue Jean Médecin, 06000 Nice et ses environs dans un rayon de 500m</li>
+              <li>Quartier Libération à Nice, à proximité immédiate de la place du Général de Gaulle</li>
             </ul>
-            <p>Plus votre indication est précise, plus notre analyse sera pertinente et détaillée.</p>
+            <p>Plus votre indication est précise, plus notre analyse sera pertinente et détaillée, avec des données exactes sur les prix, les tendances et les perspectives d'évolution.</p>
           `;
           break;
 
         case 'zone-preferentielle':
           title = 'Zone préférentielle prioritaire';
           text = `
-            <p>Ce champ vous permet d'affiner votre recherche en spécifiant des zones précises qui sont prioritaires pour vous.</p>
+            <p>Ce champ vous permet d'affiner votre recherche en spécifiant des zones très précises qui sont prioritaires pour vous.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Mentionnez des rues, des micro-quartiers, des points d'intérêt ou des zones très spécifiques.
+              <strong>Comment remplir :</strong> Mentionnez des rues spécifiques, des micro-quartiers, des points d'intérêt ou des zones très précises dans le secteur indiqué précédemment.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
-              <li>Proximité du parc Victor Hugo</li>
-              <li>A moins de 500m de la gare centrale</li>
-              <li>Secteur des rues piétonnes du centre-ville</li>
-              <li>Quartier des affaires, près des bureaux de [Entreprise]</li>
-              <li>Autour de la place Garibaldi</li>
-              <li>Entre l'avenue Jean Médecin et le boulevard Victor Hugo</li>
+              <li>Proximité immédiate du parc Victor Hugo (moins de 200m)</li>
+              <li>À moins de 500m de la gare centrale, côté est de préférence</li>
+              <li>Secteur des rues piétonnes du centre-ville, en particulier rue Masséna et rue de France</li>
+              <li>Quartier des affaires, près des bureaux de Sophia Antipolis, secteur des Templiers</li>
+              <li>Autour de la place Garibaldi, prioritairement rue Bonaparte et rue Cassini</li>
+              <li>Entre l'avenue Jean Médecin et le boulevard Victor Hugo, au nord de la place Masséna</li>
             </ul>
-            <p>Ces informations nous permettront de cibler précisément les secteurs qui correspondent à vos priorités.</p>
+            <p>Ces informations précises nous permettront de cibler exactement les secteurs qui correspondent à vos priorités et d'analyser en détail les opportunités dans ces micro-zones.</p>
           `;
           break;
 
         case 'superficie-habitable':
           title = 'Superficie habitable';
           text = `
-            <p>Indiquez la superficie habitable que vous recherchez pour votre bien.</p>
+            <p>Indiquez précisément la superficie habitable que vous recherchez pour votre bien.</p>
             <div class="help-highlight">
-              <strong>Comment remplir :</strong> Entrez uniquement le nombre en m² (sans l'unité).
+              <strong>Comment remplir :</strong> Entrez uniquement le nombre en m² (sans l'unité). Il s'agit de la surface habitable, hors balcons, terrasses et annexes.
             </div>
             <p><strong>Exemples :</strong></p>
             <ul>
               <li>Pour un appartement de 75 m², saisissez : 75</li>
               <li>Pour une maison de 120 m², saisissez : 120</li>
             </ul>
-            <p>Cette information est essentielle pour estimer correctement le prix du bien et sa valeur sur le marché.</p>
-          `;
-          break;
-
-        case 'superficie-salon':
-          title = 'Superficie minimale du salon';
-          text = `
-            <p>Indiquez la superficie minimale que vous souhaitez pour le salon/séjour.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Entrez uniquement le nombre en m² (sans l'unité).
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>Pour un salon de 25 m², saisissez : 25</li>
-              <li>Pour un grand espace de vie de 40 m², saisissez : 40</li>
-            </ul>
-          `;
-          break;
-
-        case 'superficie-terrain':
-          title = 'Superficie du terrain';
-          text = `
-            <p>Indiquez la superficie du terrain que vous recherchez.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Entrez uniquement le nombre en m² (sans l'unité).
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>Pour un terrain de 500 m², saisissez : 500</li>
-              <li>Pour un grand terrain de 1000 m², saisissez : 1000</li>
-            </ul>
-          `;
-          break;
-
-        case 'distance-commerces':
-        case 'distance-ecoles-primaires':
-        case 'distance-ecoles-secondaires':
-        case 'distance-lieu-travail':
-          title = 'Distance maximale souhaitée';
-          text = `
-            <p>Indiquez la distance maximale acceptable pour vous.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Précisez la distance (en mètres ou km) ou le temps de trajet.
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>500 mètres</li>
-              <li>1 km</li>
-              <li>10 minutes à pied</li>
-              <li>15 minutes en voiture</li>
-            </ul>
-          `;
-          break;
-
-        case 'lieu-travail':
-          title = 'Votre lieu de travail';
-          text = `
-            <p>Indiquez l'adresse ou la zone de votre lieu de travail.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Précisez l'adresse, le quartier ou la zone où vous travaillez.
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>Centre d'affaires Sophia Antipolis</li>
-              <li>Quartier La Défense, Paris</li>
-              <li>10 Avenue de la Liberté, Nice</li>
-              <li>Zone industrielle de Carros</li>
-            </ul>
-            <p>Cette information nous permettra d'analyser les temps de trajet domicile-travail.</p>
-          `;
-          break;
-
-        case 'budget-ideal':
-          title = 'Budget idéal';
-          text = `
-            <p>Indiquez le budget que vous souhaitez consacrer à cet investissement.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Entrez uniquement le montant en euros (sans le symbole €).
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>Pour un budget de 250 000 €, saisissez : 250000</li>
-              <li>Pour un budget de 500 000 €, saisissez : 500000</li>
-            </ul>
-          `;
-          break;
-
-        case 'montant-financer':
-          title = 'Montant à financer';
-          text = `
-            <p>Indiquez le montant que vous devrez emprunter pour réaliser cet investissement.</p>
-            <div class="help-highlight">
-              <strong>Comment remplir :</strong> Entrez uniquement le montant en euros (sans le symbole €).
-            </div>
-            <p><strong>Exemples :</strong></p>
-            <ul>
-              <li>Pour un emprunt de 200 000 €, saisissez : 200000</li>
-              <li>Pour un emprunt de 400 000 €, saisissez : 400000</li>
-            </ul>
+            <p>Cette information est essentielle pour estimer correctement le prix du bien et sa valeur sur le marché. Elle permet également de calculer le prix au m² et de le comparer aux références du marché local.</p>
           `;
           break;
 
@@ -528,7 +720,7 @@
             <div class="help-highlight">
               <strong>Comment remplir :</strong> Cochez uniquement les facteurs qui sont vraiment importants pour vous. Ces facteurs feront l'objet d'une analyse détaillée dans votre rapport.
             </div>
-            <p><strong>Détails des facteurs :</strong></p>
+            <p><strong>Détails des facteurs (cochez seulement ceux qui sont essentiels) :</strong></p>
             <ul>
               <li><strong>Transports en commun</strong> : Analyse extrêmement détaillée de toutes les lignes de métro, bus, tramway avec leurs numéros exacts, les stations les plus proches, les distances précises en mètres et minutes de marche, les fréquences de passage.</li>
               <li><strong>Proximité écoles</strong> : Inventaire complet de tous les établissements scolaires (crèches, maternelles, primaires, collèges, lycées, universités) avec leurs noms exacts, types, distances précises et réputations.</li>
@@ -537,29 +729,263 @@
               <li><strong>Projets urbains</strong> : Détails de tous les projets d'aménagement en cours ou prévus avec dates, budgets et impact sur la valeur immobilière.</li>
               <li><strong>Bassin d'emploi</strong> : Analyse du dynamisme économique local avec tous les employeurs majeurs, secteurs d'activité dominants et perspectives d'évolution.</li>
             </ul>
-            <p>Pour chaque facteur sélectionné, notre IA réalisera une analyse extrêmement détaillée et factuelle. <strong>Ne sélectionnez que ceux qui sont vraiment importants pour vous.</strong></p>
+            <p>Pour chaque facteur sélectionné, notre IA réalisera une analyse extrêmement détaillée et factuelle. <strong>Ne sélectionnez que ceux qui sont vraiment importants pour vous afin d'obtenir des analyses plus approfondies sur ces aspects spécifiques.</strong></p>
           `;
           break;
 
-        case 'language':
-          title = 'Langue du rapport';
+        case 'nombre-chambres':
+          title = 'Nombre de chambres';
           text = `
-            <p>Sélectionnez la langue dans laquelle vous souhaitez recevoir votre rapport d'analyse.</p>
+            <p>Indiquez le nombre idéal de chambres pour votre bien.</p>
             <div class="help-highlight">
-              <strong>Options disponibles :</strong>
-              <ul>
-                <li><strong>Français</strong> : Rapport complet en français</li>
-                <li><strong>Anglais</strong> : Rapport complet en anglais</li>
-              </ul>
+              <strong>Comment remplir :</strong> Sélectionnez le nombre exact de chambres que vous souhaitez.
             </div>
-            <p>Toutes les analyses et recommandations seront traduites dans la langue choisie.</p>
+            <p>Cette information est essentielle pour déterminer la taille du bien et son adaptation à vos besoins.</p>
+          `;
+          break;
+
+        case 'autres-pieces[]':
+          title = 'Autres pièces souhaitées';
+          text = `
+            <p>Cochez toutes les pièces supplémentaires que vous souhaitez dans votre bien.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez toutes les options qui correspondent à vos besoins. Ne cochez que les pièces vraiment importantes pour vous.
+            </div>
+            <p>Ces informations nous permettront de cibler des biens avec ces caractéristiques spécifiques.</p>
+          `;
+          break;
+
+        case 'nombre-salles-bain':
+          title = 'Nombre de salles de bain';
+          text = `
+            <p>Indiquez le nombre de salles de bain souhaité.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez le nombre exact de salles de bain/salles d'eau que vous désirez.
+            </div>
+            <p>Ce critère est important pour le confort quotidien et influence significativement le prix du bien.</p>
+          `;
+          break;
+
+        case 'type-cuisine':
+          title = 'Type de cuisine';
+          text = `
+            <p>Indiquez si vous préférez une cuisine fermée ou ouverte.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Choisissez "Ouverte" pour une cuisine américaine intégrée au séjour, ou "Fermée" pour une pièce séparée.
+            </div>
+            <p>Ce choix affecte l'organisation de l'espace de vie et l'ambiance générale du bien.</p>
+          `;
+          break;
+
+        case 'cuisine-dinatoire':
+          title = 'Cuisine dinatoire';
+          text = `
+            <p>Indiquez si vous souhaitez une cuisine assez grande pour y manger.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous voulez pouvoir installer une table à manger dans la cuisine.
+            </div>
+            <p>Ce critère est important pour le mode de vie et l'organisation des repas au quotidien.</p>
+          `;
+          break;
+
+        case 'places-parking':
+          title = 'Nombre de places de parking';
+          text = `
+            <p>Indiquez le nombre de places de stationnement dont vous avez besoin.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez le nombre exact de places nécessaires pour vos véhicules.
+            </div>
+            <p>Dans certaines zones urbaines, les places de parking peuvent significativement augmenter la valeur du bien.</p>
+          `;
+          break;
+
+        case 'parking-couvert':
+          title = 'Places de parking couvertes';
+          text = `
+            <p>Indiquez si les places de parking doivent être couvertes.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous souhaitez un garage ou des places couvertes, "Non" si un stationnement extérieur vous convient.
+            </div>
+            <p>Les places couvertes offrent une meilleure protection pour vos véhicules mais peuvent coûter plus cher.</p>
+          `;
+          break;
+
+        case 'piscine':
+          title = 'Piscine';
+          text = `
+            <p>Indiquez si vous souhaitez une piscine ou un terrain piscinable.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Choisissez "Oui" si c'est indispensable, "Non" si vous n'en voulez pas, ou "Ce n'est pas impératif" si c'est un bonus mais pas une nécessité.
+            </div>
+            <p>Une piscine ajoute une valeur significative mais représente aussi un coût d'entretien à prendre en compte.</p>
+          `;
+          break;
+
+        case 'contre-travaux':
+          title = 'Position sur les travaux';
+          text = `
+            <p>Indiquez si vous êtes contre un besoin de travaux pour que le bien corresponde à vos attentes.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous préférez un bien prêt à habiter sans travaux, "Non" si vous acceptez de faire des travaux.
+            </div>
+            <p>Les biens nécessitant des travaux sont souvent moins chers à l'achat mais requièrent un budget supplémentaire pour les aménagements.</p>
+          `;
+          break;
+
+        case 'distance-commerces':
+          title = 'Distance des commerces';
+          text = `
+            <p>Indiquez la distance maximale souhaitée entre votre bien et les principaux commerces.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Précisez la distance exacte (en mètres ou km) ou le temps de trajet maximum acceptable.
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Maximum 500 mètres à pied</li>
+              <li>Moins de 1 km</li>
+              <li>Maximum 10 minutes à pied</li>
+              <li>Dans un rayon de 800 mètres</li>
+            </ul>
+            <p>La proximité des commerces est un facteur important pour la qualité de vie et la valeur locative.</p>
+          `;
+          break;
+
+        case 'distance-ecoles-primaires':
+          title = 'Distance des écoles primaires';
+          text = `
+            <p>Indiquez la distance maximale souhaitée entre votre bien et les écoles primaires.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Précisez la distance exacte (en mètres ou km) ou le temps de trajet maximum acceptable.
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Maximum 400 mètres</li>
+              <li>Moins de 800 mètres à pied</li>
+              <li>Maximum 5 minutes à pied</li>
+              <li>À distance de marche sécurisée pour un enfant</li>
+            </ul>
+            <p>La proximité des écoles primaires est particulièrement importante pour les familles avec jeunes enfants.</p>
+          `;
+          break;
+
+        case 'distance-ecoles-secondaires':
+          title = 'Distance des écoles secondaires';
+          text = `
+            <p>Indiquez la distance maximale souhaitée entre votre bien et les établissements secondaires.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Précisez la distance exacte (en mètres ou km) ou le temps de trajet maximum acceptable.
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Maximum 1 km</li>
+              <li>Moins de 15 minutes à pied</li>
+              <li>Accessible en transport en commun en moins de 20 minutes</li>
+              <li>Dans un rayon de 2 km maximum</li>
+            </ul>
+            <p>La proximité des collèges et lycées est importante pour les familles avec adolescents.</p>
+          `;
+          break;
+
+        case 'distance-lieu-travail':
+          title = 'Distance du lieu de travail';
+          text = `
+            <p>Indiquez la distance maximale acceptable entre votre bien et votre lieu de travail.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Précisez la distance exacte (en km) ou le temps de trajet maximum acceptable.
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Maximum 10 km</li>
+              <li>Moins de 30 minutes en voiture</li>
+              <li>Maximum 45 minutes en transport en commun</li>
+              <li>Dans un rayon de 15 km maximum</li>
+            </ul>
+            <p>Le temps de trajet domicile-travail a un impact majeur sur la qualité de vie quotidienne.</p>
+          `;
+          break;
+
+        case 'lieu-travail':
+          title = 'Votre lieu de travail';
+          text = `
+            <p>Indiquez avec précision l'adresse ou la zone de votre lieu de travail.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Précisez l'adresse exacte, le quartier précis ou la zone spécifique où vous travaillez.
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Centre d'affaires Sophia Antipolis - Zone des Templiers</li>
+              <li>Quartier La Défense - Tour Ariane, 5 Place de la Pyramide</li>
+              <li>10 Avenue de la Liberté, 06000 Nice</li>
+              <li>Zone industrielle de Carros - Pôle logistique</li>
+            </ul>
+            <p>Cette information précise nous permettra d'analyser en détail les temps de trajet et les options de transport entre votre domicile et votre lieu de travail.</p>
+          `;
+          break;
+
+        case 'budget-ideal':
+          title = 'Budget idéal';
+          text = `
+            <p>Indiquez précisément le budget que vous souhaitez consacrer à cet investissement.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Entrez uniquement le montant en euros (sans le symbole €, sans espaces et sans virgules).
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Pour un budget de 250 000 €, saisissez : 250000</li>
+              <li>Pour un budget de 500 000 €, saisissez : 500000</li>
+              <li>Pour un budget de 1 200 000 €, saisissez : 1200000</li>
+            </ul>
+            <p>Cette information est cruciale pour cibler les biens dans votre gamme de prix et évaluer la faisabilité de votre projet.</p>
+          `;
+          break;
+
+        case 'marge-budget':
+          title = 'Marge sur le budget';
+          text = `
+            <p>Indiquez si vous avez une marge de manœuvre sur votre budget pour un coup de cœur.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez le pourcentage supplémentaire que vous pourriez envisager pour un bien exceptionnel.
+            </div>
+            <p>Cette flexibilité peut être déterminante pour ne pas passer à côté d'une opportunité rare qui dépasse légèrement votre budget initial.</p>
+          `;
+          break;
+
+        case 'besoin-financement':
+          title = 'Besoin de financement';
+          text = `
+            <p>Indiquez si vous avez besoin de financer une partie de votre investissement.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Sélectionnez "Oui" si vous prévoyez de recourir à un prêt, "Non" si vous financez intégralement sur fonds propres.
+            </div>
+            <p>Cette information est essentielle pour évaluer la faisabilité financière de votre projet et calculer la rentabilité réelle de votre investissement.</p>
+          `;
+          break;
+
+        case 'montant-financer':
+          title = 'Montant à financer';
+          text = `
+            <p>Indiquez précisément le montant que vous devrez emprunter pour réaliser cet investissement.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Entrez uniquement le montant en euros (sans le symbole €, sans espaces et sans virgules).
+            </div>
+            <p><strong>Exemples précis :</strong></p>
+            <ul>
+              <li>Pour un emprunt de 200 000 €, saisissez : 200000</li>
+              <li>Pour un emprunt de 400 000 €, saisissez : 400000</li>
+              <li>Pour un emprunt de 850 000 €, saisissez : 850000</li>
+            </ul>
+            <p>Ce montant nous permettra de calculer précisément les mensualités et l'impact du financement sur la rentabilité de votre investissement.</p>
           `;
           break;
 
         default:
-          // Pour les autres champs
-          title = `Aide pour "${fieldLabel}"`;
-          text = `<p>Veuillez remplir ce champ avec des informations précises et détaillées pour permettre une analyse optimale.</p>`;
+          // Pour les autres champs, créer une aide générique basée sur le label
+          const fieldLabelText = fieldLabel || 'ce champ';
+          title = `Aide pour "${fieldLabelText}"`;
+          text = `<p>Veuillez remplir ce champ avec des informations précises et détaillées pour permettre une analyse optimale.</p>
+          <div class="help-highlight">
+            <strong>Comment remplir :</strong> Soyez aussi spécifique que possible dans votre réponse.
+          </div>`;
       }
 
       helpGuideTitle.textContent = title;
@@ -667,7 +1093,7 @@
       }
 
       // Facteurs locaux
-      const factorsCheckboxes = document.querySelectorAll('input[name="localFactors[]"]');
+      const factorsCheckboxes = document.querySelectorAll('input[name="localFactors[]"]:checked');
       factorsCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
           updateHelpGuide('localFactors[]', 'Facteurs locaux importants');
