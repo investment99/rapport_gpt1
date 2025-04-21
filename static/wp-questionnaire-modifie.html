@@ -7,8 +7,131 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="checkbox-group-styles.css">
   <script src="facteurs-locaux-implementation.js" defer></script>
+  <style>
+    /* Styles pour le chat d'aide */
+    .help-guide {
+      position: fixed;
+      left: 0;
+      top: 20%;
+      width: 350px;
+      max-width: 90%;
+      background-color: white;
+      border-radius: 0 5px 5px 0;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      transform: translateX(0);
+    }
+    
+    .help-guide-hidden {
+      transform: translateX(-100%);
+    }
+    
+    .help-guide-header {
+      background-color: #1EB4B6;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 0 5px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .help-guide-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .help-guide-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+    
+    .help-guide-content {
+      padding: 15px;
+      overflow-y: auto;
+      max-height: 400px;
+    }
+    
+    .help-guide-content h4 {
+      color: #1EB4B6;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .help-guide-content p, .help-guide-content ul {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    
+    .help-guide-content ul {
+      padding-left: 20px;
+    }
+    
+    .help-guide-content li {
+      margin-bottom: 5px;
+    }
+    
+    .help-guide-content li strong {
+      font-weight: bold;
+    }
+    
+    .help-toggle {
+      position: fixed;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #1EB4B6;
+      color: white;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      padding: 10px 15px;
+      cursor: pointer;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+    }
+    
+    .help-toggle span {
+      margin-top: 5px;
+    }
+    
+    .help-highlight {
+      background-color: #f8f9fa;
+      border-left: 3px solid #1EB4B6;
+      padding: 8px 10px;
+      margin: 10px 0;
+    }
+  </style>
 </head>
 <body>
+  <!-- Chat d'aide -->
+  <div class="help-guide help-guide-hidden" id="help-guide">
+    <div class="help-guide-header">
+      <h3 id="help-guide-title">Guide d'utilisation</h3>
+      <button class="help-guide-close" id="help-guide-close">×</button>
+    </div>
+    <div class="help-guide-content" id="help-guide-text">
+      <p>Bienvenue dans le formulaire d'analyse immobilière. Remplissez les champs pour obtenir un rapport personnalisé.</p>
+      <p>Cliquez sur les différents champs du formulaire pour voir des explications détaillées.</p>
+    </div>
+  </div>
+  
+  <button class="help-toggle" id="help-toggle">
+    <i class="fas fa-question-circle"></i>
+    <span>Aide</span>
+  </button>
+
   <div class="steps-container">
     <div class="step">
       <div class="circle">
@@ -165,15 +288,205 @@
   </div>
 
   <script>
-    // Lors du changement du secteur, on affiche les questions IMMOBILIER
+    // NOUVEAU: Code pour le chat d'aide
+    const helpGuide = document.getElementById('help-guide');
+    const helpToggle = document.getElementById('help-toggle');
+    const helpGuideClose = document.getElementById('help-guide-close');
+    const helpGuideTitle = document.getElementById('help-guide-title');
+    const helpGuideText = document.getElementById('help-guide-text');
+
+    // Ouvrir/fermer le panneau d'aide
+    helpToggle.addEventListener('click', function() {
+      helpGuide.classList.remove('help-guide-hidden');
+      helpToggle.style.display = 'none';
+    });
+
+    helpGuideClose.addEventListener('click', function() {
+      helpGuide.classList.add('help-guide-hidden');
+      helpToggle.style.display = 'flex';
+    });
+
+    // Guide d'aide contextuel pour les champs importants
+    function updateHelpGuide(fieldName, fieldLabel) {
+      let title = 'Aide pour la saisie';
+      let text = '';
+
+      // Pour les questions spécifiques
+      switch(fieldName) {
+        case 'secteur':
+          title = 'Quel secteur pour votre bien ?';
+          text = `
+            <p>Dans ce champ, veuillez indiquer la localisation géographique où vous souhaitez investir. Soyez aussi précis que possible.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Indiquez le nom de la ville, du quartier ou de l'arrondissement.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Nice centre ville</li>
+              <li>Lyon 6ème arrondissement</li>
+              <li>Banlieue ouest de Paris</li>
+              <li>Côte d'Azur, région de Cannes</li>
+            </ul>
+            <p>Plus votre indication est précise, plus notre analyse sera pertinente.</p>
+          `;
+          break;
+
+        case 'zone-preferentielle':
+          title = 'Zone préférentielle prioritaire';
+          text = `
+            <p>Ce champ vous permet d'affiner votre recherche en spécifiant des zones précises qui sont prioritaires pour vous.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Mentionnez des rues, des micro-quartiers ou des zones très spécifiques.
+            </div>
+            <p><strong>Exemples :</strong></p>
+            <ul>
+              <li>Proximité du parc Victor Hugo</li>
+              <li>A moins de 500m de la gare centrale</li>
+              <li>Secteur des rues piétonnes du centre-ville</li>
+              <li>Quartier des affaires, près des bureaux de [Entreprise]</li>
+            </ul>
+            <p>Ces informations nous permettront de cibler précisément les secteurs qui correspondent à vos priorités.</p>
+          `;
+          break;
+
+        case 'localFactors[]':
+          title = 'Facteurs locaux importants';
+          text = `
+            <p>Ces options vous permettent d'indiquer les facteurs locaux qui sont particulièrement importants pour votre investissement.</p>
+            <div class="help-highlight">
+              <strong>Comment remplir :</strong> Cochez uniquement les facteurs qui sont vraiment importants pour vous.
+            </div>
+            <p><strong>Détails des facteurs :</strong></p>
+            <ul>
+              <li><strong>Transports en commun</strong> : Analyse détaillée des lignes de métro, bus, tramway avec distances et fréquences</li>
+              <li><strong>Proximité écoles</strong> : Inventaire complet des établissements scolaires avec noms, types et distances</li>
+              <li><strong>Commerces</strong> : Analyse de l'offre commerciale locale avec noms des enseignes et distances</li>
+              <li><strong>Sécurité</strong> : Données sur la sécurité du quartier, statistiques et tendances</li>
+              <li><strong>Projets urbains</strong> : Détails sur les projets d'aménagement prévus ou en cours</li>
+              <li><strong>Bassin d'emploi</strong> : Analyse du dynamisme économique local avec employeurs majeurs</li>
+            </ul>
+            <p>Pour chaque facteur sélectionné, notre IA réalisera une analyse extrêmement détaillée et factuelle.</p>
+          `;
+          break;
+
+        default:
+          // Pour les autres champs
+          title = `Aide pour "${fieldLabel}"`;
+          text = `<p>Veuillez remplir ce champ avec des informations précises et détaillées pour permettre une analyse optimale.</p>`;
+      }
+
+      helpGuideTitle.textContent = title;
+      helpGuideText.innerHTML = text;
+      helpGuide.classList.remove('help-guide-hidden');
+      helpToggle.style.display = 'none';
+    }
+
+    // Attacher des événements d'aide contextuelle aux champs importants
+    document.addEventListener('focusin', function(e) {
+      // Récupérer le champ actif
+      const field = e.target;
+      
+      // Vérifier s'il s'agit d'un champ de formulaire
+      if (field.tagName === 'INPUT' || field.tagName === 'TEXTAREA' || field.tagName === 'SELECT') {
+        const fieldName = field.getAttribute('name');
+        
+        // Trouver le label correspondant
+        let fieldLabel = '';
+        const labelElement = document.querySelector(`label[for="${field.id}"]`);
+        if (labelElement) {
+          fieldLabel = labelElement.textContent;
+        } else {
+          // Rechercher le label précédent s'il n'y a pas d'attribut "for"
+          const previousLabel = field.closest('div, p, fieldset').querySelector('label');
+          if (previousLabel) {
+            fieldLabel = previousLabel.textContent;
+          }
+        }
+        
+        // Mettre à jour l'aide contextuelle
+        updateHelpGuide(fieldName, fieldLabel);
+      }
+    });
+
+    // Gestionnaire d'événements pour les cases à cocher des facteurs locaux
+    document.addEventListener('change', function(e) {
+      if (e.target.name === 'localFactors[]') {
+        updateHelpGuide('localFactors[]', 'Facteurs locaux importants');
+      }
+    });
+
+    // Code existant pour le formulaire
     document.getElementById('investment-sector').addEventListener('change', function () {
       const sector = this.value;
       const sectorQuestions = document.getElementById('sector-questions');
       sectorQuestions.innerHTML = '';
       if (sector === 'IMMOBILIER') {
         sectorQuestions.innerHTML = `<fieldset><legend>Questions IMMOBILIER</legend>${getImmobilierQuestions()}</fieldset>`;
+        
+        // Réattacher les événements après insertion dynamique du contenu
+        attachEventsToNewContent();
       }
     });
+
+    // Fonction pour attacher des événements aux éléments créés dynamiquement
+    function attachEventsToNewContent() {
+      // Architecture extérieure pour Maison/Villa
+      const typeBienSelect = document.getElementById('type-bien-recherche');
+      if (typeBienSelect) {
+        typeBienSelect.addEventListener('change', function() {
+          const architectureContainer = document.getElementById("architecture-container");
+          const architectureSelect = architectureContainer.querySelector('select[name="architecture-exterieur"]');
+          if (this.value === "maison" || this.value === "villa") {
+            architectureContainer.style.display = "block";
+            architectureSelect.setAttribute('required', 'required');
+          } else {
+            architectureContainer.style.display = "none";
+            architectureSelect.removeAttribute('required');
+            architectureSelect.value = "";
+          }
+        });
+      }
+
+      // Question 31 selon la réponse à la question 30
+      const besoinFinancement = document.getElementById('besoin-financement');
+      if (besoinFinancement) {
+        besoinFinancement.addEventListener('change', function() {
+          const question31 = document.getElementById("question-31");
+          const montantInput = question31.querySelector('input[name="montant-financer"]');
+          if (this.value === "oui") {
+            question31.style.display = "block";
+            montantInput.setAttribute('required', 'required');
+          } else {
+            question31.style.display = "none";
+            montantInput.removeAttribute('required');
+            montantInput.value = "";
+          }
+        });
+      }
+
+      // Attacher des événements d'aide contextuelle pour les champs importants
+      const secteurTextarea = document.querySelector('textarea[name="secteur"]');
+      if (secteurTextarea) {
+        secteurTextarea.addEventListener('focus', function() {
+          updateHelpGuide('secteur', 'Dans quel secteur voyez-vous ce bien ?');
+        });
+      }
+
+      const zoneTextarea = document.querySelector('textarea[name="zone-preferentielle"]');
+      if (zoneTextarea) {
+        zoneTextarea.addEventListener('focus', function() {
+          updateHelpGuide('zone-preferentielle', 'Zone préférentielle prioritaire');
+        });
+      }
+
+      // Facteurs locaux
+      const factorsCheckboxes = document.querySelectorAll('input[name="localFactors[]"]');
+      factorsCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          updateHelpGuide('localFactors[]', 'Facteurs locaux importants');
+        });
+      });
+    }
 
     // Fonction générant l'ensemble des questions IMMOBILIER
     function getImmobilierQuestions() {
@@ -386,45 +699,11 @@
           <option value="">-- Sélectionnez --</option>
           <option value="fr">Français</option>
           <option value="en">Anglais</option>
-         
         </select>
 
         <p>Le questionnaire est terminé. Le formulaire sera ensuite traité par notre BOT IA P.I investment pour générer votre rapport en PDF (patientez environ 4 à 5 minutes une fois le curseur à 90%). <span style="color:red;">Il ne faut surtout pas cliquer deux fois sur le bouton "Envoyer et Générer".</span></p>
-
       `;
     }
-
-    // Affichage conditionnel de la question d'architecture extérieure pour Maison/Villa avec gestion dynamique de l'attribut required
-    document.getElementById('sector-questions').addEventListener('change', function(e) {
-      if (e.target && e.target.id === "type-bien-recherche") {
-        const architectureContainer = document.getElementById("architecture-container");
-        const architectureSelect = architectureContainer.querySelector('select[name="architecture-exterieur"]');
-        if (e.target.value === "maison" || e.target.value === "villa") {
-          architectureContainer.style.display = "block";
-          architectureSelect.setAttribute('required', 'required');
-        } else {
-          architectureContainer.style.display = "none";
-          architectureSelect.removeAttribute('required');
-          architectureSelect.value = "";
-        }
-      }
-    });
-
-    // Affichage conditionnel de la question 31 selon la réponse à la question 30 avec gestion dynamique de l'attribut required
-    document.addEventListener('change', function(e) {
-      if (e.target && e.target.id === "besoin-financement") {
-        const question31 = document.getElementById("question-31");
-        const montantInput = question31.querySelector('input[name="montant-financer"]');
-        if (e.target.value === "oui") {
-          question31.style.display = "block";
-          montantInput.setAttribute('required', 'required');
-        } else {
-          question31.style.display = "none";
-          montantInput.removeAttribute('required');
-          montantInput.value = "";
-        }
-      }
-    });
 
     // Soumission du formulaire avec affichage d'une barre de progression et téléchargement du PDF généré
     document.getElementById('mon-formulaire-unique').addEventListener('submit', function (event) {
