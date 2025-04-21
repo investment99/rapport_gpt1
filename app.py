@@ -451,17 +451,31 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
                 # Générer la section des facteurs locaux
                 local_factors_prompt = process_local_factors(form_data)
                 if local_factors_prompt:
-                    # Ajouter les instructions pour le modèle sur comment traiter ces facteurs
-                    local_factors_section = """
+                    # Intégrer les facteurs locaux directement dans les instructions pour l'analyse du produit
+                    section_prompt = section_prompt.replace(
+                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.",
+                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé, incluant une analyse des facteurs locaux importants."
+                    )
                     
-#### **Facteurs locaux importants**
-Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. Pour chaque facteur listé, fournissez :
-- Une analyse détaillée de la situation actuelle
-- L'impact potentiel sur la valeur de l'investissement
-- Une évaluation comparative par rapport aux autres zones de la ville
+                    # Ajuster la section des instructions pour l'analyse du produit
+                    product_analysis_index = section_prompt.find("#### **5. Analyse du produit**")
+                    if product_analysis_index != -1:
+                        # Trouver la fin des instructions pour l'analyse du produit
+                        next_section_index = section_prompt.find("---", product_analysis_index)
+                        if next_section_index != -1:
+                            # Insérer les instructions pour les facteurs locaux juste avant la fin de la section
+                            factors_instructions = f"""
+
+En plus de l'analyse du produit, veuillez inclure une sous-section intitulée "Facteurs locaux importants" qui analyse en détail les facteurs suivants qui sont importants pour le client:
+{local_factors_prompt.strip()}
+
+Pour chaque facteur listé, fournissez:
+- Une analyse détaillée de la situation actuelle dans la zone ciblée
+- L'impact potentiel de ce facteur sur la valeur et l'attractivité de l'investissement
 - Des données chiffrées si elles sont pertinentes (distances, nombre d'établissements, fréquence des transports, etc.)
+- Une comparaison avec d'autres zones de la ville
 """
-                    section_prompt += local_factors_section + local_factors_prompt
+                            section_prompt = section_prompt[:next_section_index] + factors_instructions + section_prompt[next_section_index:]
             
             section_content = generate_section(client, section_prompt)
     
@@ -475,19 +489,8 @@ Après avoir généré la section "Analyse du produit", continuez avec une analy
             add_section_title(elements, section_title)
             elements.extend(section_content)  # Ajoute le contenu de la section sans duplication du titre
             
-            # Si c'est la section "Analyse du produit" et qu'il y a des facteurs locaux, ajouter une sous-section
-            if section_title == "Analyse du produit" and process_local_factors(form_data):
-                # Créer un style pour le sous-titre
-                subtitle_style = ParagraphStyle(
-                    'SubSectionTitle',
-                    fontSize=14,
-                    fontName='Helvetica',
-                    textColor=colors.HexColor("#00C7C4"),
-                    alignment=0,
-                    spaceAfter=8
-                )
-                # Ajouter un espacement
-                elements.append(Spacer(1, 12))
+            # Ajout d'un espacement après chaque section pour améliorer la lisibilité
+            elements.append(Spacer(1, 20))
             
             elements.append(PageBreak())
 
@@ -518,12 +521,20 @@ def process_local_factors(form_data):
         'employment': 'Bassin d\'emploi et activité économique'
     }
     
-    local_factors_prompt = "\n\n### FACTEURS LOCAUX IMPORTANTS\n"
-    local_factors_prompt += "Le client accorde une importance particulière aux facteurs suivants. Veuillez les analyser en détail :\n"
+    factor_details = {
+        'transport': 'Analysez la qualité et la fréquence des transports en commun, les différentes options disponibles (bus, métro, train) et leur accessibilité depuis la zone concernée.',
+        'schools': 'Évaluez la proximité et la qualité des établissements scolaires (primaires, collèges, lycées, universités) dans la zone et leur impact sur la valeur immobilière.',
+        'shops': 'Détaillez l\'offre commerciale locale, types de commerces, grandes surfaces, marchés et services de proximité.',
+        'security': 'Analysez les indicateurs de sécurité du quartier, taux de criminalité comparé aux autres zones, présence policière et sentiment de sécurité.',
+        'development': 'Identifiez les projets d\'aménagement urbain prévus ou en cours (rénovations, constructions, infrastructures) et leur impact sur la valeur future des biens.',
+        'employment': 'Évaluez le dynamisme économique de la zone, les principaux employeurs, le taux de chômage, et les perspectives économiques à moyen terme.'
+    }
+    
+    local_factors_prompt = ""
     
     for factor in form_data.get('localFactors', []):
         if factor in factor_descriptions:
-            local_factors_prompt += f"- {factor_descriptions[factor]}\n"
+            local_factors_prompt += f"- **{factor_descriptions[factor]}**: {factor_details[factor]}\n\n"
     
     return local_factors_prompt
 
