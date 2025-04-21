@@ -286,6 +286,7 @@ def generate_report():
         elements.append(Spacer(1, 12))
 
         for section_title, min_words in sections:
+            # Générer le prompt de base pour cette section
             section_prompt = f"""
             {summary}
 
@@ -410,7 +411,7 @@ Générez une conclusion complète, incluant :
 - Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
 - Une recommandation claire sur l'opportunité d'investir.
-- Une évaluation globale de l'opportunité d'investissement.
+- Une évaluation globale de l'opportunité d'investir.
 - Les principales tendances observées sur le marché immobilier.
 - Des recommandations concrètes adaptées aux objectifs du client.
 - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif.
@@ -444,6 +445,24 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
             Générez la section '{section_title}' du rapport d'analyse. 
             Cette section doit contenir au minimum {min_words} mots.
             """
+            
+            # Ajout des facteurs locaux au prompt après la section "Analyse du produit"
+            if section_title == "Analyse du produit":
+                # Générer la section des facteurs locaux
+                local_factors_prompt = process_local_factors(form_data)
+                if local_factors_prompt:
+                    # Ajouter les instructions pour le modèle sur comment traiter ces facteurs
+                    local_factors_section = """
+                    
+#### **Facteurs locaux importants**
+Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. Pour chaque facteur listé, fournissez :
+- Une analyse détaillée de la situation actuelle
+- L'impact potentiel sur la valeur de l'investissement
+- Une évaluation comparative par rapport aux autres zones de la ville
+- Des données chiffrées si elles sont pertinentes (distances, nombre d'établissements, fréquence des transports, etc.)
+"""
+                    section_prompt += local_factors_section + local_factors_prompt
+            
             section_content = generate_section(client, section_prompt)
     
             # Si le premier élément est un Paragraph dont le texte correspond exactement au titre, le supprimer
@@ -455,6 +474,21 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
             # Ajout du titre de section dans le document
             add_section_title(elements, section_title)
             elements.extend(section_content)  # Ajoute le contenu de la section sans duplication du titre
+            
+            # Si c'est la section "Analyse du produit" et qu'il y a des facteurs locaux, ajouter une sous-section
+            if section_title == "Analyse du produit" and process_local_factors(form_data):
+                # Créer un style pour le sous-titre
+                subtitle_style = ParagraphStyle(
+                    'SubSectionTitle',
+                    fontSize=14,
+                    fontName='Helvetica',
+                    textColor=colors.HexColor("#00C7C4"),
+                    alignment=0,
+                    spaceAfter=8
+                )
+                # Ajouter un espacement
+                elements.append(Spacer(1, 12))
+            
             elements.append(PageBreak())
 
         doc.build(elements)
@@ -465,6 +499,33 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
     except Exception as e:
         logging.error(f"Erreur lors de la génération du rapport : {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+# Traitement des facteurs locaux
+def process_local_factors(form_data):
+    """
+    Génère une section du prompt pour les facteurs locaux sélectionnés par l'utilisateur.
+    """
+    if not form_data.get('localFactors'):
+        return ""
+    
+    # Traduction des codes en descriptions
+    factor_descriptions = {
+        'transport': 'Transports en commun (métro, bus, tram, train)',
+        'schools': 'Proximité des écoles et établissements éducatifs',
+        'shops': 'Commerces et services de proximité',
+        'security': 'Sécurité et tranquillité du quartier',
+        'development': 'Projets urbains et développements futurs',
+        'employment': 'Bassin d\'emploi et activité économique'
+    }
+    
+    local_factors_prompt = "\n\n### FACTEURS LOCAUX IMPORTANTS\n"
+    local_factors_prompt += "Le client accorde une importance particulière aux facteurs suivants. Veuillez les analyser en détail :\n"
+    
+    for factor in form_data.get('localFactors', []):
+        if factor in factor_descriptions:
+            local_factors_prompt += f"- {factor_descriptions[factor]}\n"
+    
+    return local_factors_prompt
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
