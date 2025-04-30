@@ -457,20 +457,24 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
 #### **Facteurs locaux importants**
 Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. 
 
-ATTENTION: Les informations qui suivent sont basées sur des données réelles obtenues via Google Maps et DOIVENT être incluses dans votre rapport. Vous DEVEZ:
-- Inclure TOUTES les informations fournies, sans exception
-- Créer une section dédiée avec un titre "Facteurs locaux importants" dans votre réponse
-- Mentionner explicitement chaque établissement listé (commerces, écoles, stations de transport, etc.)
-- Fournir une analyse de l'impact de chaque facteur sur la valeur immobilière
-- Ne pas omettre les gares et stations de transport listées, elles sont particulièrement importantes
-- IMPORTANT: Pour chaque station de transport, préciser le type (bus, métro, tram, train) et les numéros/noms des lignes si indiqués
-- Structurer clairement les informations par catégories: transports, écoles, commerces
+⚠️ ATTENTION - INSTRUCTIONS CRITIQUES ⚠️
+Les informations qui suivent sont basées sur des données réelles obtenues via Google Maps et DOIVENT être copiées INTÉGRALEMENT dans votre rapport. 
 
-Votre section sur les facteurs locaux doit obligatoirement contenir:
-- Une analyse détaillée de la situation actuelle pour chaque type d'établissement
-- L'impact potentiel sur la valeur de l'investissement
-- Une évaluation comparative par rapport aux autres zones de la ville
-- Des données chiffrées sur les distances, comme indiquées dans les données fournies
+VOUS DEVEZ ABSOLUMENT:
+- Copier SANS MODIFICATION et SANS OMISSION toutes les informations fournies
+- Créer une section détaillée avec un titre "Facteurs locaux importants"
+- Lister TOUS les établissements avec TOUTES leurs informations:
+  * Nom exact (sans changement)
+  * Distance et durée à pied ET en voiture (avec les valeurs exactes)
+  * Adresse complète de chaque lieu
+  * Pour les transports: type exact et TOUS les numéros de lignes
+  * Toutes autres informations (note, téléphone, site web)
+- Conserver la structure exacte par catégories et sous-catégories
+- IMPORTANT: Pour chaque station de transport, copier exactement le type et toutes les lignes indiquées
+
+Il est CRUCIAL que ces données soient reproduites à l'identique. Toutes les distances, durées et autres détails sont des informations FACTUELLES qui doivent apparaître TELLES QUELLES dans le rapport final. Ne résumez pas, ne paraphrasez pas - REPRODUISEZ EXACTEMENT.
+
+Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
 """
                     section_prompt += local_factors_section + local_factors_prompt
             
@@ -568,7 +572,7 @@ def get_google_maps_data(address, city, factors):
             for place_type in factor_to_place_types.get(factor, []):
                 logging.info(f"Recherche de lieux de type : {place_type}")
                 # Recherche des lieux à proximité
-                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius=1500&type={place_type}&key={api_key}"
+                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius=2000&type={place_type}&key={api_key}"
                 logging.debug(f"URL nearby search : {nearby_url}")
                 nearby_response = requests.get(nearby_url)
                 nearby_data = nearby_response.json()
@@ -577,12 +581,25 @@ def get_google_maps_data(address, city, factors):
                     logging.info(f"Nombre de résultats pour {place_type}: {len(nearby_data.get('results', []))}")
                     # Stocker les résultats par type de lieu
                     place_results = []
-                    for place in nearby_data.get('results', [])[:5]:  # Limiter à 5 résultats
+                    for place in nearby_data.get('results', [])[:10]:  # Augmenter à 10 résultats
                         # Récupérer les détails du lieu pour obtenir plus d'informations
                         place_id = place.get('place_id')
+                        
+                        # Calculer les distances et temps de trajet en voiture et à pied
+                        walking_distance, walking_duration = calculate_distance((lat, lng), 
+                                                                 (place['geometry']['location']['lat'], 
+                                                                  place['geometry']['location']['lng']), 
+                                                                 api_key, mode="walking")
+                        
+                        driving_distance, driving_duration = calculate_distance((lat, lng), 
+                                                                 (place['geometry']['location']['lat'], 
+                                                                  place['geometry']['location']['lng']), 
+                                                                 api_key, mode="driving")
+                        
                         if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
                             try:
-                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address&key={api_key}"
+                                # Récupération des détails complets du lieu
+                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address,website,formatted_phone_number&key={api_key}"
                                 details_response = requests.get(details_url)
                                 details_data = details_response.json()
                                 
@@ -615,12 +632,17 @@ def get_google_maps_data(address, city, factors):
                                     if number_matches:
                                         lines = [f"Ligne {num}" for num in number_matches]
                                 
+                                # Obtenir l'adresse formatée si disponible
+                                address_details = details_data.get('result', {}).get('formatted_address', 'Adresse non disponible')
+                                
                                 place_info = {
                                     'name': place['name'],
-                                    'distance': calculate_distance((lat, lng), 
-                                              (place['geometry']['location']['lat'], 
-                                               place['geometry']['location']['lng']), api_key),
+                                    'walking_distance': walking_distance,
+                                    'walking_duration': walking_duration,
+                                    'driving_distance': driving_distance,
+                                    'driving_duration': driving_duration,
                                     'rating': place.get('rating', 'Non évalué'),
+                                    'address': address_details,
                                     'transport_type': transport_type,
                                     'lines': lines
                                 }
@@ -628,19 +650,56 @@ def get_google_maps_data(address, city, factors):
                                 logging.error(f"Erreur lors de la récupération des détails: {e}")
                                 place_info = {
                                     'name': place['name'],
-                                    'distance': calculate_distance((lat, lng), 
-                                              (place['geometry']['location']['lat'], 
-                                               place['geometry']['location']['lng']), api_key),
+                                    'walking_distance': walking_distance,
+                                    'walking_duration': walking_duration,
+                                    'driving_distance': driving_distance,
+                                    'driving_duration': driving_duration,
                                     'rating': place.get('rating', 'Non évalué')
                                 }
                         else:
-                            place_info = {
-                                'name': place['name'],
-                                'distance': calculate_distance((lat, lng), 
-                                          (place['geometry']['location']['lat'], 
-                                           place['geometry']['location']['lng']), api_key),
-                                'rating': place.get('rating', 'Non évalué')
-                            }
+                            try:
+                                # Pour les commerces et écoles, récupérer des détails supplémentaires
+                                if place_id:
+                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address,website,formatted_phone_number&key={api_key}"
+                                    details_response = requests.get(details_url)
+                                    details_data = details_response.json()
+                                    
+                                    # Obtenir l'adresse formatée si disponible
+                                    address_details = details_data.get('result', {}).get('formatted_address', 'Adresse non disponible')
+                                    phone = details_data.get('result', {}).get('formatted_phone_number', 'Téléphone non disponible')
+                                    website = details_data.get('result', {}).get('website', 'Site web non disponible')
+                                    
+                                    place_info = {
+                                        'name': place['name'],
+                                        'walking_distance': walking_distance,
+                                        'walking_duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration,
+                                        'rating': place.get('rating', 'Non évalué'),
+                                        'address': address_details,
+                                        'phone': phone,
+                                        'website': website
+                                    }
+                                else:
+                                    place_info = {
+                                        'name': place['name'],
+                                        'walking_distance': walking_distance,
+                                        'walking_duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration,
+                                        'rating': place.get('rating', 'Non évalué')
+                                    }
+                            except Exception as e:
+                                logging.error(f"Erreur lors de la récupération des détails: {e}")
+                                place_info = {
+                                    'name': place['name'],
+                                    'walking_distance': walking_distance,
+                                    'walking_duration': walking_duration,
+                                    'driving_distance': driving_distance,
+                                    'driving_duration': driving_duration,
+                                    'rating': place.get('rating', 'Non évalué')
+                                }
+                                
                         place_results.append(place_info)
                         logging.debug(f"Lieu trouvé: {place['name']}")
                     
@@ -656,20 +715,31 @@ def get_google_maps_data(address, city, factors):
     logging.info(f"Résultats finaux: {results}")
     return results
 
-def calculate_distance(origin, destination, api_key):
+def calculate_distance(origin, destination, api_key, mode="walking"):
     """
-    Calcule la distance approximative en mètres entre deux points.
+    Calcule la distance et le temps de trajet entre deux points.
+    
+    Args:
+        origin: Coordonnées d'origine (lat, lng)
+        destination: Coordonnées de destination (lat, lng)
+        api_key: Clé API Google Maps
+        mode: Mode de transport ("walking" ou "driving")
+        
+    Returns:
+        Tuple (distance, duration) avec les valeurs textuelles
     """
     try:
         # URL de l'API Distance Matrix
-        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin[0]},{origin[1]}&destinations={destination[0]},{destination[1]}&mode=walking&key={api_key}"
+        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin[0]},{origin[1]}&destinations={destination[0]},{destination[1]}&mode={mode}&key={api_key}"
         
         response = requests.get(url)
         data = response.json()
         
         if data.get('status') == 'OK' and data.get('rows', [{}])[0].get('elements', [{}])[0].get('status') == 'OK':
-            # Distance en mètres
-            return data['rows'][0]['elements'][0]['distance']['text']
+            # Distance et durée
+            distance = data['rows'][0]['elements'][0]['distance']['text']
+            duration = data['rows'][0]['elements'][0]['duration']['text']
+            return distance, duration
         else:
             # Si l'API échoue, calculer approximativement
             import math
@@ -693,9 +763,18 @@ def calculate_distance(origin, destination, api_key):
             # Distance en mètres
             distance = R * c
             
-            return f"environ {int(distance)} m"
-    except Exception:
-        return "Distance non disponible"
+            # Estimer la durée (vitesse moyenne à pied: 5 km/h, en voiture: 30 km/h)
+            speed = 5 if mode == "walking" else 30  # km/h
+            duration_hours = (distance / 1000) / speed
+            duration_minutes = int(duration_hours * 60)
+            
+            distance_str = f"{int(distance)} m" if distance < 1000 else f"{distance/1000:.1f} km"
+            duration_str = f"{duration_minutes} min"
+            
+            return distance_str, duration_str
+    except Exception as e:
+        logging.error(f"Erreur lors du calcul de la distance: {e}")
+        return "Distance non disponible", "Durée non disponible"
 
 def format_google_data_for_prompt(google_data):
     """
@@ -738,34 +817,49 @@ def format_google_data_for_prompt(google_data):
         elif factor == 'security':
             factor_text += "### Sécurité\n"
         
-        # Compteur pour limiter le nombre d'éléments par facteur
+        # Compteur pour limiter le nombre d'éléments par facteur (augmenté à 15)
         items_count = 0
+        max_items = 15
         
         for place_type, places in factor_data.items():
             if places:
                 factor_text += f"#### {place_type_names.get(place_type, place_type)}\n"
                 for place in places:
-                    # Vérifier si on a atteint la limite de 7 éléments par facteur
-                    if items_count >= 7:
+                    # Vérifier si on a atteint la limite d'éléments par facteur
+                    if items_count >= max_items:
                         break
                     
                     # Format standard pour tous les lieux
-                    place_info = f"- {place['name']} ({place['distance']})"
+                    place_info = f"- **{place['name']}**\n"
+                    place_info += f"  - À pied: {place.get('walking_distance', 'N/A')} ({place.get('walking_duration', 'N/A')})\n"
+                    place_info += f"  - En voiture: {place.get('driving_distance', 'N/A')} ({place.get('driving_duration', 'N/A')})\n"
                     
                     # Ajouter les informations de transport si disponibles
                     if 'transport_type' in place and place['transport_type']:
+                        place_info += f"  - Type: {place['transport_type']}\n"
                         if 'lines' in place and place['lines']:
                             lines_str = ", ".join(place['lines'])
-                            place_info += f" | Type: {place['transport_type']} | Lignes: {lines_str}"
-                        else:
-                            place_info += f" | Type: {place['transport_type']}"
+                            place_info += f"  - Lignes: {lines_str}\n"
+                    
+                    # Ajouter des informations supplémentaires si disponibles
+                    if 'address' in place and place['address'] != 'Adresse non disponible':
+                        place_info += f"  - Adresse: {place['address']}\n"
+                    
+                    if 'rating' in place and place['rating'] != 'Non évalué':
+                        place_info += f"  - Note: {place['rating']}/5\n"
+                    
+                    if 'phone' in place and place['phone'] != 'Téléphone non disponible':
+                        place_info += f"  - Téléphone: {place['phone']}\n"
+                    
+                    if 'website' in place and place['website'] != 'Site web non disponible' and 'website' != 'Site web non disponible':
+                        place_info += f"  - Site web: {place['website']}\n"
                     
                     factor_text += place_info + "\n"
                     items_count += 1
                 
                 # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
-                if items_count >= 7:
-                    factor_text += "- (Limite de 7 éléments atteinte)\n"
+                if items_count >= max_items:
+                    factor_text += "- (Limite d'éléments atteinte)\n"
                     break
         
         if factor_text:
@@ -822,16 +916,21 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
 
 {formatted_google_data}
 
-INSTRUCTIONS:
-1. Vous DEVEZ inclure TOUTES les informations ci-dessus dans votre analyse, sans exception.
-2. Ces données sont réelles et vérifiées, donc elles doivent apparaître explicitement dans le rapport final.
-3. Pour chaque établissement listé, analysez son impact sur la valeur immobilière et la qualité de vie.
-4. Si certains types de données sont absents, indiquez clairement "Information non disponible" plutôt que d'inventer.
-5. Pour les projets urbains, si aucune donnée n'est fournie, mentionnez uniquement qu'une recherche plus approfondie serait nécessaire.
-6. N'omettez AUCUNE station de transport ou commerce mentionné dans les données - ils sont essentiels pour l'analyse.
-7. Intégrez un sous-titre "Facteurs locaux importants" dans le rapport et listez toutes les informations trouvées.
-8. IMPORTANT: Pour les transports, indiquez clairement le type de transport (bus, métro, tram, train) ainsi que les numéros/noms des lignes si disponibles.
-9. Structurez l'information par catégorie : Transports en commun, Établissements éducatifs, Commerces et services de proximité.
+INSTRUCTIONS IMPÉRATIVES:
+1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en gardant la même structure et les mêmes détails.
+2. N'OMETTEZ AUCUN détail - toutes les distances, durées, adresses et autres informations sont ESSENTIELLES.
+3. Pour CHAQUE ÉTABLISSEMENT listé, incluez:
+   - Son nom exact
+   - La distance et durée à pied ET en voiture (avec les valeurs exactes)
+   - L'adresse complète
+   - Pour les transports: le type précis (bus/métro/tram/train) et TOUS les numéros de lignes
+   - Toute autre information disponible (note, téléphone, site web)
+4. Organisez votre rapport par catégories (Transports, Écoles, Commerces) et sous-catégories.
+5. Les informations proviennent de Google Maps et sont 100% précises et vérifiées - ne les modifiez pas.
+6. Votre rapport doit inclure TOUTES les informations, sans résumer ni condenser.
+7. Si certains types de données sont absents, indiquez explicitement "Information non disponible".
+8. Cette section doit être la plus DÉTAILLÉE et COMPLÈTE du rapport, ne faites aucun compromis sur l'exhaustivité.
+9. Ces données sont l'élément le plus crucial du rapport - leur présence complète est OBLIGATOIRE.
 """
     
     return local_factors_prompt
