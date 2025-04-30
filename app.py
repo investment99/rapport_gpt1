@@ -500,6 +500,244 @@ Après avoir généré la section "Analyse du produit", continuez avec une analy
         logging.error(f"Erreur lors de la génération du rapport : {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Configuration de l'API Google Maps
+os.environ["GOOGLE_MAPS_API_KEY"] = "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w"
+
+def get_google_maps_data(address, city, factors):
+    """
+    Récupère des données précises depuis l'API Google Maps pour une adresse
+    et les facteurs locaux spécifiés.
+    """
+    # Clé API Google Maps
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w")
+    
+    # Adresse complète pour la géolocalisation
+    full_address = f"{address}, {city}, France"
+    logging.info(f"Recherche pour l'adresse : {full_address}")
+    logging.info(f"Facteurs recherchés : {factors}")
+    
+    # Dictionnaire pour stocker les résultats
+    results = {}
+    
+    try:
+        # 1. Obtenir les coordonnées de l'adresse
+        geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={full_address}&key={api_key}"
+        logging.debug(f"URL geocoding : {geocode_url}")
+        geocode_response = requests.get(geocode_url)
+        geocode_data = geocode_response.json()
+        
+        if geocode_data.get('status') != 'OK':
+            logging.error(f"Erreur de géocodage: {geocode_data.get('status')}")
+            logging.error(f"Réponse complète: {geocode_data}")
+            return {}
+        
+        # Extraction des coordonnées
+        location = geocode_data['results'][0]['geometry']['location']
+        lat, lng = location['lat'], location['lng']
+        logging.info(f"Coordonnées obtenues: lat={lat}, lng={lng}")
+        
+        # 2. Pour chaque facteur, rechercher les lieux pertinents
+        # Mapping des facteurs avec les types de lieux Google Maps
+        factor_to_place_types = {
+            'shops': ['supermarket', 'shopping_mall', 'store', 'convenience_store', 'bakery', 'pharmacy'],
+            'schools': ['school', 'primary_school', 'secondary_school', 'university'],
+            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station'],
+            'security': ['police']
+        }
+        
+        # Rechercher les lieux pour chaque facteur
+        for factor in factors:
+            logging.info(f"Traitement du facteur : {factor}")
+            if factor not in factor_to_place_types:
+                logging.warning(f"Facteur non reconnu : {factor}")
+                continue
+                
+            results[factor] = {}
+            
+            for place_type in factor_to_place_types.get(factor, []):
+                logging.info(f"Recherche de lieux de type : {place_type}")
+                # Recherche des lieux à proximité
+                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius=1500&type={place_type}&key={api_key}"
+                logging.debug(f"URL nearby search : {nearby_url}")
+                nearby_response = requests.get(nearby_url)
+                nearby_data = nearby_response.json()
+                
+                if nearby_data.get('status') == 'OK':
+                    logging.info(f"Nombre de résultats pour {place_type}: {len(nearby_data.get('results', []))}")
+                    # Stocker les résultats par type de lieu
+                    place_results = []
+                    for place in nearby_data.get('results', [])[:5]:  # Limiter à 5 résultats
+                        place_info = {
+                            'name': place['name'],
+                            'distance': calculate_distance((lat, lng), 
+                                      (place['geometry']['location']['lat'], 
+                                       place['geometry']['location']['lng']), api_key),
+                            'rating': place.get('rating', 'Non évalué')
+                        }
+                        place_results.append(place_info)
+                        logging.debug(f"Lieu trouvé: {place['name']}")
+                    
+                    if place_results:
+                        results[factor][place_type] = place_results
+                else:
+                    logging.error(f"Erreur API nearby search: {nearby_data.get('status')}")
+    except Exception as e:
+        logging.error(f"Erreur lors de la récupération des données Google Maps: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
+        
+    logging.info(f"Résultats finaux: {results}")
+    return results
+
+def calculate_distance(origin, destination, api_key):
+    """
+    Calcule la distance approximative en mètres entre deux points.
+    """
+    try:
+        # URL de l'API Distance Matrix
+        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin[0]},{origin[1]}&destinations={destination[0]},{destination[1]}&mode=walking&key={api_key}"
+        
+        response = requests.get(url)
+        data = response.json()
+        
+        if data.get('status') == 'OK' and data.get('rows', [{}])[0].get('elements', [{}])[0].get('status') == 'OK':
+            # Distance en mètres
+            return data['rows'][0]['elements'][0]['distance']['text']
+        else:
+            # Si l'API échoue, calculer approximativement
+            import math
+            
+            # Rayon de la Terre en mètres
+            R = 6371000
+            
+            # Convertir les coordonnées en radians
+            lat1, lon1 = origin
+            lat2, lon2 = destination
+            
+            phi1 = math.radians(lat1)
+            phi2 = math.radians(lat2)
+            delta_phi = math.radians(lat2 - lat1)
+            delta_lambda = math.radians(lon2 - lon1)
+            
+            # Formule de Haversine
+            a = math.sin(delta_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2)**2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+            
+            # Distance en mètres
+            distance = R * c
+            
+            return f"environ {int(distance)} m"
+    except Exception:
+        return "Distance non disponible"
+
+def format_google_data_for_prompt(google_data):
+    """
+    Formate les données Google Maps pour les inclure dans le prompt.
+    """
+    if not google_data:
+        return "Aucune donnée précise n'est disponible pour cette adresse."
+    
+    # Dictionnaire de traduction pour les types de lieux
+    place_type_names = {
+        'supermarket': 'Supermarché',
+        'shopping_mall': 'Centre commercial',
+        'store': 'Magasin',
+        'convenience_store': 'Épicerie',
+        'bakery': 'Boulangerie',
+        'pharmacy': 'Pharmacie',
+        'school': 'École',
+        'primary_school': 'École primaire',
+        'secondary_school': 'École secondaire/Collège',
+        'university': 'Université',
+        'bus_station': 'Arrêt de bus',
+        'subway_station': 'Station de métro',
+        'train_station': 'Gare ferroviaire',
+        'transit_station': 'Station de transport',
+        'police': 'Commissariat'
+    }
+    
+    formatted_data = []
+    
+    for factor, factor_data in google_data.items():
+        factor_text = ""
+        if factor == 'shops':
+            factor_text += "### Commerces et services de proximité\n"
+        elif factor == 'schools':
+            factor_text += "### Établissements éducatifs\n"
+        elif factor == 'transport':
+            factor_text += "### Transports en commun\n"
+        elif factor == 'security':
+            factor_text += "### Sécurité\n"
+        
+        for place_type, places in factor_data.items():
+            if places:
+                factor_text += f"#### {place_type_names.get(place_type, place_type)}\n"
+                for place in places:
+                    factor_text += f"- {place['name']} ({place['distance']})\n"
+        
+        if factor_text:
+            formatted_data.append(factor_text)
+    
+    return "\n".join(formatted_data)
+
+def improved_local_factors_with_google_maps(form_data):
+    """
+    Version améliorée qui utilise Google Maps API pour obtenir des données réelles.
+    """
+    if not form_data.get('localFactors'):
+        return ""
+    
+    # Extraire adresse et ville
+    address = form_data.get('address-line1', '')
+    city = form_data.get('city', '')
+    selected_factors = form_data.get('localFactors', [])
+    
+    # Traduire les facteurs du français à l'anglais
+    factor_translation = {
+        'commerces': 'shops',
+        'écoles': 'schools',
+        'transport': 'transport',
+        'sécurité': 'security'
+    }
+    
+    # Traduire les facteurs sélectionnés
+    translated_factors = []
+    for factor in selected_factors:
+        if factor in factor_translation:
+            translated_factors.append(factor_translation[factor])
+        else:
+            # Si pas de traduction, conserver tel quel
+            translated_factors.append(factor)
+    
+    # Récupérer les données Google Maps
+    google_data = get_google_maps_data(address, city, translated_factors)
+    
+    # Déboguer pour vérifier les données récupérées
+    logging.info(f"Données Google Maps récupérées pour {address}, {city}: {google_data}")
+    
+    # Formater les données pour le prompt
+    formatted_google_data = format_google_data_for_prompt(google_data)
+    
+    # Déboguer pour vérifier les données formatées
+    logging.info(f"Données Google Maps formatées: {formatted_google_data}")
+    
+    # Créer le prompt avec les données réelles
+    local_factors_prompt = f"""
+
+### FACTEURS LOCAUX IMPORTANTS
+Le client accorde une importance particulière aux facteurs suivants pour l'adresse {address}, {city}. Voici les données précises obtenues:
+
+{formatted_google_data}
+
+INSTRUCTIONS:
+1. Utilisez UNIQUEMENT les données ci-dessus pour votre analyse, ce sont des informations réelles et vérifiées.
+2. Pour chaque établissement listé, analysez son impact sur la valeur immobilière et la qualité de vie.
+3. Si certains types de données sont absents, indiquez clairement "Information non disponible" plutôt que d'inventer.
+4. Pour les projets urbains, si aucune donnée n'est fournie, mentionnez uniquement qu'une recherche plus approfondie serait nécessaire.
+"""
+    
+    return local_factors_prompt
+
 # Traitement des facteurs locaux
 def process_local_factors(form_data):
     """
@@ -508,6 +746,11 @@ def process_local_factors(form_data):
     if not form_data.get('localFactors'):
         return ""
     
+    # Version améliorée qui utilise l'API Google Maps
+    return improved_local_factors_with_google_maps(form_data)
+    
+    # Ancien code (conservé en commentaire pour référence)
+    """
     # Traduction des codes en descriptions
     factor_descriptions = {
         'transport': 'Transports en commun (métro, bus, tram, train)',
@@ -526,6 +769,7 @@ def process_local_factors(form_data):
             local_factors_prompt += f"- {factor_descriptions[factor]}\n"
     
     return local_factors_prompt
+    """
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
