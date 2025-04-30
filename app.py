@@ -136,7 +136,7 @@ def add_section_title(elements, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 12))
 
-def generate_section(client, section_prompt, max_tokens=2000):
+def generate_section(client, section_prompt, max_tokens=1700):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -581,25 +581,20 @@ def get_google_maps_data(address, city, factors):
                     logging.info(f"Nombre de résultats pour {place_type}: {len(nearby_data.get('results', []))}")
                     # Stocker les résultats par type de lieu
                     place_results = []
-                    for place in nearby_data.get('results', [])[:10]:  # Augmenter à 10 résultats
+                    for place in nearby_data.get('results', [])[:5]:  # Limiter à 5 résultats maximum par type
                         # Récupérer les détails du lieu pour obtenir plus d'informations
                         place_id = place.get('place_id')
                         
-                        # Calculer les distances et temps de trajet en voiture et à pied
+                        # Calculer les distances et temps de trajet à pied seulement (pour réduire la taille)
                         walking_distance, walking_duration = calculate_distance((lat, lng), 
                                                                  (place['geometry']['location']['lat'], 
                                                                   place['geometry']['location']['lng']), 
                                                                  api_key, mode="walking")
                         
-                        driving_distance, driving_duration = calculate_distance((lat, lng), 
-                                                                 (place['geometry']['location']['lat'], 
-                                                                  place['geometry']['location']['lng']), 
-                                                                 api_key, mode="driving")
-                        
                         if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
                             try:
-                                # Récupération des détails complets du lieu
-                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address,website,formatted_phone_number&key={api_key}"
+                                # Récupération des détails de base seulement
+                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address&key={api_key}"
                                 details_response = requests.get(details_url)
                                 details_data = details_response.json()
                                 
@@ -633,15 +628,12 @@ def get_google_maps_data(address, city, factors):
                                         lines = [f"Ligne {num}" for num in number_matches]
                                 
                                 # Obtenir l'adresse formatée si disponible
-                                address_details = details_data.get('result', {}).get('formatted_address', 'Adresse non disponible')
+                                address_details = details_data.get('result', {}).get('formatted_address', '')
                                 
                                 place_info = {
                                     'name': place['name'],
-                                    'walking_distance': walking_distance,
-                                    'walking_duration': walking_duration,
-                                    'driving_distance': driving_distance,
-                                    'driving_duration': driving_duration,
-                                    'rating': place.get('rating', 'Non évalué'),
+                                    'distance': walking_distance,
+                                    'duration': walking_duration,
                                     'address': address_details,
                                     'transport_type': transport_type,
                                     'lines': lines
@@ -650,54 +642,38 @@ def get_google_maps_data(address, city, factors):
                                 logging.error(f"Erreur lors de la récupération des détails: {e}")
                                 place_info = {
                                     'name': place['name'],
-                                    'walking_distance': walking_distance,
-                                    'walking_duration': walking_duration,
-                                    'driving_distance': driving_distance,
-                                    'driving_duration': driving_duration,
-                                    'rating': place.get('rating', 'Non évalué')
+                                    'distance': walking_distance,
+                                    'duration': walking_duration
                                 }
                         else:
                             try:
-                                # Pour les commerces et écoles, récupérer des détails supplémentaires
+                                # Pour les commerces et écoles, récupérer seulement l'adresse
                                 if place_id:
-                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address,website,formatted_phone_number&key={api_key}"
+                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address&key={api_key}"
                                     details_response = requests.get(details_url)
                                     details_data = details_response.json()
                                     
                                     # Obtenir l'adresse formatée si disponible
-                                    address_details = details_data.get('result', {}).get('formatted_address', 'Adresse non disponible')
-                                    phone = details_data.get('result', {}).get('formatted_phone_number', 'Téléphone non disponible')
-                                    website = details_data.get('result', {}).get('website', 'Site web non disponible')
+                                    address_details = details_data.get('result', {}).get('formatted_address', '')
                                     
                                     place_info = {
                                         'name': place['name'],
-                                        'walking_distance': walking_distance,
-                                        'walking_duration': walking_duration,
-                                        'driving_distance': driving_distance,
-                                        'driving_duration': driving_duration,
-                                        'rating': place.get('rating', 'Non évalué'),
-                                        'address': address_details,
-                                        'phone': phone,
-                                        'website': website
+                                        'distance': walking_distance,
+                                        'duration': walking_duration,
+                                        'address': address_details
                                     }
                                 else:
                                     place_info = {
                                         'name': place['name'],
-                                        'walking_distance': walking_distance,
-                                        'walking_duration': walking_duration,
-                                        'driving_distance': driving_distance,
-                                        'driving_duration': driving_duration,
-                                        'rating': place.get('rating', 'Non évalué')
+                                        'distance': walking_distance,
+                                        'duration': walking_duration
                                     }
                             except Exception as e:
                                 logging.error(f"Erreur lors de la récupération des détails: {e}")
                                 place_info = {
                                     'name': place['name'],
-                                    'walking_distance': walking_distance,
-                                    'walking_duration': walking_duration,
-                                    'driving_distance': driving_distance,
-                                    'driving_duration': driving_duration,
-                                    'rating': place.get('rating', 'Non évalué')
+                                    'distance': walking_distance,
+                                    'duration': walking_duration
                                 }
                                 
                         place_results.append(place_info)
@@ -817,9 +793,9 @@ def format_google_data_for_prompt(google_data):
         elif factor == 'security':
             factor_text += "### Sécurité\n"
         
-        # Compteur pour limiter le nombre d'éléments par facteur (augmenté à 15)
+        # Compteur pour limiter le nombre d'éléments par facteur
         items_count = 0
-        max_items = 15
+        max_items = 7  # Réduire le nombre max d'éléments
         
         for place_type, places in factor_data.items():
             if places:
@@ -829,37 +805,25 @@ def format_google_data_for_prompt(google_data):
                     if items_count >= max_items:
                         break
                     
-                    # Format standard pour tous les lieux
-                    place_info = f"- **{place['name']}**\n"
-                    place_info += f"  - À pied: {place.get('walking_distance', 'N/A')} ({place.get('walking_duration', 'N/A')})\n"
-                    place_info += f"  - En voiture: {place.get('driving_distance', 'N/A')} ({place.get('driving_duration', 'N/A')})\n"
+                    # Format optimisé pour réduire la taille
+                    place_info = f"- **{place['name']}** - {place.get('distance', 'N/A')} ({place.get('duration', 'N/A')})"
                     
-                    # Ajouter les informations de transport si disponibles
+                    # Ajouter l'adresse si disponible (en version compacte)
+                    if 'address' in place and place['address']:
+                        place_info += f" | {place['address'].split(',')[0]}"
+                    
+                    # Ajouter les informations de transport si disponibles (en version compacte)
                     if 'transport_type' in place and place['transport_type']:
-                        place_info += f"  - Type: {place['transport_type']}\n"
+                        place_info += f" | Type: {place['transport_type']}"
                         if 'lines' in place and place['lines']:
                             lines_str = ", ".join(place['lines'])
-                            place_info += f"  - Lignes: {lines_str}\n"
-                    
-                    # Ajouter des informations supplémentaires si disponibles
-                    if 'address' in place and place['address'] != 'Adresse non disponible':
-                        place_info += f"  - Adresse: {place['address']}\n"
-                    
-                    if 'rating' in place and place['rating'] != 'Non évalué':
-                        place_info += f"  - Note: {place['rating']}/5\n"
-                    
-                    if 'phone' in place and place['phone'] != 'Téléphone non disponible':
-                        place_info += f"  - Téléphone: {place['phone']}\n"
-                    
-                    if 'website' in place and place['website'] != 'Site web non disponible' and 'website' != 'Site web non disponible':
-                        place_info += f"  - Site web: {place['website']}\n"
+                            place_info += f" | Lignes: {lines_str}"
                     
                     factor_text += place_info + "\n"
                     items_count += 1
                 
                 # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
                 if items_count >= max_items:
-                    factor_text += "- (Limite d'éléments atteinte)\n"
                     break
         
         if factor_text:
