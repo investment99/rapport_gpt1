@@ -463,6 +463,8 @@ ATTENTION: Les informations qui suivent sont basées sur des données réelles o
 - Mentionner explicitement chaque établissement listé (commerces, écoles, stations de transport, etc.)
 - Fournir une analyse de l'impact de chaque facteur sur la valeur immobilière
 - Ne pas omettre les gares et stations de transport listées, elles sont particulièrement importantes
+- IMPORTANT: Pour chaque station de transport, préciser le type (bus, métro, tram, train) et les numéros/noms des lignes si indiqués
+- Structurer clairement les informations par catégories: transports, écoles, commerces
 
 Votre section sur les facteurs locaux doit obligatoirement contenir:
 - Une analyse détaillée de la situation actuelle pour chaque type d'établissement
@@ -550,7 +552,7 @@ def get_google_maps_data(address, city, factors):
         factor_to_place_types = {
             'shops': ['supermarket', 'shopping_mall', 'store', 'convenience_store', 'bakery', 'pharmacy'],
             'schools': ['school', 'primary_school', 'secondary_school', 'university'],
-            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station'],
+            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station'],
             'security': ['police']
         }
         
@@ -576,13 +578,69 @@ def get_google_maps_data(address, city, factors):
                     # Stocker les résultats par type de lieu
                     place_results = []
                     for place in nearby_data.get('results', [])[:5]:  # Limiter à 5 résultats
-                        place_info = {
-                            'name': place['name'],
-                            'distance': calculate_distance((lat, lng), 
-                                      (place['geometry']['location']['lat'], 
-                                       place['geometry']['location']['lng']), api_key),
-                            'rating': place.get('rating', 'Non évalué')
-                        }
+                        # Récupérer les détails du lieu pour obtenir plus d'informations
+                        place_id = place.get('place_id')
+                        if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
+                            try:
+                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address&key={api_key}"
+                                details_response = requests.get(details_url)
+                                details_data = details_response.json()
+                                
+                                # Essayer de déterminer le type de transport et les lignes
+                                transport_type = "station"
+                                if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
+                                    transport_type = "bus"
+                                elif "subway" in place_type or any(t for t in place.get('types', []) if 'subway' in t):
+                                    transport_type = "métro"
+                                elif "tram" in place_type or any(t for t in place.get('types', []) if 'tram' in t):
+                                    transport_type = "tram"
+                                elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
+                                    transport_type = "train"
+                                
+                                # Extraire les numéros de ligne potentiels du nom
+                                name = place['name']
+                                lines = []
+                                
+                                # Tentative d'extraction de numéros/lettres de lignes du nom
+                                import re
+                                # Recherche de motifs comme "Ligne 1", "Bus 42", "Tram A", etc.
+                                line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train)\s*([a-z0-9]+)', name.lower())
+                                if line_matches:
+                                    for match in line_matches:
+                                        lines.append(f"{match[0]} {match[1]}")
+                                
+                                # Si pas de lignes trouvées, vérifier des numéros isolés qui pourraient être des lignes
+                                if not lines:
+                                    number_matches = re.findall(r'\b[0-9]+\b', name)
+                                    if number_matches:
+                                        lines = [f"Ligne {num}" for num in number_matches]
+                                
+                                place_info = {
+                                    'name': place['name'],
+                                    'distance': calculate_distance((lat, lng), 
+                                              (place['geometry']['location']['lat'], 
+                                               place['geometry']['location']['lng']), api_key),
+                                    'rating': place.get('rating', 'Non évalué'),
+                                    'transport_type': transport_type,
+                                    'lines': lines
+                                }
+                            except Exception as e:
+                                logging.error(f"Erreur lors de la récupération des détails: {e}")
+                                place_info = {
+                                    'name': place['name'],
+                                    'distance': calculate_distance((lat, lng), 
+                                              (place['geometry']['location']['lat'], 
+                                               place['geometry']['location']['lng']), api_key),
+                                    'rating': place.get('rating', 'Non évalué')
+                                }
+                        else:
+                            place_info = {
+                                'name': place['name'],
+                                'distance': calculate_distance((lat, lng), 
+                                          (place['geometry']['location']['lat'], 
+                                           place['geometry']['location']['lng']), api_key),
+                                'rating': place.get('rating', 'Non évalué')
+                            }
                         place_results.append(place_info)
                         logging.debug(f"Lieu trouvé: {place['name']}")
                     
@@ -662,6 +720,8 @@ def format_google_data_for_prompt(google_data):
         'subway_station': 'Station de métro',
         'train_station': 'Gare ferroviaire',
         'transit_station': 'Station de transport',
+        'light_rail_station': 'Station de tramway',
+        'tram_station': 'Station de tramway',
         'police': 'Commissariat'
     }
     
@@ -688,7 +748,19 @@ def format_google_data_for_prompt(google_data):
                     # Vérifier si on a atteint la limite de 7 éléments par facteur
                     if items_count >= 7:
                         break
-                    factor_text += f"- {place['name']} ({place['distance']})\n"
+                    
+                    # Format standard pour tous les lieux
+                    place_info = f"- {place['name']} ({place['distance']})"
+                    
+                    # Ajouter les informations de transport si disponibles
+                    if 'transport_type' in place and place['transport_type']:
+                        if 'lines' in place and place['lines']:
+                            lines_str = ", ".join(place['lines'])
+                            place_info += f" | Type: {place['transport_type']} | Lignes: {lines_str}"
+                        else:
+                            place_info += f" | Type: {place['transport_type']}"
+                    
+                    factor_text += place_info + "\n"
                     items_count += 1
                 
                 # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
@@ -758,6 +830,8 @@ INSTRUCTIONS:
 5. Pour les projets urbains, si aucune donnée n'est fournie, mentionnez uniquement qu'une recherche plus approfondie serait nécessaire.
 6. N'omettez AUCUNE station de transport ou commerce mentionné dans les données - ils sont essentiels pour l'analyse.
 7. Intégrez un sous-titre "Facteurs locaux importants" dans le rapport et listez toutes les informations trouvées.
+8. IMPORTANT: Pour les transports, indiquez clairement le type de transport (bus, métro, tram, train) ainsi que les numéros/noms des lignes si disponibles.
+9. Structurez l'information par catégorie : Transports en commun, Établissements éducatifs, Commerces et services de proximité.
 """
     
     return local_factors_prompt
