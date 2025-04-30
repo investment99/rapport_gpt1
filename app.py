@@ -451,62 +451,17 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
                 # Générer la section des facteurs locaux
                 local_factors_prompt = process_local_factors(form_data)
                 if local_factors_prompt:
-                    # Intégrer les facteurs locaux directement dans les instructions pour l'analyse du produit
-                    section_prompt = section_prompt.replace(
-                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.",
-                        "- **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé, incluant une analyse EXTRÊMEMENT PRÉCISE et DÉTAILLÉE des facteurs locaux importants."
-                    )
+                    # Ajouter les instructions pour le modèle sur comment traiter ces facteurs
+                    local_factors_section = """
                     
-                    # Ajuster la section des instructions pour l'analyse du produit
-                    product_analysis_index = section_prompt.find("#### **5. Analyse du produit**")
-                    if product_analysis_index != -1:
-                        # Trouver la fin des instructions pour l'analyse du produit
-                        next_section_index = section_prompt.find("---", product_analysis_index)
-                        if next_section_index != -1:
-                            # Insérer les instructions pour les facteurs locaux juste avant la fin de la section
-                            factors_instructions = f"""
-
-En plus de l'analyse du produit, vous DEVEZ IMPÉRATIVEMENT inclure une sous-section intitulée "FACTEURS LOCAUX IMPORTANTS" qui analyse EN DÉTAIL et avec une EXTRÊME PRÉCISION les facteurs suivants qui sont importants pour le client.
-
-{local_factors_prompt.strip()}
-
-EXIGENCES NON NÉGOCIABLES pour cette section:
-1. Ne générez JAMAIS d'informations génériques - fournissez UNIQUEMENT des données PRÉCISES et VÉRIFIABLES
-2. Utilisez SYSTÉMATIQUEMENT des CHIFFRES EXACTS (distances, nombres, pourcentages, etc.)
-3. Mentionnez les NOMS SPÉCIFIQUES de tous les établissements, lignes de transport, commerces, etc.
-4. Si une information précise vous semble manquante, précisez-le explicitement
-5. Cette section doit absolument refléter une connaissance APPROFONDIE et LOCALE du quartier, comme celle d'un agent immobilier expérimenté travaillant dans ce secteur depuis de nombreuses années
-6. FORMATAGE IMPÉRATIF: pour chaque facteur local, utilisez ce format précis:
-   * Titre en gras (ex: "**Transports en commun**")
-   * Un paragraphe de résumé synthétique
-   * Puis un SAUT DE LIGNE
-   * Puis la liste détaillée des éléments
-   * Un SAUT DE LIGNE entre chaque facteur différent
+#### **Facteurs locaux importants**
+Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. Pour chaque facteur listé, fournissez :
+- Une analyse détaillée de la situation actuelle
+- L'impact potentiel sur la valeur de l'investissement
+- Une évaluation comparative par rapport aux autres zones de la ville
+- Des données chiffrées si elles sont pertinentes (distances, nombre d'établissements, fréquence des transports, etc.)
 """
-                            section_prompt = section_prompt[:next_section_index] + factors_instructions + section_prompt[next_section_index:]
-            
-            # Ajout d'instructions de formatage spéciales pour l'évaluation des risques
-            if section_title == "Évaluation des risques":
-                risk_instructions = """
-FORMATAGE OBLIGATOIRE POUR CETTE SECTION:
-1. Après votre introduction générale, vous DEVEZ IMPÉRATIVEMENT inclure un TABLEAU récapitulatif des risques identifiés
-2. Le tableau doit avoir ce format (exemple):
-
-| Type de risque | Niveau (1-5) | Description | Impact potentiel |
-|----------------|--------------|-------------|------------------|
-| Risque de marché | 3 | Fluctuation des prix | Modéré |
-| Risque locatif | 2 | Vacance possible | Faible |
-| ... | ... | ... | ... |
-
-3. Après le tableau, analysez chaque risque individuellement avec un titre en gras suivi d'un paragraphe explicatif
-4. Insérez un saut de ligne entre chaque type de risque pour une meilleure lisibilité
-"""
-                # Trouver où insérer les instructions
-                risk_index = section_prompt.find("#### **6. Évaluation des risques**")
-                if risk_index != -1:
-                    next_section = section_prompt.find("---", risk_index)
-                    if next_section != -1:
-                        section_prompt = section_prompt[:next_section] + risk_instructions + section_prompt[next_section:]
+                    section_prompt += local_factors_section + local_factors_prompt
             
             section_content = generate_section(client, section_prompt)
     
@@ -520,8 +475,19 @@ FORMATAGE OBLIGATOIRE POUR CETTE SECTION:
             add_section_title(elements, section_title)
             elements.extend(section_content)  # Ajoute le contenu de la section sans duplication du titre
             
-            # Ajout d'un espacement après chaque section pour améliorer la lisibilité
-            elements.append(Spacer(1, 20))
+            # Si c'est la section "Analyse du produit" et qu'il y a des facteurs locaux, ajouter une sous-section
+            if section_title == "Analyse du produit" and process_local_factors(form_data):
+                # Créer un style pour le sous-titre
+                subtitle_style = ParagraphStyle(
+                    'SubSectionTitle',
+                    fontSize=14,
+                    fontName='Helvetica',
+                    textColor=colors.HexColor("#00C7C4"),
+                    alignment=0,
+                    spaceAfter=8
+                )
+                # Ajouter un espacement
+                elements.append(Spacer(1, 12))
             
             elements.append(PageBreak())
 
@@ -552,131 +518,12 @@ def process_local_factors(form_data):
         'employment': 'Bassin d\'emploi et activité économique'
     }
     
-    local_factors_prompt = ""
+    local_factors_prompt = "\n\n### FACTEURS LOCAUX IMPORTANTS\n"
+    local_factors_prompt += "Le client accorde une importance particulière aux facteurs suivants. Veuillez les analyser en détail :\n"
     
     for factor in form_data.get('localFactors', []):
         if factor in factor_descriptions:
-            if factor == 'transport':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour les transports en commun, vous DEVEZ IMPÉRATIVEMENT lister TOUS les moyens de transport du quartier avec leurs détails précis:
-1. Métro: indiquer TOUTES les stations dans un rayon de 1km avec les NUMÉROS EXACTS des lignes (ex: Ligne 4, Ligne 12) et les DISTANCES PRÉCISES en mètres et minutes de marche
-2. Bus: indiquer TOUS les numéros de lignes précis (ex: Bus 38, 67, 96) avec les noms des arrêts et leurs emplacements exacts
-3. RER/Trains: indiquer les stations, numéros de lignes (ex: RER A, RER B) et destinations accessibles
-4. Tramway: indiquer les lignes précises si disponibles dans le secteur
-5. Préciser la FRÉQUENCE DES PASSAGES (ex: toutes les 3 minutes en heure de pointe)
-6. Indiquer les TEMPS DE TRAJET précis vers les principaux pôles (gares, centres d'affaires, centre-ville)
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            elif factor == 'schools':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour les écoles, vous DEVEZ IMPÉRATIVEMENT:
-1. Lister TOUS les établissements scolaires dans un rayon de 1,5km: crèches, maternelles, primaires, collèges, lycées et établissements supérieurs
-2. Pour CHAQUE établissement, préciser:
-   - Le NOM EXACT de l'établissement
-   - Son TYPE précis (public/privé/international)
-   - Sa DISTANCE EXACTE en mètres et minutes à pied
-   - Ses SPÉCIFICITÉS (sections internationales, options spéciales)
-   - Ses RÉSULTATS académiques chiffrés quand disponibles (% réussite bac, classements)
-3. Indiquer la RÉPUTATION de chaque établissement avec des données objectives
-4. Mentionner les établissements d'excellence ou spécialisés dans le secteur
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            elif factor == 'shops':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour les commerces et services, vous DEVEZ IMPÉRATIVEMENT:
-1. Lister TOUS les commerces essentiels dans un rayon de 1km avec leurs NOMS EXACTS et DISTANCES PRÉCISES:
-   - Supermarchés/épiceries (préciser les enseignes exactes, ex: Carrefour City, Monoprix, etc.)
-   - Boulangeries (avec noms spécifiques)
-   - Pharmacies (nombres et emplacements précis)
-   - Restaurants (types de cuisine et gammes de prix)
-   - Services médicaux (médecins, spécialistes, centres médicaux)
-2. Indiquer les CENTRES COMMERCIAUX avec:
-   - Leurs NOMS EXACTS
-   - Le NOMBRE PRÉCIS de boutiques
-   - Les ENSEIGNES PRINCIPALES
-   - La DISTANCE EXACTE en mètres et minutes
-3. Préciser les MARCHÉS avec leurs JOURS et HORAIRES exacts
-4. Évaluer la DENSITÉ COMMERCIALE par rapport aux quartiers voisins
-5. Indiquer les COMMERCES SPÉCIALISÉS remarquables
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            elif factor == 'security':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour la sécurité du quartier, vous DEVEZ IMPÉRATIVEMENT fournir:
-1. Des DONNÉES CHIFFRÉES précises sur la criminalité:
-   - Taux d'infractions par catégorie (cambriolages, agressions, incivilités)
-   - COMPARAISON EXACTE avec la moyenne de la ville et des quartiers voisins
-   - ÉVOLUTION sur les 3 dernières années avec pourcentages précis
-2. Présence policière et sécuritaire:
-   - Distance du commissariat le plus proche (en mètres exacts)
-   - Fréquence des patrouilles
-   - Présence de caméras de surveillance
-3. Appréciation objective de l'ambiance:
-   - Sécurité ressentie de jour et de nuit
-   - Zones plus sensibles identifiées avec précision
-   - Témoignages de résidents si disponibles
-4. Facteurs influençant la sécurité:
-   - Éclairage public
-   - Configuration urbaine
-   - Mixité sociale
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            elif factor == 'development':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour les projets urbains, vous DEVEZ IMPÉRATIVEMENT:
-1. Lister TOUS les projets d'aménagement en cours ou prévus avec:
-   - NOMS EXACTS des projets
-   - DATES PRÉCISES (début/fin des travaux)
-   - BUDGETS EXACTS en millions d'euros
-   - NATURE DÉTAILLÉE (logements, commerces, infrastructures)
-2. Pour chaque projet majeur, préciser:
-   - Sa LOCALISATION EXACTE par rapport au bien
-   - Son IMPACT QUANTIFIÉ sur les prix immobiliers
-   - Les NOUVELLES INFRASTRUCTURES apportées
-3. Détailler les projets de transport:
-   - Nouvelles lignes/stations
-   - Améliorations prévues
-   - Calendrier précis de mise en service
-4. Identifier les zones de développement prioritaires:
-   - Quartiers en rénovation urbaine
-   - Zones d'aménagement concerté (ZAC)
-   - Pôles de croissance économique
-5. Évaluer l'impact de ces projets sur l'attractivité future
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            elif factor == 'employment':
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Pour le bassin d'emploi, vous DEVEZ IMPÉRATIVEMENT:
-1. Identifier TOUS les employeurs majeurs du secteur:
-   - NOMS EXACTS des entreprises/institutions
-   - NOMBRE PRÉCIS d'employés par structure
-   - SECTEURS D'ACTIVITÉ spécifiques
-   - DISTANCE EXACTE en km et minutes de transport
-2. Fournir des données économiques précises:
-   - TAUX DE CHÔMAGE du secteur (comparé à la moyenne ville/région/pays)
-   - REVENU MOYEN des habitants (chiffré exactement)
-   - CROISSANCE ÉCONOMIQUE locale avec pourcentages précis
-3. Détailler les zones d'activité:
-   - Parcs d'entreprises, zones industrielles, centres d'affaires
-   - Nombre exact d'entreprises et typologie
-   - Accessibilité en transport (temps précis)
-4. Analyser les perspectives d'évolution:
-   - Secteurs en développement/déclin
-   - Implantations futures confirmées
-   - Projets économiques structurants
-Répondez avec une PRÉCISION EXTRÊME et des DONNÉES CHIFFRÉES pour chaque information.
-
-"""
-            else:
-                local_factors_prompt += f"""- **{factor_descriptions[factor]}**: 
-Analysez ce facteur de manière extrêmement détaillée et précise avec des données chiffrées et factuelles.
-
-"""
+            local_factors_prompt += f"- {factor_descriptions[factor]}\n"
     
     return local_factors_prompt
 
