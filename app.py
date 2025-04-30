@@ -455,11 +455,20 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
                     local_factors_section = """
                     
 #### **Facteurs locaux importants**
-Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. Pour chaque facteur listé, fournissez :
-- Une analyse détaillée de la situation actuelle
+Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. 
+
+ATTENTION: Les informations qui suivent sont basées sur des données réelles obtenues via Google Maps et DOIVENT être incluses dans votre rapport. Vous DEVEZ:
+- Inclure TOUTES les informations fournies, sans exception
+- Créer une section dédiée avec un titre "Facteurs locaux importants" dans votre réponse
+- Mentionner explicitement chaque établissement listé (commerces, écoles, stations de transport, etc.)
+- Fournir une analyse de l'impact de chaque facteur sur la valeur immobilière
+- Ne pas omettre les gares et stations de transport listées, elles sont particulièrement importantes
+
+Votre section sur les facteurs locaux doit obligatoirement contenir:
+- Une analyse détaillée de la situation actuelle pour chaque type d'établissement
 - L'impact potentiel sur la valeur de l'investissement
 - Une évaluation comparative par rapport aux autres zones de la ville
-- Des données chiffrées si elles sont pertinentes (distances, nombre d'établissements, fréquence des transports, etc.)
+- Des données chiffrées sur les distances, comme indiquées dans les données fournies
 """
                     section_prompt += local_factors_section + local_factors_prompt
             
@@ -669,11 +678,23 @@ def format_google_data_for_prompt(google_data):
         elif factor == 'security':
             factor_text += "### Sécurité\n"
         
+        # Compteur pour limiter le nombre d'éléments par facteur
+        items_count = 0
+        
         for place_type, places in factor_data.items():
             if places:
                 factor_text += f"#### {place_type_names.get(place_type, place_type)}\n"
                 for place in places:
+                    # Vérifier si on a atteint la limite de 7 éléments par facteur
+                    if items_count >= 7:
+                        break
                     factor_text += f"- {place['name']} ({place['distance']})\n"
+                    items_count += 1
+                
+                # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
+                if items_count >= 7:
+                    factor_text += "- (Limite de 7 éléments atteinte)\n"
+                    break
         
         if factor_text:
             formatted_data.append(factor_text)
@@ -730,10 +751,13 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
 {formatted_google_data}
 
 INSTRUCTIONS:
-1. Utilisez UNIQUEMENT les données ci-dessus pour votre analyse, ce sont des informations réelles et vérifiées.
-2. Pour chaque établissement listé, analysez son impact sur la valeur immobilière et la qualité de vie.
-3. Si certains types de données sont absents, indiquez clairement "Information non disponible" plutôt que d'inventer.
-4. Pour les projets urbains, si aucune donnée n'est fournie, mentionnez uniquement qu'une recherche plus approfondie serait nécessaire.
+1. Vous DEVEZ inclure TOUTES les informations ci-dessus dans votre analyse, sans exception.
+2. Ces données sont réelles et vérifiées, donc elles doivent apparaître explicitement dans le rapport final.
+3. Pour chaque établissement listé, analysez son impact sur la valeur immobilière et la qualité de vie.
+4. Si certains types de données sont absents, indiquez clairement "Information non disponible" plutôt que d'inventer.
+5. Pour les projets urbains, si aucune donnée n'est fournie, mentionnez uniquement qu'une recherche plus approfondie serait nécessaire.
+6. N'omettez AUCUNE station de transport ou commerce mentionné dans les données - ils sont essentiels pour l'analyse.
+7. Intégrez un sous-titre "Facteurs locaux importants" dans le rapport et listez toutes les informations trouvées.
 """
     
     return local_factors_prompt
