@@ -385,6 +385,7 @@ def generate_report():
             ("Secteur d'investissement", 400),
             ("Analyse du marché", 500),
             ("Analyse du produit", 500),
+            ("Facteurs locaux importants", 500),  # Ajout d'une section dédiée aux facteurs locaux
             ("Évaluation des risques", 450),
             ("Conclusion et recommandations", 500),
             ("Analyse prédictive et argumentée", 500)
@@ -447,7 +448,44 @@ def generate_report():
         map_path = get_google_static_map(address, city, api_key)
 
         for section_title, min_words in sections:
-            # Générer le prompt de base pour cette section
+            # Si nous traitons la section des facteurs locaux, nous gérons différemment
+            if section_title == "Facteurs locaux importants":
+                if process_local_factors(form_data):
+                    # Ajouter le titre pour la section des facteurs locaux
+                    add_section_title(elements, "Facteurs locaux importants")
+                    
+                    # Ajouter la carte Google Maps en premier si disponible
+                    if map_path and os.path.exists(map_path):
+                        # Créer un style pour le sous-titre
+                        subtitle_style = ParagraphStyle(
+                            'SubSectionTitle',
+                            fontSize=14,
+                            fontName='Helvetica-Bold',
+                            textColor=colors.HexColor("#00C7C4"),
+                            alignment=0,
+                            spaceAfter=8
+                        )
+                        
+                        elements.append(Paragraph("Localisation de la propriété", subtitle_style))
+                        map_img = Image(map_path, width=450, height=300)
+                        elements.append(map_img)
+                        elements.append(Spacer(1, 20))
+                    
+                    # Générer le contenu des facteurs locaux
+                    local_factors_prompt = process_local_factors(form_data)
+                    local_factors_content = generate_section(client, local_factors_prompt)
+                    
+                    # Ajouter le contenu des facteurs locaux (sans ajouter à nouveau le titre)
+                    for elem in local_factors_content:
+                        if hasattr(elem, 'getPlainText') and section_title.lower() in elem.getPlainText().lower():
+                            # Ignorer l'élément si c'est le titre principal qui se répète
+                            continue
+                        elements.append(elem)
+                    
+                    elements.append(PageBreak())
+                    continue  # Passer à la section suivante
+            
+            # Pour les autres sections normales
             section_prompt = f"""
             {summary}
 
@@ -476,6 +514,7 @@ Votre tâche est de générer la section '{section_title}' du rapport d'analyse 
    - **Secteur d'investissement** : Inclure l'évolution des prix au m² (5 dernières années) et le rendement locatif moyen (2020-2025) pour la ville {address}.
    - **Analyse du marché** : Inclure l'évolution des prix immobiliers (2020-2025), un tableau comparatif des quartiers dans la ville (prix au m², rendement locatif, distances), et les facteurs influençant le marché local.
    - **Analyse du produit** : Évaluation des caractéristiques spécifiques du produit immobilier ciblé.
+   - **Facteurs locaux importants** : Détails sur les commerces, écoles, transports et autres services à proximité.
    - **Évaluation des risques** : Analyse des risques liés à l'investissement dans la ville.
    - **Conclusion et recommandations** : Synthèse des données clés et recommandations claires pour le client.
    - **Analyse prédictive et argumentée** : Projection sur l'évolution future des prix immobiliers pour les 5 à 10 prochaines années, analyse argumentée sur le type de bien le plus judicieux à acquérir, et recommandations basées sur les tendances du marché et données économiques.
@@ -560,14 +599,22 @@ Le tableau doit être clair et au format Markdown. Fournissez également une des
 Description : Ce tableau compare les prix moyens pour différents types de biens immobiliers dans le quartier cible, afin d'évaluer leur compétitivité sur le marché local.
 ---
 
-#### **6. Évaluation des risques**
+#### **6. Facteurs locaux importants**
+Générez une analyse des facteurs locaux importants pour le bien immobilier, incluant :
+- Une présentation des points d'intérêt et services à proximité : commerces, écoles, transports, etc.
+- Pour chaque établissement mentionné, incluez des distances précises, des durées de trajet et des informations de contact lorsque disponibles.
+- Ces informations doivent être organisées de manière claire et hiérarchisée.
+
+---
+
+#### **7. Évaluation des risques**
 Générez une évaluation complète des risques liés à l'investissement, incluant :
 - Une analyse des risques de marché (vacance locative, fluctuations des prix).
 - Un tableau illustrant les variations annuelles des prix au m² pour évaluer la stabilité du marché.
 
 ---
 
-#### **7. Conclusion et recommandations**
+#### **8. Conclusion et recommandations**
 Générez une conclusion complète, incluant :
 - Cher(e) client_name = form_data.get('Nom Prénom', 'Client'),En conclusion de notre analyse approfondie, voici un résumé des points clés à retenir pour votre projet d'investissement :	
 - Une synthèse des données clés (prix au m², rendement locatif, etc.).
@@ -578,7 +625,7 @@ Générez une conclusion complète, incluant :
 - Intégrez une recommandation personnalisée indiquant si, d'après les données en temps réel, il serait préférable d'investir dans l'appartement ciblé ou d'envisager une alternative offrant un meilleur rendement locatif.
 Ne fournissez aucun tableau dans cette section.
 
-#### **8. Analyse prédictive et argumentée**
+#### **9. Analyse prédictive et argumentée**
 Générez une analyse prédictive sur l'évolution future du marché immobilier, incluant :
 - Une projection sur l'évolution des prix immobiliers avec des chiffres et des pourcentages pour les 5 à 10 prochaines années.
 - Une analyse argumentée sur le type de bien (par exemple, appartement, maison, etc.) le plus judicieux à acquérir pour un investissement.
@@ -607,38 +654,12 @@ Pour la section '{section_title}', concentrez-vous uniquement sur les éléments
             Cette section doit contenir au minimum {min_words} mots.
             """
             
-            # Ajout des facteurs locaux au prompt après la section "Analyse du produit"
+            # Vérification pour éviter d'ajouter les instructions pour les facteurs locaux après Analyse du produit
             if section_title == "Analyse du produit":
-                # Générer la section des facteurs locaux
-                local_factors_prompt = process_local_factors(form_data)
-                if local_factors_prompt:
-                    # Ajouter les instructions pour le modèle sur comment traiter ces facteurs
-                    local_factors_section = """
-                    
-#### **Facteurs locaux importants**
-Après avoir généré la section "Analyse du produit", continuez avec une analyse détaillée des facteurs locaux suivants qui sont importants pour le client. 
-
-⚠️ ATTENTION - INSTRUCTIONS CRITIQUES ⚠️
-Les informations qui suivent sont basées sur des données réelles obtenues via Google Maps et DOIVENT être copiées INTÉGRALEMENT dans votre rapport. 
-
-VOUS DEVEZ ABSOLUMENT:
-- Copier SANS MODIFICATION et SANS OMISSION toutes les informations fournies
-- Créer une section détaillée avec un titre "Facteurs locaux importants"
-- Lister TOUS les établissements avec TOUTES leurs informations:
-  * Nom exact (sans changement)
-  * Distance et durée à pied ET en voiture (avec les valeurs exactes)
-  * Adresse complète de chaque lieu
-  * Pour les transports: type exact et TOUS les numéros de lignes
-  * Toutes autres informations (note, téléphone, site web)
-- Conserver la structure exacte par catégories et sous-catégories
-- IMPORTANT: Pour chaque station de transport, copier exactement le type et toutes les lignes indiquées
-
-Il est CRUCIAL que ces données soient reproduites à l'identique. Toutes les distances, durées et autres détails sont des informations FACTUELLES qui doivent apparaître TELLES QUELLES dans le rapport final. Ne résumez pas, ne paraphrasez pas - REPRODUISEZ EXACTEMENT.
-
-Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
-"""
-                    section_prompt += local_factors_section + local_factors_prompt
+                # Ne rien ajouter ici, car les facteurs locaux sont maintenant une section séparée
+                pass
             
+            # Générer et ajouter le contenu de la section
             section_content = generate_section(client, section_prompt)
     
             # Si le premier élément est un Paragraph dont le texte correspond exactement au titre, le supprimer
@@ -650,33 +671,6 @@ Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
             # Ajout du titre de section dans le document
             add_section_title(elements, section_title)
             elements.extend(section_content)  # Ajoute le contenu de la section sans duplication du titre
-            
-            # Si c'est la section "Analyse du produit" et qu'il y a des facteurs locaux, ajouter une sous-section
-            if section_title == "Analyse du produit" and process_local_factors(form_data):
-                # Commencer une nouvelle page pour les facteurs locaux
-                elements.append(PageBreak())
-                
-                # Créer un style pour le sous-titre
-                subtitle_style = ParagraphStyle(
-                    'SubSectionTitle',
-                    fontSize=14,
-                    fontName='Helvetica-Bold',
-                    textColor=colors.HexColor("#00C7C4"),
-                    alignment=0,
-                    spaceAfter=8
-                )
-                
-                # Ajouter un titre pour les facteurs locaux
-                elements.append(Paragraph("Facteurs locaux importants", subtitle_style))
-                elements.append(Spacer(1, 12))
-                
-                # Ajouter la carte Google Maps si disponible
-                if map_path and os.path.exists(map_path):
-                    elements.append(Paragraph("Localisation de la propriété", subtitle_style))
-                    map_img = Image(map_path, width=450, height=300)
-                    elements.append(map_img)
-                    elements.append(Spacer(1, 12))
-            
             elements.append(PageBreak())
 
         doc.build(elements)
@@ -829,29 +823,35 @@ def get_google_maps_data(address, city, factors):
                 
             results[factor] = {}
             
+            # Pour les transports, essayer avec un rayon plus grand
+            radius = 2500 if factor == 'transport' else 2000
+            max_results = 10  # Limiter à 10 résultats maximum par type
+            
             for place_type in factor_to_place_types.get(factor, []):
                 logging.info(f"Recherche de lieux de type : {place_type}")
-                # Recherche des lieux à proximité
-                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius=2000&type={place_type}&key={api_key}"
+                
+                # Première recherche avec un rayon standard
+                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type={place_type}&key={api_key}"
                 logging.debug(f"URL nearby search : {nearby_url}")
                 nearby_response = requests.get(nearby_url)
                 nearby_data = nearby_response.json()
                 
+                place_results = []
+                
                 if nearby_data.get('status') == 'OK':
-                    logging.info(f"Nombre de résultats pour {place_type}: {len(nearby_data.get('results', []))}")
-                    # Stocker les résultats par type de lieu
-                    place_results = []
-                    for place in nearby_data.get('results', [])[:5]:  # Limiter à 5 résultats maximum par type
+                    logging.info(f"Nombre de résultats initiaux pour {place_type}: {len(nearby_data.get('results', []))}")
+                    
+                    # Traiter les résultats
+                    for place in nearby_data.get('results', [])[:max_results]:
                         # Récupérer les détails du lieu pour obtenir plus d'informations
                         place_id = place.get('place_id')
                         
-                        # Calculer les distances et temps de trajet à pied seulement (pour réduire la taille)
+                        # Calculer les distances et temps de trajet
                         walking_distance, walking_duration = calculate_distance((lat, lng), 
                                                                 (place['geometry']['location']['lat'], 
                                                                 place['geometry']['location']['lng']), 
                                                                 api_key, mode="walking")
                         
-                        # Calculer les distances et temps de trajet en voiture
                         driving_distance, driving_duration = calculate_distance((lat, lng), 
                                                                 (place['geometry']['location']['lat'], 
                                                                 place['geometry']['location']['lng']), 
@@ -907,11 +907,11 @@ def get_google_maps_data(address, city, factors):
                             try:
                                 # Pour les commerces et écoles, récupérer seulement l'adresse
                                 if place_id:
-                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address&key={api_key}"
+                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,rating,formatted_phone_number,website&key={api_key}"
                                     details_response = requests.get(details_url)
                                     details_data = details_response.json()
                                     
-                                    # Obtenir l'adresse formatée si disponible
+                                    # Obtenir l'adresse formatée et autres détails si disponibles
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
@@ -920,6 +920,14 @@ def get_google_maps_data(address, city, factors):
                                         'driving_duration': driving_duration,
                                         'address': details_data.get('result', {}).get('formatted_address', '')
                                     }
+                                    
+                                    # Ajouter des détails supplémentaires si disponibles
+                                    if 'rating' in place:
+                                        place_info['rating'] = place['rating']
+                                    if 'formatted_phone_number' in details_data.get('result', {}):
+                                        place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
+                                    if 'website' in details_data.get('result', {}):
+                                        place_info['website'] = details_data.get('result', {}).get('website')
                                 else:
                                     place_info = {
                                         'name': place['name'],
@@ -938,6 +946,118 @@ def get_google_maps_data(address, city, factors):
                                 
                         place_results.append(place_info)
                         logging.debug(f"Lieu trouvé: {place['name']}")
+                    
+                    # Si on n'a pas assez de résultats et que c'est un facteur important, 
+                    # essayer avec un rayon plus grand pour avoir plus de résultats
+                    if len(place_results) < 7 and factor in ['transport', 'shops']:
+                        logging.info(f"Pas assez de résultats pour {place_type}, tentative avec un rayon plus grand")
+                        larger_radius = radius + 1000
+                        nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={larger_radius}&type={place_type}&key={api_key}"
+                        nearby_response = requests.get(nearby_url)
+                        additional_data = nearby_response.json()
+                        
+                        if additional_data.get('status') == 'OK':
+                            additional_results = additional_data.get('results', [])
+                            # Filtrer pour ne pas avoir de doublons
+                            existing_place_ids = [p.get('place_id') for p in nearby_data.get('results', [])]
+                            new_places = [p for p in additional_results if p.get('place_id') not in existing_place_ids]
+                            
+                            # Ajouter les nouveaux lieux (jusqu'à atteindre max_results)
+                            for place in new_places[:max_results - len(place_results)]:
+                                place_id = place.get('place_id')
+                                
+                                walking_distance, walking_duration = calculate_distance((lat, lng), 
+                                                                    (place['geometry']['location']['lat'], 
+                                                                    place['geometry']['location']['lng']), 
+                                                                    api_key, mode="walking")
+                                
+                                driving_distance, driving_duration = calculate_distance((lat, lng), 
+                                                                    (place['geometry']['location']['lat'], 
+                                                                    place['geometry']['location']['lng']), 
+                                                                    api_key, mode="driving")
+                                
+                                if place_id and factor == 'transport':
+                                    try:
+                                        transport_type = "station"
+                                        if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
+                                            transport_type = "bus"
+                                        elif "subway" in place_type or any(t for t in place.get('types', []) if 'subway' in t):
+                                            transport_type = "métro"
+                                        elif "tram" in place_type or any(t for t in place.get('types', []) if 'tram' in t):
+                                            transport_type = "tram"
+                                        elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
+                                            transport_type = "train"
+                                        
+                                        lines = extract_transport_lines(place, place_id, place_type, api_key)
+                                        
+                                        details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website,vicinity,editorial_summary,url&key={api_key}"
+                                        details_response = requests.get(details_url)
+                                        details_data = details_response.json()
+                                        
+                                        place_info = {
+                                            'name': place['name'],
+                                            'distance': walking_distance,
+                                            'duration': walking_duration,
+                                            'driving_distance': driving_distance,
+                                            'driving_duration': driving_duration,
+                                            'address': details_data.get('result', {}).get('formatted_address', ''),
+                                            'transport_type': transport_type,
+                                            'lines': lines
+                                        }
+                                        
+                                        if 'rating' in place:
+                                            place_info['rating'] = place['rating']
+                                        if 'formatted_phone_number' in details_data.get('result', {}):
+                                            place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
+                                        if 'website' in details_data.get('result', {}):
+                                            place_info['website'] = details_data.get('result', {}).get('website')
+                                    except Exception as e:
+                                        logging.error(f"Erreur lors de la récupération des détails additionnels: {e}")
+                                        place_info = {
+                                            'name': place['name'],
+                                            'distance': walking_distance,
+                                            'duration': walking_duration
+                                        }
+                                else:
+                                    try:
+                                        if place_id:
+                                            details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,rating,formatted_phone_number,website&key={api_key}"
+                                            details_response = requests.get(details_url)
+                                            details_data = details_response.json()
+                                            
+                                            place_info = {
+                                                'name': place['name'],
+                                                'distance': walking_distance,
+                                                'duration': walking_duration,
+                                                'driving_distance': driving_distance,
+                                                'driving_duration': driving_duration,
+                                                'address': details_data.get('result', {}).get('formatted_address', '')
+                                            }
+                                            
+                                            if 'rating' in place:
+                                                place_info['rating'] = place['rating']
+                                            if 'formatted_phone_number' in details_data.get('result', {}):
+                                                place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
+                                            if 'website' in details_data.get('result', {}):
+                                                place_info['website'] = details_data.get('result', {}).get('website')
+                                        else:
+                                            place_info = {
+                                                'name': place['name'],
+                                                'distance': walking_distance,
+                                                'duration': walking_duration,
+                                                'driving_distance': driving_distance,
+                                                'driving_duration': driving_duration
+                                            }
+                                    except Exception as e:
+                                        logging.error(f"Erreur lors de la récupération des détails additionnels: {e}")
+                                        place_info = {
+                                            'name': place['name'],
+                                            'distance': walking_distance,
+                                            'duration': walking_duration
+                                        }
+                                
+                                place_results.append(place_info)
+                                logging.debug(f"Lieu additionnel trouvé: {place['name']}")
                     
                     if place_results:
                         results[factor][place_type] = place_results
@@ -1208,33 +1328,35 @@ def improved_local_factors_with_google_maps(form_data):
     # Créer le prompt avec les données réelles
     local_factors_prompt = f"""
 
-# **FACTEURS LOCAUX IMPORTANTS**
+# FACTEURS LOCAUX IMPORTANTS
+
 Le client accorde une importance particulière aux facteurs suivants pour l'adresse {address}, {city}. Voici les données précises obtenues:
 
 {formatted_google_data}
 
 **INSTRUCTIONS IMPÉRATIVES POUR FORMATER LE TEXTE CORRECTEMENT:**
 
-1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en respectant EXACTEMENT la même structure visuelle et la mise en forme suivante:
+⚠️ ATTENTION - MISE EN PAGE CRUCIALE ⚠️
 
-2. FORMAT OBLIGATOIRE:
-   a) Chaque titre principal doit être sur sa propre ligne en gras (exemple: "**Commerces et services de proximité**")
-   b) Chaque sous-titre doit être sur sa propre ligne en gras (exemple: "**Supermarché**")
-   c) Le nom de chaque établissement doit être en gras sur sa propre ligne (exemple: "**Intermarché Nice Gare du Sud**")
-   d) CHAQUE information concernant un établissement DOIT être sur UNE LIGNE SÉPARÉE:
-      - "À pied : 0.4 km (6 mins)"
-      - "En voiture : 0.9 km (4 mins)"
-      - "Type : bus"
-      - "Lignes : 67, 70"
-      - "Adresse : 4 All. Philippe Seguin, 06000 Nice, France"
-   e) Laissez UNE LIGNE VIDE entre chaque établissement pour une meilleure lisibilité
+Le format d'affichage des informations doit IMPÉRATIVEMENT respecter les règles suivantes :
 
-3. EXEMPLE EXACT DU FORMAT ATTENDU:
+1. STRUCTURE GLOBALE:
+   - N'ajoutez PAS d'introduction ou de texte explicatif avant les données
+   - Présentez directement les catégories, sous-catégories et établissements
+   - Respectez strictement l'ordre: Commerces → Écoles → Transports → Sécurité
+
+2. MISE EN FORME DES TITRES:
+   - Titre principal de catégorie en gras: "**Commerces et services de proximité**"
+   - Sous-titre en gras: "**Supermarché**"
+   - Nom d'établissement en gras: "**Intermarché Nice Gare du Sud**"
+
+3. FORMAT EXACT DE CHAQUE ÉTABLISSEMENT:
+   a) Le nom sur une première ligne, en gras
+   b) Chaque information sur sa PROPRE LIGNE distincte, sans concaténation
+   c) Une ligne vide entre chaque établissement pour la lisibilité
+
+4. EXEMPLE PRÉCIS DE MISE EN PAGE ATTENDUE:
 ```
-## **Commerces et services de proximité**
-
-### **Supermarché**
-
 **Intermarché Nice Gare du Sud**
 À pied : 0.4 km (6 mins)
 En voiture : 0.9 km (4 mins)
@@ -1246,16 +1368,14 @@ En voiture : 1.3 km (6 mins)
 Adresse : 30 Rue Biscarra, 06000 Nice, France
 ```
 
-4. CHAQUE INFORMATION (distance, lignes, adresse, etc.) DOIT être sur sa PROPRE LIGNE.
+⚠️ MISE EN GARDE IMPORTANTE:
+- Il est INTERDIT de concaténer les informations sur une même ligne
+- Chaque élément d'information DOIT être sur une ligne séparée
+- Ne modifiez JAMAIS la structure originale des données
+- Ne reformulez JAMAIS les informations fournies
+- COPIEZ INTÉGRALEMENT toutes les informations et RESPECTEZ leur format
 
-5. Si vous utilisez GPT-4 pour générer cette section, demandez-lui explicitement de:
-   - NE PAS concaténer les informations sur une même ligne
-   - Respecter STRICTEMENT le format ligné avec chaque élément sur une nouvelle ligne
-   - Conserver EXACTEMENT la structure fournie sans modification
-
-6. Cette mise en page précise est CRITIQUE pour la lisibilité du rapport et OBLIGATOIRE.
-
-Ces informations sont cruciales pour évaluer la qualité de vie dans le quartier et l'attractivité du bien pour d'éventuels locataires.
+Ce format précis est CRUCIAL pour la lisibilité et la qualité du rapport final.
 """
     
     return local_factors_prompt
