@@ -1071,6 +1071,18 @@ def improved_local_factors_with_google_maps(form_data):
     # Déboguer pour vérifier les données formatées
     logging.info(f"Données Google Maps formatées: {formatted_google_data}")
     
+    # Liste des facteurs sélectionnés en français pour les instructions
+    facteurs_selectionnes = []
+    for factor in selected_factors:
+        if factor == 'commerces':
+            facteurs_selectionnes.append("Commerces et services de proximité")
+        elif factor == 'écoles':
+            facteurs_selectionnes.append("Établissements éducatifs")
+        elif factor == 'transport':
+            facteurs_selectionnes.append("Transports en commun")
+        elif factor == 'sécurité':
+            facteurs_selectionnes.append("Sécurité")
+
     # Créer le prompt avec les données réelles
     local_factors_prompt = f"""
 
@@ -1090,23 +1102,21 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
    - COPIEZ INTÉGRALEMENT tous les établissements de chaque catégorie
    - Il est STRICTEMENT INTERDIT de remplacer la liste détaillée par un résumé
 
-2. STRUCTURE OBLIGATOIRE:
-   - Présentez TOUS les "Commerces et services de proximité"
-   - Présentez TOUS les "Établissements éducatifs"
-   - Présentez TOUS les "Transports en commun"
-   - Présentez TOUS les points de "Sécurité"
-   - AUCUNE CATÉGORIE ne doit être omise ou résumée
+2. STRUCTURE OBLIGATOIRE - INCLURE UNIQUEMENT LES CATÉGORIES SUIVANTES SÉLECTIONNÉES PAR LE CLIENT:
+   {", ".join(facteurs_selectionnes)}
+   - N'AJOUTEZ AUCUNE AUTRE CATÉGORIE QUE CELLES LISTÉES CI-DESSUS
+   - NE CRÉEZ PAS DE NOUVELLES SECTIONS QUI N'EXISTENT PAS DANS LES DONNÉES
 
-3. FORMAT EXACT REQUIS:
-   a) Titre principal de catégorie en gras: "**Commerces et services de proximité**"
-   b) Sous-titre en gras: "**Supermarché**"
-   c) Nom d'établissement en gras: "**Intermarché Nice Gare du Sud**"
-   d) Chaque information sur une ligne distincte
-   e) Une ligne vide entre chaque établissement
+3. FORMAT EXACT ET UNIFORME REQUIS POUR CHAQUE ÉTABLISSEMENT:
+   a) Nom d'établissement en gras: "**Intermarché Nice Gare du Sud**"
+   b) Sur la ligne suivante: "À pied : X.X km (XX mins)"
+   c) Si c'est un transport, sur la ligne suivante: "Type : Bus/Métro/Train/etc."
+   d) Si c'est un transport, sur la ligne suivante: "Lignes : X, Y, Z" (même s'il n'y a qu'une seule ligne)
+   e) Sur la ligne suivante: "Adresse : adresse complète"
+   f) Une ligne vide entre chaque établissement
 
 4. INSTRUCTION SPÉCIALE POUR LES TRANSPORTS:
-   - Si des numéros de lignes de bus/métro/tram sont manquants ou incomplets, COMPLÉTEZ-LES
-   - Utilisez vos connaissances sur les réseaux de transport de {city} pour ajouter les numéros de lignes
+   - Si des numéros de lignes de bus/métro/tram sont manquants, AJOUTEZ-LES
    - Format: "Lignes : 7, 9, 16, 20" (ou lettres comme "A, B, C" pour certains réseaux)
    - NE MODIFIEZ PAS les autres informations (distances, adresses, etc.)
 
@@ -1130,18 +1140,20 @@ Adresse : 30 Rue Biscarra, 06000 Nice, France
 
 **Gambetta**
 À pied : 0.8 km (12 mins)
-Type : bus
+Type : Bus
 Lignes : 7, 8, 30, 70
 Adresse : 06100 Nice, France
 ```
 
-⚠️ AVERTISSEMENT FINAL ⚠️
+⚠️ CONTRAINTES FINALES STRICTES ⚠️
 - Ne créez PAS d'analyse ou de résumé des facteurs locaux
 - Ne mentionnez PAS l'impact des établissements sur la valeur immobilière
 - Copiez UNIQUEMENT et INTÉGRALEMENT les données fournies ci-dessus
-- Il s'agit du strict contenu factuel demandé par le client
+- Présentez CHAQUE établissement avec EXACTEMENT le même format et niveau de détail
+- Incluez UNIQUEMENT les catégories que le client a sélectionnées: {", ".join(facteurs_selectionnes)}
+- Utilisez UNIQUEMENT le format demandé, sans aucune variation
 
-Ces informations sont cruciales et doivent être présentées de manière exacte et complète.
+Ces informations sont cruciales et doivent être présentées de manière exacte, complète et uniforme.
 """
     
     return local_factors_prompt
