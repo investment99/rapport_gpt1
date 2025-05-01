@@ -810,12 +810,12 @@ def get_google_maps_data(address, city, factors):
         factor_to_place_types = {
             'shops': ['supermarket', 'shopping_mall', 'store', 'convenience_store', 'bakery', 'pharmacy'],
             'schools': ['school', 'primary_school', 'secondary_school', 'university'],
-            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station'],
+            'transport': ['subway_station', 'train_station', 'light_rail_station', 'tram_station', 'transit_station', 'bus_station'],
             'security': ['police']
         }
         
-        # Augmenter le rayon de recherche à 2000 mètres pour trouver plus de lieux
-        search_radius = 2000
+        # Augmenter le rayon de recherche à 5000 mètres pour trouver plus de lieux de transport
+        search_radius = 5000
         
         # Rechercher les lieux pour chaque facteur
         for factor in factors:
@@ -865,11 +865,11 @@ def get_google_maps_data(address, city, factors):
                                 transport_type = "Arrêt de transport"
                                 if 'bus' in place_type or 'bus' in place['name'].lower():
                                     transport_type = "Bus"
-                                elif 'subway' in place_type or 'métro' in place['name'].lower():
+                                elif 'subway' in place_type or 'métro' in place['name'].lower() or 'metro' in place['name'].lower() or 'm ' in place['name'].lower():
                                     transport_type = "Métro"
-                                elif 'train' in place_type or 'gare' in place['name'].lower():
-                                    transport_type = "Train"
-                                elif 'tram' in place_type or 'tram' in place['name'].lower():
+                                elif 'train' in place_type or 'gare' in place['name'].lower() or 'rer' in place['name'].lower() or 'sncf' in place['name'].lower():
+                                    transport_type = "Train/RER"
+                                elif 'tram' in place_type or 'tram' in place['name'].lower() or 'light_rail' in place_type or 't ' in place['name'].lower():
                                     transport_type = "Tramway"
                                 
                                 place_info['transport_type'] = transport_type
@@ -1082,13 +1082,26 @@ def improved_local_factors_with_google_maps(form_data):
             facteurs_selectionnes.append("Transports en commun")
         elif factor == 'sécurité':
             facteurs_selectionnes.append("Sécurité")
-
+    
+    facteurs_str = ", ".join(facteurs_selectionnes)
+    
     # Créer le prompt avec les données réelles
     local_factors_prompt = f"""
 
 # FACTEURS LOCAUX IMPORTANTS
 
-Le client accorde une importance particulière aux facteurs suivants pour l'adresse {address}, {city}. Voici les données précises obtenues:
+Le client accorde une importance particulière aux facteurs suivants pour l'adresse {address}, {city}.
+
+## APERÇU DES TRANSPORTS EN COMMUN À PROXIMITÉ
+Avant de détailler les établissements, listez uniquement les lignes de métro, RER, tramway, train et bus les plus proches de cette adresse.
+Format à respecter :
+- Métro : (listez uniquement les numéros de lignes, ex: 1, 4, 13)
+- RER : (listez uniquement les lignes, ex: A, B, C)
+- Tramway : (listez uniquement les numéros de lignes, ex: T1, T2, T3)
+- Bus : (listez uniquement les numéros de lignes les plus importantes, max 5-6 lignes)
+
+## DÉTAILS DES ÉTABLISSEMENTS À PROXIMITÉ
+Voici les données précises obtenues:
 
 {formatted_google_data}
 
@@ -1103,7 +1116,7 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
    - Il est STRICTEMENT INTERDIT de remplacer la liste détaillée par un résumé
 
 2. STRUCTURE OBLIGATOIRE - INCLURE UNIQUEMENT LES CATÉGORIES SUIVANTES SÉLECTIONNÉES PAR LE CLIENT:
-   {", ".join(facteurs_selectionnes)}
+   {facteurs_str}
    - N'AJOUTEZ AUCUNE AUTRE CATÉGORIE QUE CELLES LISTÉES CI-DESSUS
    - NE CRÉEZ PAS DE NOUVELLES SECTIONS QUI N'EXISTENT PAS DANS LES DONNÉES
 
@@ -1150,7 +1163,7 @@ Adresse : 06100 Nice, France
 - Ne mentionnez PAS l'impact des établissements sur la valeur immobilière
 - Copiez UNIQUEMENT et INTÉGRALEMENT les données fournies ci-dessus
 - Présentez CHAQUE établissement avec EXACTEMENT le même format et niveau de détail
-- Incluez UNIQUEMENT les catégories que le client a sélectionnées: {", ".join(facteurs_selectionnes)}
+- Incluez UNIQUEMENT les catégories que le client a sélectionnées: {facteurs_str}
 - Utilisez UNIQUEMENT le format demandé, sans aucune variation
 
 Ces informations sont cruciales et doivent être présentées de manière exacte, complète et uniforme.
