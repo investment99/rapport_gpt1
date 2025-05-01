@@ -596,20 +596,25 @@
                             # Récupérer les détails du lieu pour obtenir plus d'informations
                             place_id = place.get('place_id')
                             
-                            # Calculer les distances et temps de trajet à pied seulement (pour réduire la taille)
+                            # Calculer les distances et temps de trajet à pied et en voiture
                             walking_distance, walking_duration = calculate_distance((lat, lng), 
                                                                     (place['geometry']['location']['lat'], 
                                                                     place['geometry']['location']['lng']), 
                                                                     api_key, mode="walking")
                             
+                            driving_distance, driving_duration = calculate_distance((lat, lng), 
+                                                                    (place['geometry']['location']['lat'], 
+                                                                    place['geometry']['location']['lng']), 
+                                                                    api_key, mode="driving")
+                            
                             if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
                                 try:
-                                    # Récupération des détails de base seulement
-                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address&key={api_key}"
+                                    # Récupération des détails complets pour les stations de transport
+                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website&key={api_key}"
                                     details_response = requests.get(details_url)
                                     details_data = details_response.json()
                                     
-                                    # Essayer de déterminer le type de transport et les lignes
+                                    # Déterminer le type de transport
                                     transport_type = "station"
                                     if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
                                         transport_type = "bus"
@@ -620,71 +625,122 @@
                                     elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
                                         transport_type = "train"
                                     
-                                    # Extraire les numéros de ligne potentiels du nom
+                                    # Extraction améliorée des numéros de lignes
                                     name = place['name']
                                     lines = []
                                     
-                                    # Tentative d'extraction de numéros/lettres de lignes du nom
+                                    # Motifs communs pour les lignes de transport
                                     import re
-                                    # Recherche de motifs comme "Ligne 1", "Bus 42", "Tram A", etc.
-                                    line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train)\s*([a-z0-9]+)', name.lower())
+                                    
+                                    # 1. Recherche dans le nom de la station
+                                    # Recherche de formats comme "Ligne 1", "Bus 42", "Tram A", etc.
+                                    line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train|lignes?)\s*([a-z0-9]+)', name.lower())
                                     if line_matches:
                                         for match in line_matches:
-                                            lines.append(f"{match[0]} {match[1]}")
+                                            lines.append(f"{match[1]}")
                                     
-                                    # Si pas de lignes trouvées, vérifier des numéros isolés qui pourraient être des lignes
+                                    # 2. Recherche de numéros isolés qui pourraient être des lignes
                                     if not lines:
                                         number_matches = re.findall(r'\b[0-9]+\b', name)
                                         if number_matches:
-                                            lines = [f"Ligne {num}" for num in number_matches]
+                                            lines = number_matches
                                     
-                                    # Obtenir l'adresse formatée si disponible
+                                    # 3. Recherche dans l'adresse pour des indices supplémentaires
                                     address_details = details_data.get('result', {}).get('formatted_address', '')
+                                    if address_details:
+                                        # Recherche de formats comme "Ligne 1", "Bus 42", etc. dans l'adresse
+                                        addr_line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train|lignes?)\s*([a-z0-9]+)', address_details.lower())
+                                        for match in addr_line_matches:
+                                            if match[1] not in lines:
+                                                lines.append(f"{match[1]}")
+                                        
+                                        # Recherche de numéros isolés dans l'adresse
+                                        if not lines:
+                                            addr_number_matches = re.findall(r'\b[0-9]+\b', address_details)
+                                            for num in addr_number_matches:
+                                                if num not in lines and len(num) < 3:  # Limiter aux numéros courts (probablement des lignes)
+                                                    lines.append(num)
+                                    
+                                    # Si aucune ligne n'est trouvée, essayer d'autres méthodes
+                                    if not lines and transport_type in ["bus", "métro", "tram"]:
+                                        if transport_type == "bus":
+                                            lines.append("Bus")
+                                        elif transport_type == "métro":
+                                            lines.append("Métro")
+                                        elif transport_type == "tram":
+                                            lines.append("Tram")
                                     
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
                                         'duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration,
                                         'address': address_details,
                                         'transport_type': transport_type,
                                         'lines': lines
                                     }
+                                    
+                                    # Ajouter d'autres détails si disponibles
+                                    if 'rating' in details_data.get('result', {}):
+                                        place_info['rating'] = details_data['result']['rating']
+                                    if 'formatted_phone_number' in details_data.get('result', {}):
+                                        place_info['phone'] = details_data['result']['formatted_phone_number']
+                                    if 'website' in details_data.get('result', {}):
+                                        place_info['website'] = details_data['result']['website']
+                                    
                                 except Exception as e:
                                     logging.error(f"Erreur lors de la récupération des détails: {e}")
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
-                                        'duration': walking_duration
+                                        'duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration
                                     }
                             else:
                                 try:
-                                    # Pour les commerces et écoles, récupérer seulement l'adresse
+                                    # Pour les commerces et écoles, récupérer des détails supplémentaires
                                     if place_id:
-                                        details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address&key={api_key}"
+                                        details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website&key={api_key}"
                                         details_response = requests.get(details_url)
                                         details_data = details_response.json()
                                         
-                                        # Obtenir l'adresse formatée si disponible
+                                        # Obtenir l'adresse formatée et autres détails
                                         address_details = details_data.get('result', {}).get('formatted_address', '')
                                         
                                         place_info = {
                                             'name': place['name'],
                                             'distance': walking_distance,
                                             'duration': walking_duration,
+                                            'driving_distance': driving_distance,
+                                            'driving_duration': driving_duration,
                                             'address': address_details
                                         }
+                                        
+                                        # Ajouter d'autres détails si disponibles
+                                        if 'rating' in details_data.get('result', {}):
+                                            place_info['rating'] = details_data['result']['rating']
+                                        if 'formatted_phone_number' in details_data.get('result', {}):
+                                            place_info['phone'] = details_data['result']['formatted_phone_number']
+                                        if 'website' in details_data.get('result', {}):
+                                            place_info['website'] = details_data['result']['website']
                                     else:
                                         place_info = {
                                             'name': place['name'],
                                             'distance': walking_distance,
-                                            'duration': walking_duration
+                                            'duration': walking_duration,
+                                            'driving_distance': driving_distance,
+                                            'driving_duration': driving_duration
                                         }
                                 except Exception as e:
                                     logging.error(f"Erreur lors de la récupération des détails: {e}")
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
-                                        'duration': walking_duration
+                                        'duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration
                                     }
                                     
                             place_results.append(place_info)
@@ -810,31 +866,54 @@
             
             for place_type, places in factor_data.items():
                 if places:
-                    factor_text += f"### {place_type_names.get(place_type, place_type)}\n\n"
+                    factor_text += f"### **{place_type_names.get(place_type, place_type)}**\n\n"
                     for place in places:
                         # Vérifier si on a atteint la limite d'éléments par facteur
                         if items_count >= max_items:
                             break
                         
-                        # Format structuré sur plusieurs lignes comme demandé
-                        factor_text += f"**{place['name']}**\n"
+                        # Format structuré sur plusieurs lignes comme demandé dans l'exemple
+                        name = place['name']
                         
-                        # Ajouter la distance et durée à pied
+                        # Pour les transports, ajouter les numéros de lignes au nom
+                        if place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station'] and 'lines' in place and place['lines']:
+                            lines_str = ", ".join(place['lines'])
+                            factor_text += f"**{name} ({lines_str})**\n"
+                        else:
+                            factor_text += f"**{name}**\n"
+                        
+                        # Ajouter la distance et durée à pied sur une ligne séparée
                         if 'distance' in place and 'duration' in place:
                             factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
                         
-                        # Type d'établissement
+                        # Ajouter la distance et durée en voiture sur une ligne séparée
+                        if 'driving_distance' in place and 'driving_duration' in place:
+                            factor_text += f"En voiture : {place['driving_distance']} ({place['driving_duration']})\n"
+                        
+                        # Type d'établissement sur une ligne séparée
                         if 'transport_type' in place and place['transport_type']:
                             factor_text += f"Type : {place['transport_type']}\n"
                         
-                        # Ajouter les numéros de lignes pour les transports
+                        # Ajouter les numéros de lignes pour les transports sur une ligne séparée
                         if 'lines' in place and place['lines']:
                             lines_str = ", ".join(place['lines'])
                             factor_text += f"Lignes : {lines_str}\n"
                         
-                        # Ajouter l'adresse si disponible
+                        # Ajouter l'adresse sur une ligne séparée
                         if 'address' in place and place['address']:
                             factor_text += f"Adresse : {place['address']}\n"
+                        
+                        # Ajouter la note si disponible
+                        if 'rating' in place:
+                            factor_text += f"Note : {place['rating']}/5\n"
+                        
+                        # Ajouter le numéro de téléphone si disponible
+                        if 'phone' in place:
+                            factor_text += f"Téléphone : {place['phone']}\n"
+                        
+                        # Ajouter le site web si disponible
+                        if 'website' in place:
+                            factor_text += f"Site web : {place['website']}\n"
                         
                         # Ajouter une ligne vide entre chaque établissement
                         factor_text += "\n"
