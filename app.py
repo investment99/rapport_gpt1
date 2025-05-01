@@ -344,6 +344,67 @@ def get_google_static_map(address, city, api_key, width=600, height=400, zoom=15
         logging.error(traceback.format_exc())
         return None
 
+def get_street_view_image(address, city, api_key, width=600, height=400):
+    """
+    Génère une URL pour une image Street View de l'adresse spécifiée.
+    Si possible, télécharge l'image et renvoie le chemin du fichier local.
+    
+    Args:
+        address: L'adresse de la propriété
+        city: La ville
+        api_key: Clé API Google Maps
+        width: Largeur de l'image en pixels
+        height: Hauteur de l'image en pixels
+        
+    Returns:
+        Le chemin vers l'image téléchargée ou None en cas d'erreur
+    """
+    try:
+        # Adresse complète pour la géolocalisation
+        full_address = f"{address}, {city}, France"
+        logging.info(f"Génération d'image Street View pour l'adresse : {full_address}")
+        
+        # 1. Obtenir les coordonnées de l'adresse
+        geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={full_address}&key={api_key}"
+        geocode_response = requests.get(geocode_url)
+        geocode_data = geocode_response.json()
+        
+        if geocode_data.get('status') != 'OK':
+            logging.error(f"Erreur de géocodage pour Street View: {geocode_data.get('status')}")
+            return None
+        
+        # Extraction des coordonnées
+        location = geocode_data['results'][0]['geometry']['location']
+        lat, lng = location['lat'], location['lng']
+        
+        # 2. Générer l'URL de l'image Street View
+        street_view_url = (
+            f"https://maps.googleapis.com/maps/api/streetview?"
+            f"size={width}x{height}&location={lat},{lng}"
+            f"&fov=80&heading=70&pitch=0&key={api_key}"
+        )
+        
+        # 3. Télécharger l'image
+        sv_response = requests.get(street_view_url)
+        if sv_response.status_code == 200:
+            # Créer un dossier temporaire s'il n'existe pas
+            os.makedirs('temp', exist_ok=True)
+            sv_path = os.path.join('temp', f"streetview_{address.replace(' ', '_')}_{city}.png")
+            
+            with open(sv_path, 'wb') as f:
+                f.write(sv_response.content)
+            
+            logging.info(f"Image Street View générée avec succès : {sv_path}")
+            return sv_path
+        else:
+            logging.error(f"Erreur lors du téléchargement de l'image Street View: {sv_response.status_code}")
+            return None
+    except Exception as e:
+        logging.error(f"Erreur lors de la génération de l'image Street View: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
+        return None
+
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
     try:
@@ -446,6 +507,8 @@ def generate_report():
         # Générer une carte statique de l'adresse
         api_key = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w")
         map_path = get_google_static_map(address, city, api_key)
+        # Générer une image Street View de l'immeuble ou de la rue
+        street_view_path = get_street_view_image(address, city, api_key)
 
         for section_title, min_words in sections:
             # Si nous traitons la section des facteurs locaux, nous gérons différemment
@@ -454,21 +517,28 @@ def generate_report():
                     # Ajouter le titre pour la section des facteurs locaux
                     add_section_title(elements, "Facteurs locaux importants")
                     
+                    # Créer un style pour le sous-titre
+                    subtitle_style = ParagraphStyle(
+                        'SubSectionTitle',
+                        fontSize=14,
+                        fontName='Helvetica-Bold',
+                        textColor=colors.HexColor("#00C7C4"),
+                        alignment=0,
+                        spaceAfter=8
+                    )
+                    
                     # Ajouter la carte Google Maps en premier si disponible
                     if map_path and os.path.exists(map_path):
-                        # Créer un style pour le sous-titre
-                        subtitle_style = ParagraphStyle(
-                            'SubSectionTitle',
-                            fontSize=14,
-                            fontName='Helvetica-Bold',
-                            textColor=colors.HexColor("#00C7C4"),
-                            alignment=0,
-                            spaceAfter=8
-                        )
-                        
                         elements.append(Paragraph("Localisation de la propriété", subtitle_style))
                         map_img = Image(map_path, width=450, height=300)
                         elements.append(map_img)
+                        elements.append(Spacer(1, 10))
+                    
+                    # Ajouter l'image Street View après la carte si disponible
+                    if street_view_path and os.path.exists(street_view_path):
+                        elements.append(Paragraph("Vue de l'immeuble", subtitle_style))
+                        sv_img = Image(street_view_path, width=450, height=300)
+                        elements.append(sv_img)
                         elements.append(Spacer(1, 20))
                     
                     # Générer le contenu des facteurs locaux
