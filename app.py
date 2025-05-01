@@ -785,41 +785,49 @@ def format_google_data_for_prompt(google_data):
     for factor, factor_data in google_data.items():
         factor_text = ""
         if factor == 'shops':
-            factor_text += "### Commerces et services de proximité\n"
+            factor_text += "## **Commerces et services de proximité**\n\n"
         elif factor == 'schools':
-            factor_text += "### Établissements éducatifs\n"
+            factor_text += "## **Établissements éducatifs**\n\n"
         elif factor == 'transport':
-            factor_text += "### Transports en commun\n"
+            factor_text += "## **Transports en commun**\n\n"
         elif factor == 'security':
-            factor_text += "### Sécurité\n"
+            factor_text += "## **Sécurité**\n\n"
         
         # Compteur pour limiter le nombre d'éléments par facteur
         items_count = 0
-        max_items = 7  # Réduire le nombre max d'éléments
+        max_items = 7  # Limiter à 7 éléments par facteur
         
         for place_type, places in factor_data.items():
             if places:
-                factor_text += f"#### {place_type_names.get(place_type, place_type)}\n"
+                factor_text += f"### {place_type_names.get(place_type, place_type)}\n\n"
                 for place in places:
                     # Vérifier si on a atteint la limite d'éléments par facteur
                     if items_count >= max_items:
                         break
                     
-                    # Format optimisé pour réduire la taille
-                    place_info = f"- **{place['name']}** - {place.get('distance', 'N/A')} ({place.get('duration', 'N/A')})"
+                    # Format structuré sur plusieurs lignes comme demandé
+                    factor_text += f"**{place['name']}**\n"
                     
-                    # Ajouter l'adresse si disponible (en version compacte)
-                    if 'address' in place and place['address']:
-                        place_info += f" | {place['address'].split(',')[0]}"
+                    # Ajouter la distance et durée à pied
+                    if 'distance' in place and 'duration' in place:
+                        factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
                     
-                    # Ajouter les informations de transport si disponibles (en version compacte)
+                    # Type d'établissement
                     if 'transport_type' in place and place['transport_type']:
-                        place_info += f" | Type: {place['transport_type']}"
-                        if 'lines' in place and place['lines']:
-                            lines_str = ", ".join(place['lines'])
-                            place_info += f" | Lignes: {lines_str}"
+                        factor_text += f"Type : {place['transport_type']}\n"
                     
-                    factor_text += place_info + "\n"
+                    # Ajouter les numéros de lignes pour les transports
+                    if 'lines' in place and place['lines']:
+                        lines_str = ", ".join(place['lines'])
+                        factor_text += f"Lignes : {lines_str}\n"
+                    
+                    # Ajouter l'adresse si disponible
+                    if 'address' in place and place['address']:
+                        factor_text += f"Adresse : {place['address']}\n"
+                    
+                    # Ajouter une ligne vide entre chaque établissement
+                    factor_text += "\n"
+                    
                     items_count += 1
                 
                 # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
@@ -875,26 +883,27 @@ def improved_local_factors_with_google_maps(form_data):
     # Créer le prompt avec les données réelles
     local_factors_prompt = f"""
 
-### FACTEURS LOCAUX IMPORTANTS
+# **FACTEURS LOCAUX IMPORTANTS**
 Le client accorde une importance particulière aux facteurs suivants pour l'adresse {address}, {city}. Voici les données précises obtenues:
 
 {formatted_google_data}
 
-INSTRUCTIONS IMPÉRATIVES:
-1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en gardant la même structure et les mêmes détails.
+**INSTRUCTIONS IMPÉRATIVES:**
+1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en gardant exactement la même structure et mise en forme.
 2. N'OMETTEZ AUCUN détail - toutes les distances, durées, adresses et autres informations sont ESSENTIELLES.
 3. Pour CHAQUE ÉTABLISSEMENT listé, incluez:
    - Son nom exact
-   - La distance et durée à pied ET en voiture (avec les valeurs exactes)
+   - La distance et durée à pied
+   - Le type précis (bus/métro/tram/train)
+   - TOUS les numéros de lignes lorsqu'ils sont disponibles
    - L'adresse complète
-   - Pour les transports: le type précis (bus/métro/tram/train) et TOUS les numéros de lignes
-   - Toute autre information disponible (note, téléphone, site web)
-4. Organisez votre rapport par catégories (Transports, Écoles, Commerces) et sous-catégories.
-5. Les informations proviennent de Google Maps et sont 100% précises et vérifiées - ne les modifiez pas.
-6. Votre rapport doit inclure TOUTES les informations, sans résumer ni condenser.
-7. Si certains types de données sont absents, indiquez explicitement "Information non disponible".
-8. Cette section doit être la plus DÉTAILLÉE et COMPLÈTE du rapport, ne faites aucun compromis sur l'exhaustivité.
-9. Ces données sont l'élément le plus crucial du rapport - leur présence complète est OBLIGATOIRE.
+4. Conservez impérativement la mise en forme des titres et sous-titres en gras.
+5. Gardez la structure exacte avec chaque établissement sur plusieurs lignes comme présenté.
+6. Les informations proviennent de Google Maps et sont 100% précises et vérifiées - ne les modifiez pas.
+7. Si certaines informations sont manquantes pour certains établissements, ne les inventez pas.
+8. Ces données sont l'élément le plus crucial du rapport - leur présence complète et fidèle est OBLIGATOIRE.
+
+Ces informations sont cruciales pour évaluer la qualité de vie dans le quartier et l'attractivité du bien pour d'éventuels locataires.
 """
     
     return local_factors_prompt
