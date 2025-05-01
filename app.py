@@ -564,22 +564,22 @@ Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
                 subtitle_style = ParagraphStyle(
                     'SubSectionTitle',
                     fontSize=14,
-                    fontName='Helvetica',
+                    fontName='Helvetica-Bold',
                     textColor=colors.HexColor("#00C7C4"),
                     alignment=0,
                     spaceAfter=8
                 )
                 # Ajouter un espacement
                 elements.append(Spacer(1, 12))
+                
+                # Ajouter la carte Google Maps si disponible
+                if map_path and os.path.exists(map_path):
+                    elements.append(Paragraph("Localisation de la propriété", subtitle_style))
+                    map_img = Image(map_path, width=450, height=300)
+                    elements.append(map_img)
+                    elements.append(Spacer(1, 12))
             
             elements.append(PageBreak())
-
-        # Ajouter la carte Google Maps si disponible
-        if map_path and os.path.exists(map_path):
-            elements.append(Paragraph("Localisation de la propriété", styles['Heading2']))
-            map_img = Image(map_path, width=450, height=300)
-            elements.append(map_img)
-            elements.append(Spacer(1, 12))
 
         doc.build(elements)
         logging.info(f"Rapport généré avec succès : {pdf_filename}")
@@ -662,9 +662,15 @@ def get_google_maps_data(address, city, factors):
                         
                         # Calculer les distances et temps de trajet à pied seulement (pour réduire la taille)
                         walking_distance, walking_duration = calculate_distance((lat, lng), 
-                                                                 (place['geometry']['location']['lat'], 
-                                                                  place['geometry']['location']['lng']), 
-                                                                 api_key, mode="walking")
+                                                                (place['geometry']['location']['lat'], 
+                                                                place['geometry']['location']['lng']), 
+                                                                api_key, mode="walking")
+                        
+                        # Calculer les distances et temps de trajet en voiture
+                        driving_distance, driving_duration = calculate_distance((lat, lng), 
+                                                                (place['geometry']['location']['lat'], 
+                                                                place['geometry']['location']['lng']), 
+                                                                api_key, mode="driving")
                         
                         if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
                             try:
@@ -904,12 +910,35 @@ def format_google_data_for_prompt(google_data):
         
         # Compteur pour limiter le nombre d'éléments par facteur
         items_count = 0
-        max_items = 7  # Limiter à 7 éléments par facteur
+        max_items = 10  # Augmenter le nombre d'éléments pour montrer plus de lieux à proximité
         
         for place_type, places in factor_data.items():
             if places:
                 factor_text += f"### **{place_type_names.get(place_type, place_type)}**\n\n"
-                for place in places:
+                
+                # Trier les lieux par distance (du plus proche au plus éloigné)
+                try:
+                    def extract_distance(place):
+                        distance_str = place.get('distance', '99999 km')
+                        if not isinstance(distance_str, str):
+                            return 99999
+                        # Extraire juste le nombre, ignorer l'unité
+                        try:
+                            # Pour les formats comme "700 m" ou "1.5 km"
+                            num_str = distance_str.split()[0].replace(',', '.')
+                            num = float(num_str)
+                            # Convertir les km en m pour comparer correctement
+                            if 'km' in distance_str:
+                                num = num * 1000
+                            return num
+                        except:
+                            return 99999
+                    
+                    sorted_places = sorted(places, key=extract_distance)
+                except:
+                    sorted_places = places  # En cas d'erreur, utiliser la liste non triée
+                
+                for place in sorted_places:
                     # Vérifier si on a atteint la limite d'éléments par facteur
                     if items_count >= max_items:
                         break
