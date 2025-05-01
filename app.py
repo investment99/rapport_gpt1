@@ -69,6 +69,11 @@ def markdown_to_elements(md_text):
     elements = []
     # Conversion du Markdown en HTML avec support des tableaux
     html_content = md_to_html(md_text, extras=["tables"])
+    
+    # Correction des problèmes d'espaces entre les noms et les informations "À pied"
+    # Remplacer les occurrences problématiques comme "NomÀ pied" par "Nom À pied"
+    html_content = re.sub(r'(\w+)À pied', r'\1 À pied', html_content)
+    
     soup = BeautifulSoup(html_content, "html.parser")
     styles = getSampleStyleSheet()  # Récupère les styles par défaut de ReportLab
     
@@ -1069,7 +1074,7 @@ def format_google_data_for_prompt(google_data):
                     # Format structuré sur plusieurs lignes comme demandé
                     factor_text += f"**{place['name']}**\n"
                     
-                    # Ajouter la distance et durée à pied
+                    # Ajouter la distance et durée à pied avec une ligne séparée
                     if 'distance' in place and 'duration' in place:
                         factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
                     
@@ -1222,6 +1227,8 @@ Adresse : 06100 Nice, France
 - Présentez CHAQUE établissement avec EXACTEMENT le même format et niveau de détail
 - Incluez UNIQUEMENT les catégories que le client a sélectionnées: {", ".join(facteurs_selectionnes)}
 - Utilisez UNIQUEMENT le format demandé, sans aucune variation
+- ASSUREZ-VOUS qu'il y a un espace AVANT et APRÈS les deux points dans les informations (par exemple "À pied : " et non "À pied:")
+- ASSUREZ-VOUS qu'il y a un espace après les virgules dans les listes de lignes
 
 Ces informations sont cruciales et doivent être présentées de manière exacte, complète et uniforme.
 """
