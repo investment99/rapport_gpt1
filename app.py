@@ -560,6 +560,9 @@ Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
             
             # Si c'est la section "Analyse du produit" et qu'il y a des facteurs locaux, ajouter une sous-section
             if section_title == "Analyse du produit" and process_local_factors(form_data):
+                # Commencer une nouvelle page pour les facteurs locaux
+                elements.append(PageBreak())
+                
                 # Créer un style pour le sous-titre
                 subtitle_style = ParagraphStyle(
                     'SubSectionTitle',
@@ -569,7 +572,9 @@ Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
                     alignment=0,
                     spaceAfter=8
                 )
-                # Ajouter un espacement
+                
+                # Ajouter un titre pour les facteurs locaux
+                elements.append(Paragraph("Facteurs locaux importants", subtitle_style))
                 elements.append(Spacer(1, 12))
                 
                 # Ajouter la carte Google Maps si disponible
@@ -592,6 +597,93 @@ Un rapport incomplet ou imprécis est INACCEPTABLE pour le client.
 
 # Configuration de l'API Google Maps
 os.environ["GOOGLE_MAPS_API_KEY"] = "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w"
+
+def extract_transport_lines(place, place_id, place_type, api_key):
+    """
+    Fonction améliorée pour extraire les numéros de lignes de transport à partir
+    des données Google Maps.
+    
+    Cette version utilise plusieurs méthodes pour maximiser la détection des numéros de lignes:
+    1. Recherche dans le nom de la station (pattern spécifique avec "bus", "métro", etc.)
+    2. Recherche dans l'adresse complète de la station
+    3. Extraction de simples codes alphanumériques qui pourraient être des lignes
+    
+    Args:
+        place: Dictionnaire contenant les informations du lieu
+        place_id: L'identifiant Google Place ID
+        place_type: Type de lieu (bus_station, subway_station, etc.)
+        api_key: Clé API Google Maps
+        
+    Returns:
+        Liste des numéros de lignes détectés
+    """
+    lines = []
+    
+    if not place_id:
+        return lines
+        
+    # Obtenir plus de détails sur le lieu
+    place_details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,type,formatted_address,editorial_summary&key={api_key}"
+    place_details_response = requests.get(place_details_url)
+    place_details = place_details_response.json()
+    
+    if place_details.get('status') != 'OK':
+        logging.warning(f"Impossible d'obtenir les détails pour le lieu {place.get('name')}")
+        return lines
+    
+    # Extraire les informations détaillées
+    result = place_details.get('result', {})
+    name = result.get('name', '')
+    address = result.get('formatted_address', '')
+    
+    # 1. Vérifier s'il y a un résumé éditorial qui pourrait contenir des informations sur les lignes
+    editorial_summary = result.get('editorial_summary', {}).get('overview', '')
+    if editorial_summary:
+        # Chercher des mentions de lignes dans le résumé
+        summary_line_matches = re.findall(r'(?:ligne|bus|tram|metro|métro|train|lignes?)\s*([0-9a-zA-Z]+)', editorial_summary.lower())
+        if summary_line_matches:
+            lines.extend(summary_line_matches)
+    
+    # 2. Rechercher les numéros de lignes dans le nom (ex: "Bus 67", "Métro 13")
+    # Pattern plus large pour capturer différentes syntaxes
+    name_match = re.findall(r'(?:bus|métro|tram|tramway|ligne|train)\s*([0-9a-zA-Z]+)', name.lower())
+    if name_match:
+        lines.extend(name_match)
+    
+    # 3. Si pas de lignes trouvées par les méthodes précédentes, chercher des codes alphanumériques isolés
+    # qui pourraient être des lignes de transport
+    if not lines and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station']:
+        # Nettoyer le nom pour enlever le type de station
+        clean_name = name.lower()
+        for term in ['station', 'gare', 'arrêt', 'stop', place_type]:
+            clean_name = clean_name.replace(term, '')
+            
+        # Chercher des codes qui ressemblent à des numéros de ligne (1-3 caractères alphanumériques)
+        simple_match = re.findall(r'\b([0-9a-zA-Z]{1,3})\b', clean_name)
+        if simple_match:
+            lines.extend(simple_match)
+    
+    # 4. Rechercher les numéros de lignes dans l'adresse
+    address_match = re.findall(r'(?:bus|métro|tram|tramway|ligne)\s*([0-9a-zA-Z]+)', address.lower())
+    if address_match:
+        lines.extend(address_match)
+    
+    # 5. Recherche dans la vicinity (disponible directement dans le place)
+    vicinity = place.get('vicinity', '')
+    if vicinity:
+        vicinity_matches = re.findall(r'(?:bus|métro|tram|tramway|ligne)\s*([0-9a-zA-Z]+)', vicinity.lower())
+        if vicinity_matches:
+            lines.extend(vicinity_matches)
+    
+    # Éliminer les doublons et nettoyer les résultats
+    unique_lines = []
+    for line in lines:
+        line = line.strip().upper()  # Standardisation en majuscules
+        if line and line not in unique_lines:
+            unique_lines.append(line)
+    
+    logging.info(f"Lignes de transport trouvées pour {name}: {unique_lines}")
+    return unique_lines
 
 def get_google_maps_data(address, city, factors):
     """
@@ -672,14 +764,9 @@ def get_google_maps_data(address, city, factors):
                                                                 place['geometry']['location']['lng']), 
                                                                 api_key, mode="driving")
                         
-                        if place_id and place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station']:
+                        if place_id and factor == 'transport':
                             try:
-                                # Récupération des détails complets pour les stations de transport
-                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website&key={api_key}"
-                                details_response = requests.get(details_url)
-                                details_data = details_response.json()
-                                
-                                # Déterminer le type de transport
+                                # Utiliser la nouvelle fonction pour extraire les lignes de transport
                                 transport_type = "station"
                                 if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
                                     transport_type = "bus"
@@ -690,50 +777,13 @@ def get_google_maps_data(address, city, factors):
                                 elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
                                     transport_type = "train"
                                 
-                                # Extraire les numéros de ligne potentiels du nom
-                                name = place['name']
-                                lines = []
+                                # Extraire les lignes avec notre nouvelle fonction améliorée
+                                lines = extract_transport_lines(place, place_id, place_type, api_key)
                                 
-                                # Tentative d'extraction de numéros/lettres de lignes du nom
-                                import re
-                                # Recherche de motifs comme "Ligne 1", "Bus 42", "Tram A", etc.
-                                line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train|lignes?)\s*([a-z0-9]+)', name.lower())
-                                if line_matches:
-                                    for match in line_matches:
-                                        lines.append(f"{match[1]}")
-                                
-                                # Si pas de lignes trouvées, vérifier des numéros isolés qui pourraient être des lignes
-                                if not lines:
-                                    number_matches = re.findall(r'\b[0-9]+\b', name)
-                                    if number_matches:
-                                        lines = number_matches
-                                
-                                # Obtenir l'adresse formatée si disponible
-                                address_details = details_data.get('result', {}).get('formatted_address', '')
-                                
-                                # Recherche dans l'adresse pour des indices supplémentaires
-                                if address_details:
-                                    # Recherche de formats comme "Ligne 1", "Bus 42", etc. dans l'adresse
-                                    addr_line_matches = re.findall(r'(ligne|bus|tram|metro|métro|train|lignes?)\s*([a-z0-9]+)', address_details.lower())
-                                    for match in addr_line_matches:
-                                        if match[1] not in lines:
-                                            lines.append(f"{match[1]}")
-                                    
-                                    # Recherche de numéros isolés dans l'adresse
-                                    if not lines:
-                                        addr_number_matches = re.findall(r'\b[0-9]+\b', address_details)
-                                        for num in addr_number_matches:
-                                            if num not in lines and len(num) < 3:  # Limiter aux numéros courts (probablement des lignes)
-                                                lines.append(num)
-                                
-                                # Si aucune ligne n'est trouvée, essayer d'autres méthodes
-                                if not lines and transport_type in ["bus", "métro", "tram"]:
-                                    if transport_type == "bus":
-                                        lines.append("Bus")
-                                    elif transport_type == "métro":
-                                        lines.append("Métro")
-                                    elif transport_type == "tram":
-                                        lines.append("Tram")
+                                # Récupération des détails complets pour les stations de transport
+                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website,vicinity,editorial_summary,url&key={api_key}"
+                                details_response = requests.get(details_url)
+                                details_data = details_response.json()
                                 
                                 place_info = {
                                     'name': place['name'],
@@ -741,18 +791,18 @@ def get_google_maps_data(address, city, factors):
                                     'duration': walking_duration,
                                     'driving_distance': driving_distance,
                                     'driving_duration': driving_duration,
-                                    'address': address_details,
+                                    'address': details_data.get('result', {}).get('formatted_address', ''),
                                     'transport_type': transport_type,
                                     'lines': lines
                                 }
                                 
                                 # Ajouter d'autres détails si disponibles
-                                if 'rating' in details_data.get('result', {}):
-                                    place_info['rating'] = details_data['result']['rating']
+                                if 'rating' in place:
+                                    place_info['rating'] = place['rating']
                                 if 'formatted_phone_number' in details_data.get('result', {}):
-                                    place_info['phone'] = details_data['result']['formatted_phone_number']
+                                    place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
                                 if 'website' in details_data.get('result', {}):
-                                    place_info['website'] = details_data['result']['website']
+                                    place_info['website'] = details_data.get('result', {}).get('website')
                             except Exception as e:
                                 logging.error(f"Erreur lors de la récupération des détails: {e}")
                                 place_info = {
@@ -769,19 +819,21 @@ def get_google_maps_data(address, city, factors):
                                     details_data = details_response.json()
                                     
                                     # Obtenir l'adresse formatée si disponible
-                                    address_details = details_data.get('result', {}).get('formatted_address', '')
-                                    
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
                                         'duration': walking_duration,
-                                        'address': address_details
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration,
+                                        'address': details_data.get('result', {}).get('formatted_address', '')
                                     }
                                 else:
                                     place_info = {
                                         'name': place['name'],
                                         'distance': walking_distance,
-                                        'duration': walking_duration
+                                        'duration': walking_duration,
+                                        'driving_distance': driving_distance,
+                                        'driving_duration': driving_duration
                                     }
                             except Exception as e:
                                 logging.error(f"Erreur lors de la récupération des détails: {e}")
