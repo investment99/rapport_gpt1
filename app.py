@@ -71,10 +71,52 @@ def markdown_to_elements(md_text):
     html_content = md_to_html(md_text, extras=["tables"])
     soup = BeautifulSoup(html_content, "html.parser")
     styles = getSampleStyleSheet()  # Récupère les styles par défaut de ReportLab
+    
+    # Créer des styles personnalisés pour la mise en page des facteurs locaux
+    bold_style = ParagraphStyle(
+        'Bold',
+        parent=styles['BodyText'],
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        spaceAfter=6,
+    )
+    
+    normal_style = ParagraphStyle(
+        'Normal',
+        parent=styles['BodyText'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=14,
+        spaceAfter=2,
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading3'],
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        textColor=colors.HexColor("#00C7C4"),
+        spaceAfter=8,
+        spaceBefore=6,
+    )
+    
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading2'],
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        textColor=colors.HexColor("#00C7C4"),
+        spaceAfter=10,
+        spaceBefore=12,
+    )
 
     # Calcul de la largeur de la page disponible (A4 moins les marges de 2 cm de chaque côté)
     PAGE_WIDTH = A4[0] - 4 * cm
 
+    # Traitement spécial pour les facteurs locaux
+    is_local_factors = False
+    current_element_type = None
+    
     for elem in soup.contents:
         if elem.name == "table":
             table_data = []
@@ -88,7 +130,7 @@ def markdown_to_elements(md_text):
                     row_data.append(para)
                 table_data.append(row_data)
             
-            # Détermination du nombre de colonnes (on suppose que toutes les lignes ont le même nombre de cellules)
+            # Détermination du nombre de colonnes
             col_count = len(table_data[0]) if table_data and table_data[0] else 1
             col_width = PAGE_WIDTH / col_count  # Largeur égale pour chaque colonne
 
@@ -98,7 +140,7 @@ def markdown_to_elements(md_text):
                 font_size = 8
             title_font_size = 8
             if col_width < 1 * cm:
-                title_font_size = 5
+                title_font_size = 6
 
             # Définition du style du tableau
             table_style = TableStyle([
@@ -115,11 +157,62 @@ def markdown_to_elements(md_text):
 
             table = Table(table_data, colWidths=[col_width] * col_count, style=table_style)
             elements.append(table)
-        elif elem.name:
-            # Pour tout autre élément HTML, on crée un Paragraph simple
-            paragraph = Paragraph(clean_text(elem.get_text(strip=True)), styles['BodyText'])
-            elements.append(paragraph)
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 6))  # Espace réduit après le tableau
+            
+        elif elem.name == "h2":  # Titres principaux (## dans markdown)
+            # Vérifier si on entre dans la section des facteurs locaux
+            if "facteurs locaux" in elem.get_text().lower():
+                is_local_factors = True
+            
+            # Traiter le titre
+            text = clean_text(elem.get_text(strip=True))
+            elements.append(Paragraph(text, title_style))
+            elements.append(Spacer(1, 6))
+            current_element_type = "title"
+            
+        elif elem.name == "h3":  # Sous-titres (### dans markdown)
+            text = clean_text(elem.get_text(strip=True))
+            elements.append(Paragraph(text, subtitle_style))
+            elements.append(Spacer(1, 4))
+            current_element_type = "subtitle"
+            
+        elif elem.name == "p":  # Paragraphes
+            text = clean_text(elem.get_text(strip=True))
+            
+            # Traitement spécial pour les facteurs locaux
+            if is_local_factors:
+                # Vérifier s'il s'agit d'un élément en gras (nom d'établissement)
+                if elem.find("strong") or elem.find("b"):
+                    elements.append(Paragraph(text, bold_style))
+                    current_element_type = "place_name"
+                # Vérifier s'il s'agit d'une ligne d'information
+                elif any(info in text.lower() for info in ["à pied", "en voiture", "type", "lignes", "adresse", "note", "téléphone", "site web"]):
+                    # Ajouter un peu d'indentation pour mieux distinguer ces informations
+                    indented_text = "&nbsp;&nbsp;&nbsp;" + text
+                    elements.append(Paragraph(indented_text, normal_style))
+                    current_element_type = "place_info"
+                else:
+                    elements.append(Paragraph(text, styles['BodyText']))
+                    elements.append(Spacer(1, 6))
+                    current_element_type = "paragraph"
+            else:
+                # Traitement normal pour les autres sections
+                elements.append(Paragraph(text, styles['BodyText']))
+                elements.append(Spacer(1, 12))
+                current_element_type = "paragraph"
+                
+        elif elem.name == "hr":  # Ligne horizontale (---)
+            # Ajouter un séparateur visuel
+            elements.append(Spacer(1, 4))
+            elements.append(Paragraph("<hr/>", normal_style))
+            elements.append(Spacer(1, 4))
+            
+        elif elem.name:  # Pour tout autre élément HTML
+            text = clean_text(elem.get_text(strip=True))
+            if text.strip():  # Ignorer les éléments vides
+                elements.append(Paragraph(text, styles['BodyText']))
+                elements.append(Spacer(1, 8))
+    
     return elements
 
 def add_section_title(elements, title):
@@ -922,6 +1015,7 @@ def calculate_distance(origin, destination, api_key, mode="walking"):
 def format_google_data_for_prompt(google_data):
     """
     Formate les données Google Maps pour les inclure dans le prompt.
+    Version améliorée avec meilleure mise en page.
     """
     if not google_data:
         return "Aucune donnée précise n'est disponible pour cette adresse."
@@ -949,8 +1043,16 @@ def format_google_data_for_prompt(google_data):
     
     formatted_data = []
     
-    for factor, factor_data in google_data.items():
+    # S'assurer que les facteurs apparaissent dans un ordre cohérent
+    factor_order = ['shops', 'schools', 'transport', 'security']
+    
+    for factor in factor_order:
+        if factor not in google_data:
+            continue
+            
+        factor_data = google_data[factor]
         factor_text = ""
+        
         if factor == 'shops':
             factor_text += "## **Commerces et services de proximité**\n\n"
         elif factor == 'schools':
@@ -964,88 +1066,98 @@ def format_google_data_for_prompt(google_data):
         items_count = 0
         max_items = 10  # Augmenter le nombre d'éléments pour montrer plus de lieux à proximité
         
-        for place_type, places in factor_data.items():
-            if places:
-                factor_text += f"### **{place_type_names.get(place_type, place_type)}**\n\n"
+        # Définir l'ordre des types de lieux pour une présentation cohérente
+        if factor == 'transport':
+            type_order = ['subway_station', 'train_station', 'light_rail_station', 'tram_station', 'bus_station', 'transit_station']
+        elif factor == 'shops':
+            type_order = ['supermarket', 'shopping_mall', 'convenience_store', 'bakery', 'pharmacy', 'store']
+        elif factor == 'schools':
+            type_order = ['primary_school', 'secondary_school', 'school', 'university']
+        else:
+            type_order = list(factor_data.keys())
+        
+        # Traiter les types de lieux dans l'ordre défini
+        for place_type in type_order:
+            if place_type not in factor_data or not factor_data[place_type]:
+                continue
                 
-                # Trier les lieux par distance (du plus proche au plus éloigné)
-                try:
-                    def extract_distance(place):
-                        distance_str = place.get('distance', '99999 km')
-                        if not isinstance(distance_str, str):
-                            return 99999
-                        # Extraire juste le nombre, ignorer l'unité
-                        try:
-                            # Pour les formats comme "700 m" ou "1.5 km"
-                            num_str = distance_str.split()[0].replace(',', '.')
-                            num = float(num_str)
-                            # Convertir les km en m pour comparer correctement
-                            if 'km' in distance_str:
-                                num = num * 1000
-                            return num
-                        except:
-                            return 99999
-                    
-                    sorted_places = sorted(places, key=extract_distance)
-                except:
-                    sorted_places = places  # En cas d'erreur, utiliser la liste non triée
+            places = factor_data[place_type]
+            
+            # Ajouter le sous-titre avec deux sauts de ligne pour meilleure lisibilité
+            factor_text += f"### **{place_type_names.get(place_type, place_type)}**\n\n"
+            
+            # Trier les lieux par distance (du plus proche au plus éloigné)
+            try:
+                def extract_distance(place):
+                    distance_str = place.get('distance', '99999 km')
+                    if not isinstance(distance_str, str):
+                        return 99999
+                    # Extraire juste le nombre, ignorer l'unité
+                    try:
+                        # Pour les formats comme "700 m" ou "1.5 km"
+                        num_str = distance_str.split()[0].replace(',', '.')
+                        num = float(num_str)
+                        # Convertir les km en m pour comparer correctement
+                        if 'km' in distance_str:
+                            num = num * 1000
+                        return num
+                    except:
+                        return 99999
                 
-                for place in sorted_places:
-                    # Vérifier si on a atteint la limite d'éléments par facteur
-                    if items_count >= max_items:
-                        break
-                    
-                    # Format structuré sur plusieurs lignes comme demandé dans l'exemple
-                    name = place['name']
-                    
-                    # Pour les transports, ajouter les numéros de lignes au nom
-                    if place_type in ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station'] and 'lines' in place and place['lines']:
-                        lines_str = ", ".join(place['lines'])
-                        factor_text += f"**{name} ({lines_str})**\n"
-                    else:
-                        factor_text += f"**{name}**\n"
-                    
-                    # Ajouter la distance et durée à pied sur une ligne séparée
-                    if 'distance' in place and 'duration' in place:
-                        factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
-                    
-                    # Ajouter la distance et durée en voiture sur une ligne séparée
-                    if 'driving_distance' in place and 'driving_duration' in place:
-                        factor_text += f"En voiture : {place['driving_distance']} ({place['driving_duration']})\n"
-                    
-                    # Type d'établissement sur une ligne séparée
-                    if 'transport_type' in place and place['transport_type']:
-                        factor_text += f"Type : {place['transport_type']}\n"
-                    
-                    # Ajouter les numéros de lignes pour les transports sur une ligne séparée
-                    if 'lines' in place and place['lines']:
-                        lines_str = ", ".join(place['lines'])
-                        factor_text += f"Lignes : {lines_str}\n"
-                    
-                    # Ajouter l'adresse sur une ligne séparée
-                    if 'address' in place and place['address']:
-                        factor_text += f"Adresse : {place['address']}\n"
-                    
-                    # Ajouter la note si disponible
-                    if 'rating' in place:
-                        factor_text += f"Note : {place['rating']}/5\n"
-                    
-                    # Ajouter le numéro de téléphone si disponible
-                    if 'phone' in place:
-                        factor_text += f"Téléphone : {place['phone']}\n"
-                    
-                    # Ajouter le site web si disponible
-                    if 'website' in place:
-                        factor_text += f"Site web : {place['website']}\n"
-                    
-                    # Ajouter une ligne vide entre chaque établissement
-                    factor_text += "\n"
-                    
-                    items_count += 1
-                
-                # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
+                sorted_places = sorted(places, key=extract_distance)
+            except:
+                sorted_places = places  # En cas d'erreur, utiliser la liste non triée
+            
+            # Traiter chaque lieu
+            for place in sorted_places:
+                # Vérifier si on a atteint la limite d'éléments par facteur
                 if items_count >= max_items:
                     break
+                
+                # Formater le nom avec les numéros de lignes pour les transports
+                name = place['name']
+                
+                # Pour les transports, ajouter les lignes entre parenthèses
+                if factor == 'transport' and 'lines' in place and place['lines']:
+                    lines_str = ", ".join(place['lines'])
+                    factor_text += f"**{name}**\n"
+                else:
+                    factor_text += f"**{name}**\n"
+                
+                # Ajouter toutes les informations avec un saut de ligne entre chaque
+                if 'distance' in place and 'duration' in place:
+                    factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
+                
+                if 'driving_distance' in place and 'driving_duration' in place:
+                    factor_text += f"En voiture : {place['driving_distance']} ({place['driving_duration']})\n"
+                
+                if 'transport_type' in place and place['transport_type']:
+                    factor_text += f"Type : {place['transport_type']}\n"
+                
+                if factor == 'transport' and 'lines' in place and place['lines']:
+                    lines_str = ", ".join(place['lines'])
+                    factor_text += f"Lignes : {lines_str}\n"
+                
+                if 'address' in place and place['address']:
+                    factor_text += f"Adresse : {place['address']}\n"
+                
+                if 'rating' in place:
+                    factor_text += f"Note : {place['rating']}/5\n"
+                
+                if 'phone' in place:
+                    factor_text += f"Téléphone : {place['phone']}\n"
+                
+                if 'website' in place:
+                    factor_text += f"Site web : {place['website']}\n"
+                
+                # Ajouter un saut de ligne après chaque établissement pour les séparer clairement
+                factor_text += "\n"
+                
+                items_count += 1
+            
+            # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
+            if items_count >= max_items:
+                break
         
         if factor_text:
             formatted_data.append(factor_text)
@@ -1101,20 +1213,47 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
 
 {formatted_google_data}
 
-**INSTRUCTIONS IMPÉRATIVES:**
-1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en gardant exactement la même structure et mise en forme.
-2. N'OMETTEZ AUCUN détail - toutes les distances, durées, adresses et autres informations sont ESSENTIELLES.
-3. Pour CHAQUE ÉTABLISSEMENT listé, incluez:
-   - Son nom exact
-   - La distance et durée à pied
-   - Le type précis (bus/métro/tram/train)
-   - TOUS les numéros de lignes lorsqu'ils sont disponibles
-   - L'adresse complète
-4. Conservez impérativement la mise en forme des titres et sous-titres en gras.
-5. Gardez la structure exacte avec chaque établissement sur plusieurs lignes comme présenté.
-6. Les informations proviennent de Google Maps et sont 100% précises et vérifiées - ne les modifiez pas.
-7. Si certaines informations sont manquantes pour certains établissements, ne les inventez pas.
-8. Ces données sont l'élément le plus crucial du rapport - leur présence complète et fidèle est OBLIGATOIRE.
+**INSTRUCTIONS IMPÉRATIVES POUR FORMATER LE TEXTE CORRECTEMENT:**
+
+1. Vous DEVEZ COPIER INTÉGRALEMENT toutes les informations ci-dessus dans votre rapport, en respectant EXACTEMENT la même structure visuelle et la mise en forme suivante:
+
+2. FORMAT OBLIGATOIRE:
+   a) Chaque titre principal doit être sur sa propre ligne en gras (exemple: "**Commerces et services de proximité**")
+   b) Chaque sous-titre doit être sur sa propre ligne en gras (exemple: "**Supermarché**")
+   c) Le nom de chaque établissement doit être en gras sur sa propre ligne (exemple: "**Intermarché Nice Gare du Sud**")
+   d) CHAQUE information concernant un établissement DOIT être sur UNE LIGNE SÉPARÉE:
+      - "À pied : 0.4 km (6 mins)"
+      - "En voiture : 0.9 km (4 mins)"
+      - "Type : bus"
+      - "Lignes : 67, 70"
+      - "Adresse : 4 All. Philippe Seguin, 06000 Nice, France"
+   e) Laissez UNE LIGNE VIDE entre chaque établissement pour une meilleure lisibilité
+
+3. EXEMPLE EXACT DU FORMAT ATTENDU:
+```
+## **Commerces et services de proximité**
+
+### **Supermarché**
+
+**Intermarché Nice Gare du Sud**
+À pied : 0.4 km (6 mins)
+En voiture : 0.9 km (4 mins)
+Adresse : 4 All. Philippe Seguin, 06000 Nice, France
+
+**MONOPRIX**
+À pied : 0.8 km (11 mins)
+En voiture : 1.3 km (6 mins)
+Adresse : 30 Rue Biscarra, 06000 Nice, France
+```
+
+4. CHAQUE INFORMATION (distance, lignes, adresse, etc.) DOIT être sur sa PROPRE LIGNE.
+
+5. Si vous utilisez GPT-4 pour générer cette section, demandez-lui explicitement de:
+   - NE PAS concaténer les informations sur une même ligne
+   - Respecter STRICTEMENT le format ligné avec chaque élément sur une nouvelle ligne
+   - Conserver EXACTEMENT la structure fournie sans modification
+
+6. Cette mise en page précise est CRITIQUE pour la lisibilité du rapport et OBLIGATOIRE.
 
 Ces informations sont cruciales pour évaluer la qualité de vie dans le quartier et l'attractivité du bien pour d'éventuels locataires.
 """
