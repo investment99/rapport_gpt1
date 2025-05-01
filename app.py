@@ -1336,24 +1336,27 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
 
 **INSTRUCTIONS IMPÉRATIVES POUR FORMATER LE TEXTE CORRECTEMENT:**
 
-⚠️ ATTENTION - MISE EN PAGE CRUCIALE ⚠️
+⚠️ ATTENTION - CONSIGNES CRITIQUES ET OBLIGATOIRES ⚠️
 
-Le format d'affichage des informations doit IMPÉRATIVEMENT respecter les règles suivantes :
+1. VOUS DEVEZ ABSOLUMENT INCLURE TOUTES LES DONNÉES CI-DESSUS DANS VOTRE RÉPONSE.
+   - NE RÉSUMEZ PAS les informations
+   - NE CONDENSEZ PAS les données
+   - COPIEZ INTÉGRALEMENT tous les établissements de chaque catégorie
+   - Il est STRICTEMENT INTERDIT de remplacer la liste détaillée par un résumé
 
-1. STRUCTURE GLOBALE:
-   - N'ajoutez PAS d'introduction ou de texte explicatif avant les données
-   - Présentez directement les catégories, sous-catégories et établissements
-   - Respectez strictement l'ordre: Commerces → Écoles → Transports → Sécurité
+2. STRUCTURE OBLIGATOIRE:
+   - Présentez TOUS les "Commerces et services de proximité"
+   - Présentez TOUS les "Établissements éducatifs"
+   - Présentez TOUS les "Transports en commun"
+   - Présentez TOUS les points de "Sécurité"
+   - AUCUNE CATÉGORIE ne doit être omise ou résumée
 
-2. MISE EN FORME DES TITRES:
-   - Titre principal de catégorie en gras: "**Commerces et services de proximité**"
-   - Sous-titre en gras: "**Supermarché**"
-   - Nom d'établissement en gras: "**Intermarché Nice Gare du Sud**"
-
-3. FORMAT EXACT DE CHAQUE ÉTABLISSEMENT:
-   a) Le nom sur une première ligne, en gras
-   b) Chaque information sur sa PROPRE LIGNE distincte, sans concaténation
-   c) Une ligne vide entre chaque établissement pour la lisibilité
+3. FORMAT EXACT REQUIS:
+   a) Titre principal de catégorie en gras: "**Commerces et services de proximité**"
+   b) Sous-titre en gras: "**Supermarché**"
+   c) Nom d'établissement en gras: "**Intermarché Nice Gare du Sud**"
+   d) Chaque information sur une ligne distincte
+   e) Une ligne vide entre chaque établissement
 
 4. INSTRUCTION SPÉCIALE POUR LES TRANSPORTS:
    - Si des numéros de lignes de bus/métro/tram sont manquants ou incomplets, COMPLÉTEZ-LES
@@ -1363,6 +1366,10 @@ Le format d'affichage des informations doit IMPÉRATIVEMENT respecter les règle
 
 5. EXEMPLE PRÉCIS DE MISE EN PAGE ATTENDUE:
 ```
+**Commerces et services de proximité**
+
+**Supermarché**
+
 **Intermarché Nice Gare du Sud**
 À pied : 0.4 km (6 mins)
 En voiture : 0.9 km (4 mins)
@@ -1372,16 +1379,26 @@ Adresse : 4 All. Philippe Seguin, 06000 Nice, France
 À pied : 0.8 km (11 mins)
 En voiture : 1.3 km (6 mins)
 Adresse : 30 Rue Biscarra, 06000 Nice, France
+
+**Transports en commun**
+
+**Arrêt de bus**
+
+**Gambetta**
+À pied : 0.8 km (12 mins)
+En voiture : 0.9 km (4 mins)
+Type : bus
+Lignes : 7, 8, 30, 70
+Adresse : 06100 Nice, France
 ```
 
-⚠️ MISE EN GARDE IMPORTANTE:
-- Il est INTERDIT de concaténer les informations sur une même ligne
-- Chaque élément d'information DOIT être sur une ligne séparée
-- Ne modifiez JAMAIS la structure originale des données (sauf pour compléter les numéros de lignes de transport si manquants)
-- Ne reformulez JAMAIS les informations fournies
-- COPIEZ INTÉGRALEMENT toutes les informations et RESPECTEZ leur format
+⚠️ AVERTISSEMENT FINAL ⚠️
+- Ne créez PAS d'analyse ou de résumé des facteurs locaux
+- Ne mentionnez PAS l'impact des établissements sur la valeur immobilière
+- Copiez UNIQUEMENT et INTÉGRALEMENT les données fournies ci-dessus
+- Il s'agit du strict contenu factuel demandé par le client
 
-Ce format précis est CRUCIAL pour la lisibilité et la qualité du rapport final.
+Ces informations sont cruciales et doivent être présentées de manière exacte et complète.
 """
     
     return local_factors_prompt
