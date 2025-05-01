@@ -385,7 +385,7 @@ def generate_report():
             ("Secteur d'investissement", 400),
             ("Analyse du marché", 500),
             ("Analyse du produit", 500),
-            ("Facteurs locaux importants", 1000),  # Ajout d'une section dédiée aux facteurs locaux
+            ("Facteurs locaux importants", 500),  # Ajout d'une section dédiée aux facteurs locaux
             ("Évaluation des risques", 450),
             ("Conclusion et recommandations", 500),
             ("Analyse prédictive et argumentée", 500)
@@ -473,7 +473,7 @@ def generate_report():
                     
                     # Générer le contenu des facteurs locaux
                     local_factors_prompt = process_local_factors(form_data)
-                    local_factors_content = generate_section(client, local_factors_prompt)
+                    local_factors_content = generate_section(client, local_factors_prompt, max_tokens=3500)
                     
                     # Ajouter le contenu des facteurs locaux (sans ajouter à nouveau le titre)
                     for elem in local_factors_content:
@@ -810,9 +810,12 @@ def get_google_maps_data(address, city, factors):
         factor_to_place_types = {
             'shops': ['supermarket', 'shopping_mall', 'store', 'convenience_store', 'bakery', 'pharmacy'],
             'schools': ['school', 'primary_school', 'secondary_school', 'university'],
-            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station', 'light_rail_station', 'tram_station'],
+            'transport': ['bus_station', 'subway_station', 'train_station', 'transit_station'],
             'security': ['police']
         }
+        
+        # Augmenter le rayon de recherche à 2000 mètres pour trouver plus de lieux
+        search_radius = 2000
         
         # Rechercher les lieux pour chaque facteur
         for factor in factors:
@@ -823,241 +826,56 @@ def get_google_maps_data(address, city, factors):
                 
             results[factor] = {}
             
-            # Pour les transports, essayer avec un rayon plus grand
-            radius = 2500 if factor == 'transport' else 2000
-            max_results = 10  # Limiter à 10 résultats maximum par type
-            
             for place_type in factor_to_place_types.get(factor, []):
                 logging.info(f"Recherche de lieux de type : {place_type}")
-                
-                # Première recherche avec un rayon standard
-                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type={place_type}&key={api_key}"
+                # Recherche des lieux à proximité
+                nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={search_radius}&type={place_type}&key={api_key}"
                 logging.debug(f"URL nearby search : {nearby_url}")
                 nearby_response = requests.get(nearby_url)
                 nearby_data = nearby_response.json()
                 
-                place_results = []
-                
                 if nearby_data.get('status') == 'OK':
-                    logging.info(f"Nombre de résultats initiaux pour {place_type}: {len(nearby_data.get('results', []))}")
-                    
-                    # Traiter les résultats
-                    for place in nearby_data.get('results', [])[:max_results]:
-                        # Récupérer les détails du lieu pour obtenir plus d'informations
-                        place_id = place.get('place_id')
+                    logging.info(f"Nombre de résultats pour {place_type}: {len(nearby_data.get('results', []))}")
+                    # Stocker les résultats par type de lieu
+                    place_results = []
+                    # Augmenter le nombre maximal de résultats à 10
+                    for place in nearby_data.get('results', [])[:10]:
+                        # Calculer la distance et la durée à pied
+                        distance, duration = calculate_distance((lat, lng), 
+                                  (place['geometry']['location']['lat'], 
+                                   place['geometry']['location']['lng']), api_key)
                         
-                        # Calculer les distances et temps de trajet
-                        walking_distance, walking_duration = calculate_distance((lat, lng), 
-                                                                (place['geometry']['location']['lat'], 
-                                                                place['geometry']['location']['lng']), 
-                                                                api_key, mode="walking")
+                        place_info = {
+                            'name': place['name'],
+                            'distance': distance,
+                            'duration': duration,
+                            'rating': place.get('rating', 'Non évalué'),
+                            'address': place.get('vicinity', 'Adresse non disponible')
+                        }
                         
-                        driving_distance, driving_duration = calculate_distance((lat, lng), 
-                                                                (place['geometry']['location']['lat'], 
-                                                                place['geometry']['location']['lng']), 
-                                                                api_key, mode="driving")
-                        
-                        if place_id and factor == 'transport':
-                            try:
-                                # Utiliser la nouvelle fonction pour extraire les lignes de transport
-                                transport_type = "station"
-                                if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
-                                    transport_type = "bus"
-                                elif "subway" in place_type or any(t for t in place.get('types', []) if 'subway' in t):
-                                    transport_type = "métro"
-                                elif "tram" in place_type or any(t for t in place.get('types', []) if 'tram' in t):
-                                    transport_type = "tram"
-                                elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
-                                    transport_type = "train"
-                                
-                                # Extraire les lignes avec notre nouvelle fonction améliorée
+                        # Extraire les numéros de lignes pour les transports
+                        if factor == 'transport':
+                            place_id = place.get('place_id')
+                            # Utiliser la fonction améliorée pour extraire les lignes de transport
+                            if place_id:
                                 lines = extract_transport_lines(place, place_id, place_type, api_key)
+                                place_info['lines'] = lines
                                 
-                                # Récupération des détails complets pour les stations de transport
-                                details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website,vicinity,editorial_summary,url&key={api_key}"
-                                details_response = requests.get(details_url)
-                                details_data = details_response.json()
+                                # Détecter le type de transport
+                                transport_type = "Arrêt de transport"
+                                if 'bus' in place_type or 'bus' in place['name'].lower():
+                                    transport_type = "Bus"
+                                elif 'subway' in place_type or 'métro' in place['name'].lower():
+                                    transport_type = "Métro"
+                                elif 'train' in place_type or 'gare' in place['name'].lower():
+                                    transport_type = "Train"
+                                elif 'tram' in place_type or 'tram' in place['name'].lower():
+                                    transport_type = "Tramway"
                                 
-                                place_info = {
-                                    'name': place['name'],
-                                    'distance': walking_distance,
-                                    'duration': walking_duration,
-                                    'driving_distance': driving_distance,
-                                    'driving_duration': driving_duration,
-                                    'address': details_data.get('result', {}).get('formatted_address', ''),
-                                    'transport_type': transport_type,
-                                    'lines': lines
-                                }
-                                
-                                # Ajouter d'autres détails si disponibles
-                                if 'rating' in place:
-                                    place_info['rating'] = place['rating']
-                                if 'formatted_phone_number' in details_data.get('result', {}):
-                                    place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
-                                if 'website' in details_data.get('result', {}):
-                                    place_info['website'] = details_data.get('result', {}).get('website')
-                            except Exception as e:
-                                logging.error(f"Erreur lors de la récupération des détails: {e}")
-                                place_info = {
-                                    'name': place['name'],
-                                    'distance': walking_distance,
-                                    'duration': walking_duration
-                                }
-                        else:
-                            try:
-                                # Pour les commerces et écoles, récupérer seulement l'adresse
-                                if place_id:
-                                    details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,rating,formatted_phone_number,website&key={api_key}"
-                                    details_response = requests.get(details_url)
-                                    details_data = details_response.json()
-                                    
-                                    # Obtenir l'adresse formatée et autres détails si disponibles
-                                    place_info = {
-                                        'name': place['name'],
-                                        'distance': walking_distance,
-                                        'duration': walking_duration,
-                                        'driving_distance': driving_distance,
-                                        'driving_duration': driving_duration,
-                                        'address': details_data.get('result', {}).get('formatted_address', '')
-                                    }
-                                    
-                                    # Ajouter des détails supplémentaires si disponibles
-                                    if 'rating' in place:
-                                        place_info['rating'] = place['rating']
-                                    if 'formatted_phone_number' in details_data.get('result', {}):
-                                        place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
-                                    if 'website' in details_data.get('result', {}):
-                                        place_info['website'] = details_data.get('result', {}).get('website')
-                                else:
-                                    place_info = {
-                                        'name': place['name'],
-                                        'distance': walking_distance,
-                                        'duration': walking_duration,
-                                        'driving_distance': driving_distance,
-                                        'driving_duration': driving_duration
-                                    }
-                            except Exception as e:
-                                logging.error(f"Erreur lors de la récupération des détails: {e}")
-                                place_info = {
-                                    'name': place['name'],
-                                    'distance': walking_distance,
-                                    'duration': walking_duration
-                                }
-                                
+                                place_info['transport_type'] = transport_type
+                        
                         place_results.append(place_info)
                         logging.debug(f"Lieu trouvé: {place['name']}")
-                    
-                    # Si on n'a pas assez de résultats et que c'est un facteur important, 
-                    # essayer avec un rayon plus grand pour avoir plus de résultats
-                    if len(place_results) < 7 and factor in ['transport', 'shops']:
-                        logging.info(f"Pas assez de résultats pour {place_type}, tentative avec un rayon plus grand")
-                        larger_radius = radius + 1000
-                        nearby_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={larger_radius}&type={place_type}&key={api_key}"
-                        nearby_response = requests.get(nearby_url)
-                        additional_data = nearby_response.json()
-                        
-                        if additional_data.get('status') == 'OK':
-                            additional_results = additional_data.get('results', [])
-                            # Filtrer pour ne pas avoir de doublons
-                            existing_place_ids = [p.get('place_id') for p in nearby_data.get('results', [])]
-                            new_places = [p for p in additional_results if p.get('place_id') not in existing_place_ids]
-                            
-                            # Ajouter les nouveaux lieux (jusqu'à atteindre max_results)
-                            for place in new_places[:max_results - len(place_results)]:
-                                place_id = place.get('place_id')
-                                
-                                walking_distance, walking_duration = calculate_distance((lat, lng), 
-                                                                    (place['geometry']['location']['lat'], 
-                                                                    place['geometry']['location']['lng']), 
-                                                                    api_key, mode="walking")
-                                
-                                driving_distance, driving_duration = calculate_distance((lat, lng), 
-                                                                    (place['geometry']['location']['lat'], 
-                                                                    place['geometry']['location']['lng']), 
-                                                                    api_key, mode="driving")
-                                
-                                if place_id and factor == 'transport':
-                                    try:
-                                        transport_type = "station"
-                                        if "bus" in place_type or any(t for t in place.get('types', []) if 'bus' in t):
-                                            transport_type = "bus"
-                                        elif "subway" in place_type or any(t for t in place.get('types', []) if 'subway' in t):
-                                            transport_type = "métro"
-                                        elif "tram" in place_type or any(t for t in place.get('types', []) if 'tram' in t):
-                                            transport_type = "tram"
-                                        elif "train" in place_type or any(t for t in place.get('types', []) if 'train' in t):
-                                            transport_type = "train"
-                                        
-                                        lines = extract_transport_lines(place, place_id, place_type, api_key)
-                                        
-                                        details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,type,rating,formatted_phone_number,website,vicinity,editorial_summary,url&key={api_key}"
-                                        details_response = requests.get(details_url)
-                                        details_data = details_response.json()
-                                        
-                                        place_info = {
-                                            'name': place['name'],
-                                            'distance': walking_distance,
-                                            'duration': walking_duration,
-                                            'driving_distance': driving_distance,
-                                            'driving_duration': driving_duration,
-                                            'address': details_data.get('result', {}).get('formatted_address', ''),
-                                            'transport_type': transport_type,
-                                            'lines': lines
-                                        }
-                                        
-                                        if 'rating' in place:
-                                            place_info['rating'] = place['rating']
-                                        if 'formatted_phone_number' in details_data.get('result', {}):
-                                            place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
-                                        if 'website' in details_data.get('result', {}):
-                                            place_info['website'] = details_data.get('result', {}).get('website')
-                                    except Exception as e:
-                                        logging.error(f"Erreur lors de la récupération des détails additionnels: {e}")
-                                        place_info = {
-                                            'name': place['name'],
-                                            'distance': walking_distance,
-                                            'duration': walking_duration
-                                        }
-                                else:
-                                    try:
-                                        if place_id:
-                                            details_url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields=name,formatted_address,rating,formatted_phone_number,website&key={api_key}"
-                                            details_response = requests.get(details_url)
-                                            details_data = details_response.json()
-                                            
-                                            place_info = {
-                                                'name': place['name'],
-                                                'distance': walking_distance,
-                                                'duration': walking_duration,
-                                                'driving_distance': driving_distance,
-                                                'driving_duration': driving_duration,
-                                                'address': details_data.get('result', {}).get('formatted_address', '')
-                                            }
-                                            
-                                            if 'rating' in place:
-                                                place_info['rating'] = place['rating']
-                                            if 'formatted_phone_number' in details_data.get('result', {}):
-                                                place_info['phone'] = details_data.get('result', {}).get('formatted_phone_number')
-                                            if 'website' in details_data.get('result', {}):
-                                                place_info['website'] = details_data.get('result', {}).get('website')
-                                        else:
-                                            place_info = {
-                                                'name': place['name'],
-                                                'distance': walking_distance,
-                                                'duration': walking_duration,
-                                                'driving_distance': driving_distance,
-                                                'driving_duration': driving_duration
-                                            }
-                                    except Exception as e:
-                                        logging.error(f"Erreur lors de la récupération des détails additionnels: {e}")
-                                        place_info = {
-                                            'name': place['name'],
-                                            'distance': walking_distance,
-                                            'duration': walking_duration
-                                        }
-                                
-                                place_results.append(place_info)
-                                logging.debug(f"Lieu additionnel trouvé: {place['name']}")
                     
                     if place_results:
                         results[factor][place_type] = place_results
@@ -1071,29 +889,21 @@ def get_google_maps_data(address, city, factors):
     logging.info(f"Résultats finaux: {results}")
     return results
 
-def calculate_distance(origin, destination, api_key, mode="walking"):
+def calculate_distance(origin, destination, api_key):
     """
-    Calcule la distance et le temps de trajet entre deux points.
-    
-    Args:
-        origin: Coordonnées d'origine (lat, lng)
-        destination: Coordonnées de destination (lat, lng)
-        api_key: Clé API Google Maps
-        mode: Mode de transport ("walking" ou "driving")
-        
-    Returns:
-        Tuple (distance, duration) avec les valeurs textuelles
+    Calcule la distance approximative en mètres entre deux points.
     """
     try:
         # URL de l'API Distance Matrix
-        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin[0]},{origin[1]}&destinations={destination[0]},{destination[1]}&mode={mode}&key={api_key}"
+        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin[0]},{origin[1]}&destinations={destination[0]},{destination[1]}&mode=walking&key={api_key}"
         
         response = requests.get(url)
         data = response.json()
         
         if data.get('status') == 'OK' and data.get('rows', [{}])[0].get('elements', [{}])[0].get('status') == 'OK':
-            # Distance et durée
+            # Distance en mètres
             distance = data['rows'][0]['elements'][0]['distance']['text']
+            # Récupérer également la durée à pied
             duration = data['rows'][0]['elements'][0]['duration']['text']
             return distance, duration
         else:
@@ -1119,23 +929,23 @@ def calculate_distance(origin, destination, api_key, mode="walking"):
             # Distance en mètres
             distance = R * c
             
-            # Estimer la durée (vitesse moyenne à pied: 5 km/h, en voiture: 30 km/h)
-            speed = 5 if mode == "walking" else 30  # km/h
-            duration_hours = (distance / 1000) / speed
-            duration_minutes = int(duration_hours * 60)
+            # Approximation de la durée (vitesse moyenne de marche ~5 km/h = ~83 m/min)
+            walking_speed = 83  # mètres par minute
+            minutes = round(distance / walking_speed)
+            if minutes < 60:
+                duration = f"{minutes} min"
+            else:
+                hours = minutes // 60
+                remaining_minutes = minutes % 60
+                duration = f"{hours} h {remaining_minutes} min"
             
-            distance_str = f"{int(distance)} m" if distance < 1000 else f"{distance/1000:.1f} km"
-            duration_str = f"{duration_minutes} min"
-            
-            return distance_str, duration_str
-    except Exception as e:
-        logging.error(f"Erreur lors du calcul de la distance: {e}")
+            return f"environ {int(distance)} m", duration
+    except Exception:
         return "Distance non disponible", "Durée non disponible"
 
 def format_google_data_for_prompt(google_data):
     """
     Formate les données Google Maps pour les inclure dans le prompt.
-    Version améliorée avec meilleure mise en page.
     """
     if not google_data:
         return "Aucune donnée précise n'est disponible pour cette adresse."
@@ -1163,16 +973,8 @@ def format_google_data_for_prompt(google_data):
     
     formatted_data = []
     
-    # S'assurer que les facteurs apparaissent dans un ordre cohérent
-    factor_order = ['shops', 'schools', 'transport', 'security']
-    
-    for factor in factor_order:
-        if factor not in google_data:
-            continue
-            
-        factor_data = google_data[factor]
+    for factor, factor_data in google_data.items():
         factor_text = ""
-        
         if factor == 'shops':
             factor_text += "## **Commerces et services de proximité**\n\n"
         elif factor == 'schools':
@@ -1184,100 +986,44 @@ def format_google_data_for_prompt(google_data):
         
         # Compteur pour limiter le nombre d'éléments par facteur
         items_count = 0
-        max_items = 10  # Augmenter le nombre d'éléments pour montrer plus de lieux à proximité
+        max_items = 10  # Augmentation à 10 éléments par facteur
         
-        # Définir l'ordre des types de lieux pour une présentation cohérente
-        if factor == 'transport':
-            type_order = ['subway_station', 'train_station', 'light_rail_station', 'tram_station', 'bus_station', 'transit_station']
-        elif factor == 'shops':
-            type_order = ['supermarket', 'shopping_mall', 'convenience_store', 'bakery', 'pharmacy', 'store']
-        elif factor == 'schools':
-            type_order = ['primary_school', 'secondary_school', 'school', 'university']
-        else:
-            type_order = list(factor_data.keys())
-        
-        # Traiter les types de lieux dans l'ordre défini
-        for place_type in type_order:
-            if place_type not in factor_data or not factor_data[place_type]:
-                continue
+        for place_type, places in factor_data.items():
+            if places:
+                factor_text += f"### {place_type_names.get(place_type, place_type)}\n\n"
+                for place in places:
+                    # Vérifier si on a atteint la limite d'éléments par facteur
+                    if items_count >= max_items:
+                        break
+                    
+                    # Format structuré sur plusieurs lignes comme demandé
+                    factor_text += f"**{place['name']}**\n"
+                    
+                    # Ajouter la distance et durée à pied
+                    if 'distance' in place and 'duration' in place:
+                        factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
+                    
+                    # Type d'établissement
+                    if 'transport_type' in place and place['transport_type']:
+                        factor_text += f"Type : {place['transport_type']}\n"
+                    
+                    # Ajouter les numéros de lignes pour les transports
+                    if 'lines' in place and place['lines']:
+                        lines_str = ", ".join(place['lines'])
+                        factor_text += f"Lignes : {lines_str}\n"
+                    
+                    # Ajouter l'adresse si disponible
+                    if 'address' in place and place['address']:
+                        factor_text += f"Adresse : {place['address']}\n"
+                    
+                    # Ajouter une ligne vide entre chaque établissement
+                    factor_text += "\n"
+                    
+                    items_count += 1
                 
-            places = factor_data[place_type]
-            
-            # Ajouter le sous-titre avec deux sauts de ligne pour meilleure lisibilité
-            factor_text += f"### **{place_type_names.get(place_type, place_type)}**\n\n"
-            
-            # Trier les lieux par distance (du plus proche au plus éloigné)
-            try:
-                def extract_distance(place):
-                    distance_str = place.get('distance', '99999 km')
-                    if not isinstance(distance_str, str):
-                        return 99999
-                    # Extraire juste le nombre, ignorer l'unité
-                    try:
-                        # Pour les formats comme "700 m" ou "1.5 km"
-                        num_str = distance_str.split()[0].replace(',', '.')
-                        num = float(num_str)
-                        # Convertir les km en m pour comparer correctement
-                        if 'km' in distance_str:
-                            num = num * 1000
-                        return num
-                    except:
-                        return 99999
-                
-                sorted_places = sorted(places, key=extract_distance)
-            except:
-                sorted_places = places  # En cas d'erreur, utiliser la liste non triée
-            
-            # Traiter chaque lieu
-            for place in sorted_places:
-                # Vérifier si on a atteint la limite d'éléments par facteur
+                # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
                 if items_count >= max_items:
                     break
-                
-                # Formater le nom avec les numéros de lignes pour les transports
-                name = place['name']
-                
-                # Pour les transports, ajouter les lignes entre parenthèses
-                if factor == 'transport' and 'lines' in place and place['lines']:
-                    lines_str = ", ".join(place['lines'])
-                    factor_text += f"**{name}**\n"
-                else:
-                    factor_text += f"**{name}**\n"
-                
-                # Ajouter toutes les informations avec un saut de ligne entre chaque
-                if 'distance' in place and 'duration' in place:
-                    factor_text += f"À pied : {place['distance']} ({place['duration']})\n"
-                
-                if 'driving_distance' in place and 'driving_duration' in place:
-                    factor_text += f"En voiture : {place['driving_distance']} ({place['driving_duration']})\n"
-                
-                if 'transport_type' in place and place['transport_type']:
-                    factor_text += f"Type : {place['transport_type']}\n"
-                
-                if factor == 'transport' and 'lines' in place and place['lines']:
-                    lines_str = ", ".join(place['lines'])
-                    factor_text += f"Lignes : {lines_str}\n"
-                
-                if 'address' in place and place['address']:
-                    factor_text += f"Adresse : {place['address']}\n"
-                
-                if 'rating' in place:
-                    factor_text += f"Note : {place['rating']}/5\n"
-                
-                if 'phone' in place:
-                    factor_text += f"Téléphone : {place['phone']}\n"
-                
-                if 'website' in place:
-                    factor_text += f"Site web : {place['website']}\n"
-                
-                # Ajouter un saut de ligne après chaque établissement pour les séparer clairement
-                factor_text += "\n"
-                
-                items_count += 1
-            
-            # Si on a atteint la limite, arrêter de traiter les autres types de lieux pour ce facteur
-            if items_count >= max_items:
-                break
         
         if factor_text:
             formatted_data.append(factor_text)
@@ -1372,12 +1118,10 @@ Le client accorde une importance particulière aux facteurs suivants pour l'adre
 
 **Intermarché Nice Gare du Sud**
 À pied : 0.4 km (6 mins)
-En voiture : 0.9 km (4 mins)
 Adresse : 4 All. Philippe Seguin, 06000 Nice, France
 
 **MONOPRIX**
 À pied : 0.8 km (11 mins)
-En voiture : 1.3 km (6 mins)
 Adresse : 30 Rue Biscarra, 06000 Nice, France
 
 **Transports en commun**
@@ -1386,7 +1130,6 @@ Adresse : 30 Rue Biscarra, 06000 Nice, France
 
 **Gambetta**
 À pied : 0.8 km (12 mins)
-En voiture : 0.9 km (4 mins)
 Type : bus
 Lignes : 7, 8, 30, 70
 Adresse : 06100 Nice, France
