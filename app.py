@@ -1355,7 +1355,13 @@ Le format d'affichage des informations doit IMPÉRATIVEMENT respecter les règle
    b) Chaque information sur sa PROPRE LIGNE distincte, sans concaténation
    c) Une ligne vide entre chaque établissement pour la lisibilité
 
-4. EXEMPLE PRÉCIS DE MISE EN PAGE ATTENDUE:
+4. INSTRUCTION SPÉCIALE POUR LES TRANSPORTS:
+   - Si des numéros de lignes de bus/métro/tram sont manquants ou incomplets, COMPLÉTEZ-LES
+   - Utilisez vos connaissances sur les réseaux de transport de {city} pour ajouter les numéros de lignes
+   - Format: "Lignes : 7, 9, 16, 20" (ou lettres comme "A, B, C" pour certains réseaux)
+   - NE MODIFIEZ PAS les autres informations (distances, adresses, etc.)
+
+5. EXEMPLE PRÉCIS DE MISE EN PAGE ATTENDUE:
 ```
 **Intermarché Nice Gare du Sud**
 À pied : 0.4 km (6 mins)
@@ -1371,7 +1377,7 @@ Adresse : 30 Rue Biscarra, 06000 Nice, France
 ⚠️ MISE EN GARDE IMPORTANTE:
 - Il est INTERDIT de concaténer les informations sur une même ligne
 - Chaque élément d'information DOIT être sur une ligne séparée
-- Ne modifiez JAMAIS la structure originale des données
+- Ne modifiez JAMAIS la structure originale des données (sauf pour compléter les numéros de lignes de transport si manquants)
 - Ne reformulez JAMAIS les informations fournies
 - COPIEZ INTÉGRALEMENT toutes les informations et RESPECTEZ leur format
 
