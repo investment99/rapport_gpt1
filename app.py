@@ -42,21 +42,28 @@ os.makedirs(PDF_FOLDER, exist_ok=True)
 
 # Prompt de design corporate pour Claude
 CORPORATE_DESIGN_PROMPT = """
-DESIGN REQUIS :
-- Style corporate minimaliste (noir/gris/blanc uniquement)
-- Typographie sobre (Arial, spacing précis)
-- Mise en page institutionnelle avec grilles parfaites
-- Google Maps intégrée avec iframe
-- Tableaux de données comparables DVF
-- Sections structurées avec headers noirs
-- Fourchette de prix en 3 colonnes
-- Analyse SWOT professionnelle
-- Conclusion encadrée
-- Footer avec mentions légales
+DESIGN ULTRA-PROFESSIONNEL REQUIS :
+- Palette (uniquement) : #000000, #333333, #666666, #f5f5f5, #ffffff
+- Typographie : font-family: 'Arial', 'Helvetica', sans-serif; corps 10-11pt
+- En-têtes (section-title) : background: #000000; color: #ffffff; padding: 8px 15px; text-transform: uppercase; letter-spacing: 0.5px
+- Tableaux : border-collapse: collapse; width: 100%; border: 1px solid #ddd; th background: #f5f5f5; th, td padding: 10px; border: 1px solid #ddd
+- Sections : margin: 30px 0; page-break-inside: avoid
+- Grilles : display: grid; grid-template-columns: 1fr 1fr; gap: 20px
+- Blocs de données : border: 1px solid #ddd; background: #fff; padding: 14px
+- Prix principal : font-size: 32pt; font-weight: 300; color: #000
 
-FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF
+STRUCTURE OBLIGATOIRE :
+1) En-tête corporate (logo/titre)
+2) Résumé exécutif encadré avec prix principal
+3) Analyse de marché détaillée (tableaux + graphiques si utile)
+4) Fourchette de prix en 3 colonnes (min/cible/max)
+5) Localisation et environnement (Google Maps intégré)
+6) Données DVF (tableau comparables)
+7) Analyse SWOT (2 colonnes)
+8) Conclusion encadrée + mentions légales
+
+FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF (WeasyPrint)
 STYLE : Sobre, institutionnel, sans couleurs vives
-STRUCTURE : Sections claires, données structurées, visuellement impeccable
 """
 
 def generate_complete_report_with_claude(form_data):
@@ -411,28 +418,50 @@ def generate_final_pdf_with_claude(form_data, sections_content, google_maps_html
     
     # Prompt avec vos exigences de design corporate
     corporate_prompt = f"""
-    Créez un rapport PDF professionnel en HTML avec CSS intégré en utilisant ce contenu analysé. N'OMETS AUCUNE SECTION. Intégrez le bloc HTML Google Maps tel quel, sans le modifier :
-    
-    {complete_content}
-    
-    DESIGN REQUIS :
-    - Style corporate minimaliste (noir/gris/blanc uniquement)
-    - Typographie sobre (Arial, spacing précis)
-    - Mise en page institutionnelle avec grilles parfaites
-    - Google Maps intégrée avec iframe
-    - Tableaux de données comparables DVF
-    - Sections structurées avec headers noirs
-    - Fourchette de prix en 3 colonnes
-    - Analyse SWOT professionnelle
-    - Conclusion encadrée
-    - Footer avec mentions légales
-    
-    FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF
-    STYLE : Sobre, institutionnel, sans couleurs vives
-    STRUCTURE : Sections claires, données structurées, visuellement impeccable
-    
-    Utilisez EXACTEMENT le contenu fourni ci-dessus, ne générez pas de nouveau contenu.
-    """
+Tu es un designer corporate expert. Transforme le contenu ci-dessous en un rapport HTML complet ultra-professionnel.
+
+CONTRAINTES MAJEURES (À RESPECTER STRICTEMENT) :
+1) UTILISE EXCLUSIVEMENT le contenu fourni (ne crée PAS de nouveau texte). N'OMETS AUCUNE SECTION.
+2) Intègre le bloc Google Maps TEL QUEL dans une section dédiée "Localisation et environnement".
+3) Applique le design institutionnel noir/gris/blanc détaillé ci-dessous.
+
+CONTENU À INTÉGRER OBLIGATOIREMENT (SECTIONS ANALYSÉES) :
+{sections_content}
+
+DONNÉES CLIENT À INCLURE (en-tête/couverture) :
+- Nom : {form_data.get('name', 'Non spécifié')}
+- Email : {form_data.get('email', 'Non spécifié')}
+- Téléphone : {form_data.get('phone', 'Non spécifié')}
+- Adresse : {form_data.get('address-line1', form_data.get('address', 'Non spécifié'))}
+- Ville : {form_data.get('city', 'Non spécifié')}
+- Secteur : {form_data.get('investment-sector', form_data.get('investment_sector', 'Non spécifié'))}
+- Budget : {form_data.get('budget', 'Non spécifié')}
+
+GOOGLE MAPS – BLOC HTML À INSÉRER TEL QUEL :
+{google_maps_html if google_maps_html else 'Aucune carte fournie'}
+
+DESIGN ULTRA-PROFESSIONNEL OBLIGATOIRE :
+- Structure HTML5 + CSS intégré
+- Palette UNIQUEMENT : #000000, #333333, #666666, #f5f5f5, #ffffff
+- body: font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a
+- .container: max-width: 210mm; margin: 0 auto; padding: 15mm
+- .section: margin: 30px 0; page-break-inside: avoid
+- .section-title: background: #000; color: #fff; padding: 8px 15px; text-transform: uppercase; letter-spacing: .5px
+- .grid-2: display: grid; grid-template-columns: 1fr 1fr; gap: 20px
+- .data-block: border: 1px solid #ddd; background: #fff; padding: 15px
+- table: border-collapse: collapse; width: 100%; font-size: 9pt
+- th, td: border: 1px solid #ddd; padding: 8px; text-align: left
+- th: background: #f5f5f5
+- .price-3col: display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px
+- .price-box: border: 2px solid #000; padding: 16px; text-align: center
+- .main-price: font-size: 32pt; font-weight: 300; color: #000
+
+INSTRUCTIONS STRICTES :
+- Conserve l'ordre et les titres de toutes les sections fournies
+- Applique UNIQUEMENT le style; ne modifie pas le contenu textuel
+- Place Google Maps dans la section localisation
+- Retourne un HTML COMPLET prêt pour conversion PDF (aucun markdown)
+"""
     
     try:
         response = client.messages.create(
@@ -511,8 +540,8 @@ def generate_report():
         
         if address and address != 'Non spécifié':
             logging.info(f"Génération de la carte pour l'adresse : {address}")
-            map_path = get_google_static_map(address, city, api_key)
-            street_view_path = get_street_view_image(address, city, api_key)
+        map_path = get_google_static_map(address, city, api_key)
+        street_view_path = get_street_view_image(address, city, api_key)
             google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
 
         # Générer chaque section avec VOS prompts
@@ -522,7 +551,7 @@ def generate_report():
             if section_name == "Analyse du marché":
                 section_prompt += f"\n\nUtilisez ces données de marché spécifiques pour {city} :\n{market_data}"
             elif section_name == "Facteurs locaux importants":
-                local_factors_prompt = process_local_factors(form_data)
+                    local_factors_prompt = process_local_factors(form_data)
                 section_prompt = f"{summary}{market_data_str}\n\nPour la section '{section_name}' : {local_factors_prompt}"
             
             # Utiliser VOS prompts excellents
@@ -559,8 +588,8 @@ def generate_report():
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
         if html_to_pdf(html_content, pdf_filename):
-            logging.info(f"Rapport généré avec succès : {pdf_filename}")
-            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
+        logging.info(f"Rapport généré avec succès : {pdf_filename}")
+        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
             # Forcer le téléchargement côté navigateur
             download_name = f"rapport_{name.replace(' ', '_')}.pdf"
             response = send_file(
