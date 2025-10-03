@@ -114,7 +114,9 @@ def html_to_pdf(html_content, output_path):
         """
         
         # Convertir en PDF
-        weasyprint.HTML(string=enhanced_html).write_pdf(output_path)
+        # Base URL pour que WeasyPrint résolve correctement les chemins d'images locaux
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        weasyprint.HTML(string=enhanced_html, base_url=base_dir).write_pdf(output_path)
         return True
         
     except Exception as e:
@@ -451,15 +453,15 @@ def generate_report():
 
         # VOS SECTIONS EXCELLENTES (gardées !)
         sections = [
-            ("Introduction", 200),
-            ("Contexte", 250),
-            ("Secteur d'investissement", 400),
-            ("Analyse du marché", 500),
-            ("Analyse du produit", 500),
-            ("Facteurs locaux importants", 500),
-            ("Évaluation des risques", 450),
-            ("Conclusion et recommandations", 500),
-            ("Analyse prédictive et argumentée", 500)
+            ("Introduction", 500),
+            ("Contexte", 700),
+            ("Secteur d'investissement", 900),
+            ("Analyse du marché", 1200),
+            ("Analyse du produit", 900),
+            ("Facteurs locaux importants", 900),
+            ("Évaluation des risques", 800),
+            ("Conclusion et recommandations", 800),
+            ("Analyse prédictive et argumentée", 1000)
         ]
 
         # Générer toutes les sections avec VOS prompts excellents
