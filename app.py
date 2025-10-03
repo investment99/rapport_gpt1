@@ -387,7 +387,7 @@ def get_street_view_image(address, city, api_key, width=600, height=400):
         logging.error(traceback.format_exc())
         return None
 
-def generate_final_pdf_with_claude(form_data, sections_content, google_maps_data=None):
+def generate_final_pdf_with_claude(form_data, sections_content, google_maps_html=None):
     """
     Utilise Claude pour assembler tous les contenus en PDF avec style corporate
     """
@@ -405,13 +405,13 @@ def generate_final_pdf_with_claude(form_data, sections_content, google_maps_data
     CONTENU DES SECTIONS ANALYSÉES :
     {sections_content}
     
-    CARTES GOOGLE MAPS :
-    {google_maps_data if google_maps_data else 'Données de localisation à intégrer'}
+    CARTES GOOGLE MAPS (bloc HTML prêt à insérer) :
+    {google_maps_html if google_maps_html else 'Aucun visuel Google Maps fourni'}
     """
     
     # Prompt avec vos exigences de design corporate
     corporate_prompt = f"""
-    Créez un rapport PDF professionnel en HTML avec CSS intégré en utilisant ce contenu analysé :
+    Créez un rapport PDF professionnel en HTML avec CSS intégré en utilisant ce contenu analysé. N'OMETS AUCUNE SECTION. Intégrez le bloc HTML Google Maps tel quel, sans le modifier :
     
     {complete_content}
     
@@ -437,7 +437,7 @@ def generate_final_pdf_with_claude(form_data, sections_content, google_maps_data
     try:
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=4000,
+            max_tokens=6000,
             messages=[{"role": "user", "content": corporate_prompt}]
         )
         
@@ -529,9 +529,28 @@ def generate_report():
             section_content = generate_section(client, section_prompt, max_tokens)
             sections_content += f"\n\n## {section_name}\n{section_content}\n"
             
+        # Construire un bloc Google Maps HTML (iframe + visuels) pour forcer l'inclusion
+        maps_block = ""
+        if google_maps_data:
+            maps_block = f"""
+            <section id=\"google-maps\" class=\"section\">
+              <h2>Localisation et environnement</h2>
+              <div class=\"maps-grid\">
+                <div class=\"map-item\">
+                  <h3>Carte</h3>
+                  <img src=\"{map_path}\" alt=\"Carte statique\" />
+                </div>
+                <div class=\"map-item\">
+                  <h3>Street View</h3>
+                  <img src=\"{street_view_path}\" alt=\"Street View\" />
+                </div>
+              </div>
+            </section>
+            """
+
         # Maintenant, Claude assemble tout en PDF corporate
         logging.info("Assemblage final avec Claude...")
-        html_content = generate_final_pdf_with_claude(form_data, sections_content, google_maps_data)
+        html_content = generate_final_pdf_with_claude(form_data, sections_content, maps_block)
         
         if not html_content:
             return jsonify({"error": "Erreur lors de l'assemblage final"}), 500
