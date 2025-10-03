@@ -511,8 +511,8 @@ def generate_report():
         
         if address and address != 'Non spécifié':
             logging.info(f"Génération de la carte pour l'adresse : {address}")
-            map_path = generate_static_map(address, api_key)
-            street_view_path = generate_street_view_image(address, api_key)
+        map_path = get_google_static_map(address, city, api_key)
+        street_view_path = get_street_view_image(address, city, api_key)
             google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
 
         # Générer chaque section avec VOS prompts
@@ -522,7 +522,7 @@ def generate_report():
             if section_name == "Analyse du marché":
                 section_prompt += f"\n\nUtilisez ces données de marché spécifiques pour {city} :\n{market_data}"
             elif section_name == "Facteurs locaux importants":
-                local_factors_prompt = process_local_factors(form_data)
+                    local_factors_prompt = process_local_factors(form_data)
                 section_prompt = f"{summary}{market_data_str}\n\nPour la section '{section_name}' : {local_factors_prompt}"
             
             # Utiliser VOS prompts excellents
@@ -540,9 +540,9 @@ def generate_report():
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
         if html_to_pdf(html_content, pdf_filename):
-            logging.info(f"Rapport généré avec succès : {pdf_filename}")
-            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
-            return send_file(pdf_filename, as_attachment=True)
+        logging.info(f"Rapport généré avec succès : {pdf_filename}")
+        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
+        return send_file(pdf_filename, as_attachment=True)
         else:
             return jsonify({"error": "Erreur lors de la conversion PDF"}), 500
             
