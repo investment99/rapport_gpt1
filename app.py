@@ -511,8 +511,8 @@ def generate_report():
         
         if address and address != 'Non spécifié':
             logging.info(f"Génération de la carte pour l'adresse : {address}")
-        map_path = get_google_static_map(address, city, api_key)
-        street_view_path = get_street_view_image(address, city, api_key)
+            map_path = get_google_static_map(address, city, api_key)
+            street_view_path = get_street_view_image(address, city, api_key)
             google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
 
         # Générer chaque section avec VOS prompts
