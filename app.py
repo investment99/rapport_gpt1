@@ -82,12 +82,7 @@ def html_to_pdf(html_content, output_path):
     """
     try:
         # Ajouter les Google Maps et améliorer le CSS si nécessaire
-        enhanced_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
+        css = """
                 @page { size: A4; margin: 15mm; }
                 body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; margin: 0; }
                 .section-title { background: #000; color: #fff; padding: 8px 15px; text-transform: uppercase; }
@@ -101,6 +96,15 @@ def html_to_pdf(html_content, output_path):
                 .maps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
                 .price-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
                 .price-box { border: 2px solid #000; padding: 16px; text-align: center; }
+        """
+
+        enhanced_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset=\"utf-8\">
+            <style>
+            {css}
             </style>
         </head>
         <body>
