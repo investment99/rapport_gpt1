@@ -515,8 +515,8 @@ def generate_report():
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
         if html_to_pdf(html_content, pdf_filename):
-        logging.info(f"Rapport généré avec succès : {pdf_filename}")
-        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
+            logging.info(f"Rapport généré avec succès : {pdf_filename}")
+            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
             download_name = f"rapport_{name.replace(' ', '_')}.pdf"
             response = send_file(
                 pdf_filename,
