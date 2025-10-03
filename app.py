@@ -142,38 +142,19 @@ def html_to_pdf(html_content, output_path):
         <head>
             <meta charset="utf-8">
             <style>
-                @page {{
-                    size: A4;
-                    margin: 2cm;
-                }}
-                body {{
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                }}
-                .corporate-header {{
-                    background: #000;
-                    color: white;
-                    padding: 20px;
-                    text-align: center;
-                }}
-                .section {{
-                    margin: 20px 0;
-                    page-break-inside: avoid;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 10px 0;
-                }}
-                th, td {{
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
-                }}
-                th {{
-                    background-color: #f5f5f5;
-                }}
+                @page { size: A4; margin: 15mm; }
+                body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; margin: 0; }
+                .section-title { background: #000; color: #fff; padding: 8px 15px; text-transform: uppercase; }
+                .executive-summary { border: 2px solid #000; padding: 20px; text-align: center; }
+                .main-price { font-size: 32pt; font-weight: 300; color: #000; }
+                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+                th { background: #f5f5f5; padding: 8px; border: 1px solid #ddd; }
+                td { padding: 8px; border: 1px solid #ddd; }
+                img { max-width: 100%; height: auto; display: block; }
+                .maps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                .price-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+                .price-box { border: 2px solid #000; padding: 16px; text-align: center; }
             </style>
         </head>
         <body>
@@ -540,8 +521,8 @@ def generate_report():
         
         if address and address != 'Non spécifié':
             logging.info(f"Génération de la carte pour l'adresse : {address}")
-        map_path = get_google_static_map(address, city, api_key)
-        street_view_path = get_street_view_image(address, city, api_key)
+            map_path = get_google_static_map(address, city, api_key)
+            street_view_path = get_street_view_image(address, city, api_key)
             google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
 
         # Générer chaque section avec VOS prompts
@@ -588,9 +569,8 @@ def generate_report():
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
         if html_to_pdf(html_content, pdf_filename):
-        logging.info(f"Rapport généré avec succès : {pdf_filename}")
-        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
-            # Forcer le téléchargement côté navigateur
+            logging.info(f"Rapport généré avec succès : {pdf_filename}")
+            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
             download_name = f"rapport_{name.replace(' ', '_')}.pdf"
             response = send_file(
                 pdf_filename,
