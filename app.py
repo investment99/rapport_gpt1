@@ -52,6 +52,14 @@ DESIGN ULTRA-PROFESSIONNEL REQUIS :
 - Blocs de données : border: 1px solid #ddd; background: #fff; padding: 14px
 - Prix principal : font-size: 32pt; font-weight: 300; color: #000
 
+ÉLÉMENTS DE DESIGN SPÉCIFIQUES À INCLURE :
+- En-tête : logo VALOREM + numéro de rapport + expert certifié (bloc supérieur aligné à droite)
+- Synthèse : prix principal en 32pt encadré noir
+- Tableaux DVF : 4-5 comparables + ligne "Notre estimation" en surbrillance
+- SWOT : 2 colonnes avec pictos ✅ et ⚠️
+- Prix : 3 colonnes (min/optimal/max) avec bordures noires épaisses
+- Footer : mentions légales + société d'expertise
+
 STRUCTURE OBLIGATOIRE :
 1) En-tête corporate (logo/titre)
 2) Résumé exécutif encadré avec prix principal
@@ -66,69 +74,7 @@ FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF (WeasyPrint)
 STYLE : Sobre, institutionnel, sans couleurs vives
 """
 
-def generate_complete_report_with_claude(form_data):
-    """
-    Génère un rapport complet avec Claude qui produit directement du HTML corporate
-    """
-    # Construire le prompt complet avec toutes les données du formulaire
-    complete_prompt = f"""
-    {CORPORATE_DESIGN_PROMPT}
-    
-    Générez un rapport immobilier professionnel complet en HTML avec CSS intégré pour les données suivantes :
-    
-    DONNÉES CLIENT :
-    - Nom : {form_data.get('name', 'Non spécifié')}
-    - Email : {form_data.get('email', 'Non spécifié')}
-    - Téléphone : {form_data.get('phone', 'Non spécifié')}
-    - Adresse : {form_data.get('address', 'Non spécifié')}
-    - Type d'investissement : {form_data.get('investment_type', 'Non spécifié')}
-    - Budget : {form_data.get('budget', 'Non spécifié')}
-    - Secteur : {form_data.get('investment_sector', 'Non spécifié')}
-    - Ville : {form_data.get('city', 'Non spécifié')}
-    
-    SECTIONS À INCLURE :
-    1. Page de couverture avec logo P&I Investment
-    2. Résumé exécutif
-    3. Analyse de marché détaillée
-    4. Estimation de bien avec données DVF
-    5. Facteurs locaux (transports, écoles, commerces)
-    6. Analyse SWOT
-    7. Recommandations d'investissement
-    8. Fourchette de prix en 3 colonnes
-    9. Conclusion professionnelle
-    10. Mentions légales
-    
-    INTÉGRATIONS REQUISES :
-    - Google Maps iframe pour la localisation
-    - Tableaux de données DVF comparatives
-    - Graphiques de tendances de prix
-    - Style corporate noir/gris/blanc uniquement
-    
-    Générez le HTML complet avec CSS intégré, prêt pour conversion PDF.
-    """
-    
-    try:
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4000,
-            messages=[
-                {"role": "user", "content": complete_prompt}
-            ]
-        )
-        
-        html_content = response.content[0].text
-        
-        # Extraire le HTML si Claude l'a mis dans des balises markdown
-        if "```html" in html_content:
-            html_content = html_content.split("```html")[1].split("```")[0]
-        elif "```" in html_content:
-            html_content = html_content.split("```")[1].split("```")[0]
-            
-        return html_content
-        
-    except Exception as e:
-        logging.error(f"Erreur lors de la génération avec Claude : {str(e)}")
-        return None
+# NOTE: Génération en une seule passe supprimée pour éviter toute confusion.
 
 def html_to_pdf(html_content, output_path):
     """
@@ -521,8 +467,8 @@ def generate_report():
         
         if address and address != 'Non spécifié':
             logging.info(f"Génération de la carte pour l'adresse : {address}")
-            map_path = get_google_static_map(address, city, api_key)
-            street_view_path = get_street_view_image(address, city, api_key)
+        map_path = get_google_static_map(address, city, api_key)
+        street_view_path = get_street_view_image(address, city, api_key)
             google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
 
         # Générer chaque section avec VOS prompts
@@ -569,8 +515,8 @@ def generate_report():
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
         if html_to_pdf(html_content, pdf_filename):
-            logging.info(f"Rapport généré avec succès : {pdf_filename}")
-            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
+        logging.info(f"Rapport généré avec succès : {pdf_filename}")
+        log_to_file(f"Rapport généré avec succès : {pdf_filename}")
             download_name = f"rapport_{name.replace(' ', '_')}.pdf"
             response = send_file(
                 pdf_filename,
