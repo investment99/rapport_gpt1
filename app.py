@@ -1,17 +1,12 @@
 from flask import Flask, request, send_file, jsonify, url_for
-from openai import OpenAI
+import anthropic
 import os
 import logging
 import ssl
 import unicodedata
 import re
 from flask_cors import CORS
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak, KeepTogether
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
-from reportlab.lib.units import inch, cm
-from PIL import Image as PILImage
+import weasyprint
 from datetime import datetime
 import tempfile
 import requests
@@ -33,15 +28,158 @@ def log_to_file(message):
 
 @app.route('/test_key', methods=['GET'])
 def test_key():
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("ANTHROPIC_API_KEY")
     if api_key:
-        return f"Key loaded successfully: {api_key[:6]}...hidden", 200
-    return "API key not found", 500
+        return f"Claude API Key loaded successfully: {api_key[:6]}...hidden", 200
+    return "Claude API key not found", 500
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 PDF_FOLDER = "./pdf_reports/"
 os.makedirs(PDF_FOLDER, exist_ok=True)
+
+# Prompt de design corporate pour Claude
+CORPORATE_DESIGN_PROMPT = """
+DESIGN REQUIS :
+- Style corporate minimaliste (noir/gris/blanc uniquement)
+- Typographie sobre (Arial, spacing précis)
+- Mise en page institutionnelle avec grilles parfaites
+- Google Maps intégrée avec iframe
+- Tableaux de données comparables DVF
+- Sections structurées avec headers noirs
+- Fourchette de prix en 3 colonnes
+- Analyse SWOT professionnelle
+- Conclusion encadrée
+- Footer avec mentions légales
+
+FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF
+STYLE : Sobre, institutionnel, sans couleurs vives
+STRUCTURE : Sections claires, données structurées, visuellement impeccable
+"""
+
+def generate_complete_report_with_claude(form_data):
+    """
+    Génère un rapport complet avec Claude qui produit directement du HTML corporate
+    """
+    # Construire le prompt complet avec toutes les données du formulaire
+    complete_prompt = f"""
+    {CORPORATE_DESIGN_PROMPT}
+    
+    Générez un rapport immobilier professionnel complet en HTML avec CSS intégré pour les données suivantes :
+    
+    DONNÉES CLIENT :
+    - Nom : {form_data.get('name', 'Non spécifié')}
+    - Email : {form_data.get('email', 'Non spécifié')}
+    - Téléphone : {form_data.get('phone', 'Non spécifié')}
+    - Adresse : {form_data.get('address', 'Non spécifié')}
+    - Type d'investissement : {form_data.get('investment_type', 'Non spécifié')}
+    - Budget : {form_data.get('budget', 'Non spécifié')}
+    - Secteur : {form_data.get('investment_sector', 'Non spécifié')}
+    - Ville : {form_data.get('city', 'Non spécifié')}
+    
+    SECTIONS À INCLURE :
+    1. Page de couverture avec logo P&I Investment
+    2. Résumé exécutif
+    3. Analyse de marché détaillée
+    4. Estimation de bien avec données DVF
+    5. Facteurs locaux (transports, écoles, commerces)
+    6. Analyse SWOT
+    7. Recommandations d'investissement
+    8. Fourchette de prix en 3 colonnes
+    9. Conclusion professionnelle
+    10. Mentions légales
+    
+    INTÉGRATIONS REQUISES :
+    - Google Maps iframe pour la localisation
+    - Tableaux de données DVF comparatives
+    - Graphiques de tendances de prix
+    - Style corporate noir/gris/blanc uniquement
+    
+    Générez le HTML complet avec CSS intégré, prêt pour conversion PDF.
+    """
+    
+    try:
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4000,
+            messages=[
+                {"role": "user", "content": complete_prompt}
+            ]
+        )
+        
+        html_content = response.content[0].text
+        
+        # Extraire le HTML si Claude l'a mis dans des balises markdown
+        if "```html" in html_content:
+            html_content = html_content.split("```html")[1].split("```")[0]
+        elif "```" in html_content:
+            html_content = html_content.split("```")[1].split("```")[0]
+            
+        return html_content
+        
+    except Exception as e:
+        logging.error(f"Erreur lors de la génération avec Claude : {str(e)}")
+        return None
+
+def html_to_pdf(html_content, output_path):
+    """
+    Convertit le HTML en PDF avec WeasyPrint
+    """
+    try:
+        # Ajouter les Google Maps et améliorer le CSS si nécessaire
+        enhanced_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                @page {{
+                    size: A4;
+                    margin: 2cm;
+                }}
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                }}
+                .corporate-header {{
+                    background: #000;
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+                .section {{
+                    margin: 20px 0;
+                    page-break-inside: avoid;
+                }}
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 10px 0;
+                }}
+                th, td {{
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }}
+                th {{
+                    background-color: #f5f5f5;
+                }}
+            </style>
+        </head>
+        <body>
+            {html_content}
+        </body>
+        </html>
+        """
+        
+        # Convertir en PDF
+        weasyprint.HTML(string=enhanced_html).write_pdf(output_path)
+        return True
+        
+    except Exception as e:
+        logging.error(f"Erreur lors de la conversion HTML vers PDF : {str(e)}")
+        return False
 
 def clean_text(text):
     # Conserver les caractères accentués
@@ -63,19 +201,11 @@ def clean_text(text):
 
 from markdown2 import markdown as md_to_html
 from bs4 import BeautifulSoup
-from reportlab.lib.pagesizes import A4
 
 def markdown_to_elements(md_text):
     elements = []
     # Conversion du Markdown en HTML avec support des tableaux
     html_content = md_to_html(md_text, extras=["tables"])
-    
-    # Correction des problèmes d'espaces entre les noms et les informations "À pied"
-    # Remplacer les occurrences problématiques comme "NomÀ pied" par "Nom À pied"
-    html_content = re.sub(r'(\w+)À pied', r'\1 À pied', html_content)
-    
-    soup = BeautifulSoup(html_content, "html.parser")
-    styles = getSampleStyleSheet()  # Récupère les styles par défaut de ReportLab
     
     # Créer des styles personnalisés pour la mise en page des facteurs locaux
     bold_style = ParagraphStyle(
@@ -235,19 +365,14 @@ def add_section_title(elements, title):
     elements.append(Spacer(1, 12))
 
 def generate_section(client, section_prompt, max_tokens=1700):
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels."},
-            {"role": "user", "content": section_prompt}
-        ],
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
         max_tokens=max_tokens,
-        temperature=0.7,
-        top_p=1,
-        frequency_penalty=0.3,  
-        presence_penalty=0.3,
+        messages=[
+            {"role": "user", "content": f"Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels.\n\n{section_prompt}"}
+        ]
     )
-    return markdown_to_elements(response.choices[0].message.content)
+    return response.content[0].text
 
 def generate_market_data(investment_sector, city):
     if investment_sector.lower() == "immobilier":
@@ -410,6 +535,85 @@ def get_street_view_image(address, city, api_key, width=600, height=400):
         logging.error(traceback.format_exc())
         return None
 
+def generate_final_pdf_with_claude(form_data, sections_content, google_maps_data=None):
+    """
+    Utilise Claude pour assembler tous les contenus en PDF avec style corporate
+    """
+    # Préparer le contenu complet
+    complete_content = f"""
+    DONNÉES CLIENT :
+    - Nom : {form_data.get('name', 'Non spécifié')}
+    - Email : {form_data.get('email', 'Non spécifié')}  
+    - Téléphone : {form_data.get('phone', 'Non spécifié')}
+    - Adresse : {form_data.get('address', 'Non spécifié')}
+    - Ville : {form_data.get('city', 'Non spécifié')}
+    - Secteur : {form_data.get('investment_sector', 'Non spécifié')}
+    - Budget : {form_data.get('budget', 'Non spécifié')}
+    
+    CONTENU DES SECTIONS ANALYSÉES :
+    {sections_content}
+    
+    CARTES GOOGLE MAPS :
+    {google_maps_data if google_maps_data else 'Données de localisation à intégrer'}
+    """
+    
+    # Prompt avec vos exigences de design corporate
+    corporate_prompt = f"""
+    Créez un rapport PDF professionnel en HTML avec CSS intégré en utilisant ce contenu analysé :
+    
+    {complete_content}
+    
+    DESIGN REQUIS :
+    - Style corporate minimaliste (noir/gris/blanc uniquement)
+    - Typographie sobre (Arial, spacing précis)
+    - Mise en page institutionnelle avec grilles parfaites
+    - Google Maps intégrée avec iframe
+    - Tableaux de données comparables DVF
+    - Sections structurées avec headers noirs
+    - Fourchette de prix en 3 colonnes
+    - Analyse SWOT professionnelle
+    - Conclusion encadrée
+    - Footer avec mentions légales
+    
+    FORMAT : HTML complet avec CSS intégré, prêt pour conversion PDF
+    STYLE : Sobre, institutionnel, sans couleurs vives
+    STRUCTURE : Sections claires, données structurées, visuellement impeccable
+    
+    Utilisez EXACTEMENT le contenu fourni ci-dessus, ne générez pas de nouveau contenu.
+    """
+    
+    try:
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4000,
+            messages=[{"role": "user", "content": corporate_prompt}]
+        )
+        
+        html_content = response.content[0].text
+        
+        # Extraire le HTML si nécessaire
+        if "```html" in html_content:
+            html_content = html_content.split("```html")[1].split("```")[0]
+        elif "```" in html_content:
+            html_content = html_content.split("```")[1].split("```")[0]
+            
+        return html_content
+        
+    except Exception as e:
+        logging.error(f"Erreur génération PDF final avec Claude : {str(e)}")
+        return None
+
+@app.route('/generate_report', methods=['POST'])
+def generate_report():
+    try:
+        logging.info("Requête reçue à /generate_report")
+        log_to_file("Début de la génération du rapport")
+        form_data = request.json
+        logging.debug(f"Données reçues : {form_data}")
+        log_to_file(f"Données du formulaire reçues : {form_data}")
+
+        name = form_data.get('name', 'Client')
+        
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
     try:
@@ -427,12 +631,11 @@ def generate_report():
         phone = form_data.get('phone', 'Non spécifié')
         city = form_data.get('city', 'Nice')
 
-        # Récupérer la langue choisie dans le formulaire (valeurs attendues : 'fr', 'en', 'es', 'de', 'ru', 'pt', 'zh', 'nl', 'ja', 'ar')
+        # Garder la langue (vos prompts existants)
         language = form_data.get('language', 'fr')
         language_mapping = {
             'fr': 'Français',
             'en': 'Anglais',
-            
         }
         language_name = language_mapping.get(language, 'Français')
 
@@ -445,20 +648,67 @@ def generate_report():
 
         market_data_str = f"\nDonnées spécifiques du marché :\n{market_data}\n"
 
+        # VOS SECTIONS EXCELLENTES (gardées !)
         sections = [
             ("Introduction", 200),
             ("Contexte", 250),
             ("Secteur d'investissement", 400),
             ("Analyse du marché", 500),
             ("Analyse du produit", 500),
-            ("Facteurs locaux importants", 500),  # Ajout d'une section dédiée aux facteurs locaux
+            ("Facteurs locaux importants", 500),
             ("Évaluation des risques", 450),
             ("Conclusion et recommandations", 500),
             ("Analyse prédictive et argumentée", 500)
         ]
 
+        # Générer toutes les sections avec VOS prompts excellents
+        sections_content = ""
+        
+        # Google Maps (gardé !)
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w")
+        google_maps_data = ""
+        
+        if address and address != 'Non spécifié':
+            logging.info(f"Génération de la carte pour l'adresse : {address}")
+            map_path = generate_static_map(address, api_key)
+            street_view_path = generate_street_view_image(address, api_key)
+            google_maps_data = f"Carte : {map_path}, Street View : {street_view_path}"
+
+        # Générer chaque section avec VOS prompts
+        for section_name, max_tokens in sections:
+            section_prompt = f"{summary}{market_data_str}\n\nPour la section '{section_name}' :"
+            
+            if section_name == "Analyse du marché":
+                section_prompt += f"\n\nUtilisez ces données de marché spécifiques pour {city} :\n{market_data}"
+            elif section_name == "Facteurs locaux importants":
+                local_factors_prompt = process_local_factors(form_data)
+                section_prompt = f"{summary}{market_data_str}\n\nPour la section '{section_name}' : {local_factors_prompt}"
+            
+            # Utiliser VOS prompts excellents
+            section_content = generate_section(client, section_prompt, max_tokens)
+            sections_content += f"\n\n## {section_name}\n{section_content}\n"
+            
+        # Maintenant, Claude assemble tout en PDF corporate
+        logging.info("Assemblage final avec Claude...")
+        html_content = generate_final_pdf_with_claude(form_data, sections_content, google_maps_data)
+        
+        if not html_content:
+            return jsonify({"error": "Erreur lors de l'assemblage final"}), 500
+        
+        # Convertir HTML en PDF
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
-        doc = SimpleDocTemplate(pdf_filename, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm, leftMargin=2*cm, rightMargin=2*cm)
+        
+        if html_to_pdf(html_content, pdf_filename):
+            logging.info(f"Rapport généré avec succès : {pdf_filename}")
+            log_to_file(f"Rapport généré avec succès : {pdf_filename}")
+            return send_file(pdf_filename, as_attachment=True)
+        else:
+            return jsonify({"error": "Erreur lors de la conversion PDF"}), 500
+            
+    except Exception as e:
+        logging.error(f"Erreur lors de la génération du rapport : {str(e)}")
+        log_to_file(f"Erreur lors de la génération du rapport : {str(e)}")
+        return jsonify({"error": f"Erreur lors de la génération du rapport : {str(e)}"}), 500
 
         elements = []
         styles = getSampleStyleSheet()
