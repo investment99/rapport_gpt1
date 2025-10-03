@@ -521,7 +521,7 @@ def generate_report():
             
             if section_name == "Analyse du marché":
                 section_prompt += f"\n\nUtilisez ces données de marché spécifiques pour {city} :\n{market_data}"
-            el            if section_name == "Facteurs locaux importants":
+            elif section_name == "Facteurs locaux importants":
                 local_factors_prompt = process_local_factors(form_data)
                 section_prompt = f"{summary}{market_data_str}\n\nPour la section '{section_name}' : {local_factors_prompt}"
             
