@@ -102,7 +102,7 @@ def generate_complete_report_with_claude(form_data):
     
     try:
         response = client.messages.create(
-            model="claude-3-5-sonnet-20240620",
+            model="claude-sonnet-4-20250514",
             max_tokens=4000,
             messages=[
                 {"role": "user", "content": complete_prompt}
@@ -218,7 +218,7 @@ def add_section_title(elements, title):
 
 def generate_section(client, section_prompt, max_tokens=1700):
     response = client.messages.create(
-        model="claude-3-5-sonnet-20240620",
+        model="claude-sonnet-4-20250514",
         max_tokens=max_tokens,
         messages=[
             {"role": "user", "content": f"Vous êtes un expert de renommée mondiale en analyse financière et immobilière, spécialisé dans l'immobilier résidentiel et commercial. En tant qu'expert, votre tâche est de générer un rapport détaillé et professionnel intégrant des données chiffrées comme le prix moyen au mètre carré, l'évolution des prix sur plusieurs années ou encore le rendement locatif. Fournissez des analyses spécifiques comme l'impact des établissements scolaires, la qualité des infrastructures disponibles, et tout autre élément pertinent. Incluez des tableaux et graphiques pour une représentation visuelle des données ainsi que des recommandations de quartiers adaptées aux critères du client et aux objectifs qu'il souhaite atteindre. Analysez les tendances du marché et prévoyez les évolutions à moyen et long terme. Le rapport devra être rigoureusement adapté aux critères spécifiques du client et aux caractéristiques locales de la ville ou du bien mentionné tout en adoptant un style clair, précis et professionnel démontrant une parfaite maîtrise des enjeux économiques et sectoriels.\n\n{section_prompt}"}
@@ -436,7 +436,7 @@ def generate_final_pdf_with_claude(form_data, sections_content, google_maps_data
     
     try:
         response = client.messages.create(
-            model="claude-3-5-sonnet-20240620",
+            model="claude-sonnet-4-20250514",
             max_tokens=4000,
             messages=[{"role": "user", "content": corporate_prompt}]
         )
