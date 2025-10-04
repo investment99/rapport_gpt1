@@ -264,6 +264,8 @@ def get_default_market_data_enhanced(city, quartier):
         ],
         "sources": ["Estimation basée sur données nationales"]
     }
+
+def get_google_maps_data(address, city, factors):
     """Récupère les données depuis Google Maps API"""
     api_key = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w")
     full_address = f"{address}, {city}, France"
@@ -614,8 +616,14 @@ def get_street_view_image(address, city, api_key, width=500, height=300):
     
     return None
 
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
+    # Si c'est un GET, retourner un message d'accueil
+    if request.method == 'GET':
+        return "API de génération de rapports immobiliers avec Claude - Prête!"
+    
+    # Si c'est un POST, générer le rapport
     try:
         form_data = request.json
         logging.info(f"Génération du rapport pour: {form_data.get('name', 'Client')}")
@@ -758,9 +766,6 @@ def generate_report():
         logging.error(f"Erreur: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/', methods=['GET'])
-def home():
-    return "API de génération de rapports immobiliers avec Claude - Prête!"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
