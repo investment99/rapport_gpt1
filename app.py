@@ -45,7 +45,7 @@ def get_google_static_map(address, city, api_key):
             return os.path.abspath(map_path)
     except Exception as e:
         logging.error(f"Erreur carte: {e}")
-    return None
+        return None
 
 def get_street_view_image(address, city, api_key):
     """Génère et télécharge une image Street View"""
@@ -72,7 +72,7 @@ def get_street_view_image(address, city, api_key):
             return os.path.abspath(sv_path)
     except Exception as e:
         logging.error(f"Erreur Street View: {e}")
-    return None
+        return None
 
 def get_google_places_data(address, city, factors, api_key):
     """Récupère les données Google Places pour les facteurs locaux"""
@@ -100,7 +100,7 @@ def get_google_places_data(address, city, factors, api_key):
         for factor in factors:
             if factor not in factor_mapping:
                 continue
-            
+                
             results[factor] = []
             
             for place_type in factor_mapping[factor]:
@@ -175,12 +175,24 @@ Date: {datetime.now().strftime('%d/%m/%Y')}
 Facteurs locaux demandés: {', '.join(local_factors) if local_factors else 'Aucun'}
 
 ═══════════════════════════════════════════════════════
-🗺️ DONNÉES GOOGLE MAPS À INTÉGRER
+🗺️ DONNÉES GOOGLE MAPS À INTÉGRER **EN HAUT DU RAPPORT**
 ═══════════════════════════════════════════════════════
-Carte: {map_html}
-Street View: {street_view_html}
+⚠️ IMPORTANT : Les cartes Google Maps doivent apparaître IMMÉDIATEMENT après les informations client et AVANT la section 1 (Introduction) !
 
-Données lieux à proximité:
+Utilise ce HTML EXACTEMENT (après le bloc .client-info et AVANT la section 1) :
+
+<div class="maps-container">
+  <div class="map-box">
+    <h3>Localisation</h3>
+    {map_html}
+  </div>
+  <div class="map-box">
+    <h3>Vue de la rue</h3>
+    {street_view_html}
+  </div>
+</div>
+
+Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
 {places_formatted if places_formatted else 'Aucune donnée de proximité disponible'}
 
 ═══════════════════════════════════════════════════════
@@ -210,8 +222,21 @@ Données lieux à proximité:
      | 2023  | 9 950€        | +5.9%     |
      | 2024  | 10 500€       | +5.5%     |
      | 2025  | 11 000€       | +4.8%     |
+   - **AJOUTE UN GRAPHIQUE ASCII** dans un bloc .chart-container :
+     <div class="chart-container">
+       <div class="chart-title">Évolution des prix (2020-2025)</div>
+       <pre style="font-family: monospace; font-size: 9pt; line-height: 1.2;">
+       11000€ ┤                                    ●
+       10500€ ┤                            ●
+       9950€  ┤                    ●
+       9400€  ┤            ●
+       8950€  ┤    ●
+       8500€  ┤●
+              └────────────────────────────────────
+               2020 2021 2022 2023 2024 2025
+       </pre>
+     </div>
    - Rendement locatif moyen
-   - Graphique ASCII d'évolution (optionnel)
 
 4. **ANALYSE DU MARCHÉ** (800+ mots)
    - Comparaison des quartiers de {city} avec TABLEAU:
@@ -271,7 +296,8 @@ Données lieux à proximité:
      | 2028  | 12 700€       | +5.0%     | 4.1%      |
      | 2029  | 13 350€       | +5.1%     | 4.2%      |
      | 2030  | 14 000€       | +4.9%     | 4.3%      |
-   - Scénarios optimiste/réaliste/pessimiste
+   - **AJOUTE UN GRAPHIQUE ASCII** de projection dans un bloc .chart-container
+   - Scénarios optimiste/réaliste/pessimiste avec bloc .data-highlight
    - Meilleur type de bien pour investissement locatif
 
 ═══════════════════════════════════════════════════════
@@ -333,6 +359,8 @@ body {{
     letter-spacing: 1px;
     margin: 30px 0 20px 0;
     border-left: 6px solid #3b82f6;
+    page-break-before: always;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }}
 
 .section-content {{
@@ -345,6 +373,7 @@ table {{
     border-collapse: collapse;
     margin: 20px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    page-break-inside: avoid;
 }}
 
 th {{
@@ -426,6 +455,42 @@ tr:nth-child(even) td {{
     margin: 20px 0;
 }}
 
+.chart-container {{
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 30px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}}
+
+.chart-title {{
+    color: #1e40af;
+    font-size: 14pt;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+}}
+
+.section-content {{
+    padding: 0 10px;
+    margin-bottom: 30px;
+}}
+
+.section-content p {{
+    text-align: justify;
+    line-height: 1.8;
+}}
+
+.data-highlight {{
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-left: 4px solid #0ea5e9;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}}
+
 ═══════════════════════════════════════════════════════
 ⚠️ INSTRUCTIONS CRITIQUES
 ═══════════════════════════════════════════════════════
@@ -450,6 +515,14 @@ tr:nth-child(even) td {{
 8. Les tableaux doivent être en HTML <table>
 
 9. INTÈGRE les données Google Places dans la section Facteurs locaux
+
+10. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
+
+11. **AJOUTE DES GRAPHIQUES ASCII** dans les sections 3 et 9 avec la classe .chart-container
+
+12. Utilise la classe .data-highlight pour mettre en valeur les données importantes
+
+13. Texte justifié avec line-height: 1.8 pour un rendu pro
 
 Génère maintenant le HTML complet:"""
 
