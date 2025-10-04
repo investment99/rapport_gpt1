@@ -82,20 +82,57 @@ def html_to_pdf(html_content, output_path):
     """
     try:
         # Ajouter les Google Maps et améliorer le CSS si nécessaire
-        css = """
-                @page { size: A4; margin: 15mm; }
-                body { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; margin: 0; }
-                .section-title { background: #000; color: #fff; padding: 8px 15px; text-transform: uppercase; }
-                .executive-summary { border: 2px solid #000; padding: 20px; text-align: center; }
-                .main-price { font-size: 32pt; font-weight: 300; color: #000; }
-                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-                th { background: #f5f5f5; padding: 8px; border: 1px solid #ddd; }
-                td { padding: 8px; border: 1px solid #ddd; }
-                img { max-width: 100%; height: auto; display: block; }
-                .maps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-                .price-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-                .price-box { border: 2px solid #000; padding: 16px; text-align: center; }
+        corporate_css = """
+        @page { size: A4; margin: 10mm; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #1a1a1a;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .container { max-width: none; margin: 0 auto; padding: 0; }
+
+        .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .logo-section h1 { color: #000; font-size: 24pt; font-weight: 300; letter-spacing: 2px; margin: 0; }
+        .logo-section .subtitle { color: #333; font-size: 10pt; margin-top: 4px; }
+        .report-info { text-align: right; font-size: 9pt; color: #333; }
+
+        .property-header { background: #f8f8f8; border: 1px solid #ddd; padding: 20px; margin: 20px 0; text-align: center; }
+
+        .executive-summary { border: 2px solid #000; padding: 25px; text-align: center; margin: 25px 0; }
+        .main-price { font-size: 32pt; font-weight: 300; color: #000; margin-bottom: 10px; }
+
+        .section-title { background: #000; color: #fff; padding: 8px 15px; font-size: 11pt; font-weight: 500; text-transform: uppercase; margin: 25px 0 15px 0; letter-spacing: 0.5px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0; }
+        .data-block { border: 1px solid #ddd; background: #fff; padding: 15px; }
+        .data-block-header { background: #f5f5f5; padding: 10px 15px; font-weight: 600; border-bottom: 1px solid #ddd; margin: -15px -15px 15px -15px; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10pt; }
+        th { background: #f5f5f5; color: #333; padding: 10px 8px; text-align: left; font-weight: 600; border: 1px solid #ddd; }
+        td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+        .highlight-row { background: #e8e8e8; font-weight: 600; }
+
+        .price-range { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .price-box { text-align: center; padding: 20px 10px; border: 2px solid #000; background: #fff; }
+        .price-box.optimal { background: #f8f8f8; }
+
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+
+        .maps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        img { max-width: 100%; height: auto; display: block; }
+
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 9pt; color: #666; text-align: center; }
         """
 
         enhanced_html = f"""
@@ -103,12 +140,11 @@ def html_to_pdf(html_content, output_path):
         <html>
         <head>
             <meta charset=\"utf-8\">
-            <style>
-            {css}
-            </style>
+            <style>{corporate_css}</style>
         </head>
         <body>
-            {html_content}
+            <div class=\"container\">{html_content}</div>
+            <div class=\"footer\">Rapport généré par P&I Investment — Mentions légales disponibles sur demande</div>
         </body>
         </html>
         """
@@ -373,23 +409,17 @@ DONNÉES CLIENT À INCLURE (en-tête/couverture) :
 GOOGLE MAPS – BLOC HTML À INSÉRER TEL QUEL :
 {google_maps_html if google_maps_html else 'Aucune carte fournie'}
 
-DESIGN ULTRA-PROFESSIONNEL OBLIGATOIRE :
-- Structure HTML5 + CSS intégré
-- Palette UNIQUEMENT : #000000, #333333, #666666, #f5f5f5, #ffffff
-- body: font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a
-- .container: max-width: 210mm; margin: 0 auto; padding: 15mm
-- .section: margin: 30px 0; page-break-inside: avoid
-- .section-title: background: #000; color: #fff; padding: 8px 15px; text-transform: uppercase; letter-spacing: .5px
-- .grid-2: display: grid; grid-template-columns: 1fr 1fr; gap: 20px
-- .data-block: border: 1px solid #ddd; background: #fff; padding: 15px
-- table: border-collapse: collapse; width: 100%; font-size: 9pt
-- th, td: border: 1px solid #ddd; padding: 8px; text-align: left
-- th: background: #f5f5f5
-- .price-3col: display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px
-- .price-box: border: 2px solid #000; padding: 16px; text-align: center
-- .main-price: font-size: 32pt; font-weight: 300; color: #000
+DESIGN ULTRA-PROFESSIONNEL OBLIGATOIRE (UTILISE ces classes CSS):
+- Header corporate (classes: header, logo-section, report-info)
+- Synthèse (classes: executive-summary, main-price)
+- Tableaux DVF (ligne .highlight-row pour "Notre estimation")
+- Fourchette de prix (classes: price-range, price-box, price-box optimal)
+- SWOT (classes: analysis-grid, data-block, data-block-header)
+- Section titres (class: section-title)
+- Container (class: container)
 
 INSTRUCTIONS STRICTES :
+- Reproduis la structure: Header → Synthèse → DVF → Fourchette prix → SWOT → Sections fournies → Localisation (Google Maps)
 - Conserve l'ordre et les titres de toutes les sections fournies
 - Applique UNIQUEMENT le style; ne modifie pas le contenu textuel
 - Place Google Maps dans la section localisation
@@ -494,17 +524,21 @@ def generate_report():
         # Construire un bloc Google Maps HTML (iframe + visuels) pour forcer l'inclusion
         maps_block = ""
         if google_maps_data:
+            abs_map = os.path.abspath(map_path) if map_path else None
+            abs_sv = os.path.abspath(street_view_path) if street_view_path else None
+            img_map_src = f"file://{abs_map}" if abs_map else ""
+            img_sv_src = f"file://{abs_sv}" if abs_sv else ""
             maps_block = f"""
             <section id=\"google-maps\" class=\"section\">
               <h2>Localisation et environnement</h2>
               <div class=\"maps-grid\">
                 <div class=\"map-item\">
                   <h3>Carte</h3>
-                  <img src=\"{map_path}\" alt=\"Carte statique\" />
+                  {f'<img src="{img_map_src}" alt="Carte statique" />' if img_map_src else '<div class="map-missing">Carte non disponible</div>'}
                 </div>
                 <div class=\"map-item\">
                   <h3>Street View</h3>
-                  <img src=\"{street_view_path}\" alt=\"Street View\" />
+                  {f'<img src="{img_sv_src}" alt="Street View" />' if img_sv_src else '<div class="sv-missing">Street View non disponible</div>'}
                 </div>
               </div>
             </section>
@@ -517,6 +551,10 @@ def generate_report():
         if not html_content:
             return jsonify({"error": "Erreur lors de l'assemblage final"}), 500
         
+        # Si Claude n'a pas inséré le bloc Google Maps, l'ajouter nous-mêmes
+        if maps_block and 'id="google-maps"' not in html_content:
+            html_content = f"{html_content}\n{maps_block}"
+
         # Convertir HTML en PDF
         pdf_filename = os.path.join(PDF_FOLDER, f"rapport_{name.replace(' ', '_')}.pdf")
         
