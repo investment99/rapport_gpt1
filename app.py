@@ -646,7 +646,8 @@ def generate_interactive_report():
             full_address, 
             client_name, 
             budget,
-            analysis_date
+            analysis_date,
+            google_api_key
         )
         
         if not html_content:
@@ -660,7 +661,7 @@ def generate_interactive_report():
         logging.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
-def generate_interactive_html_with_claude(form_data, full_address, client_name, budget, analysis_date):
+def generate_interactive_html_with_claude(form_data, full_address, client_name, budget, analysis_date, google_api_key):
     """Génère un rapport HTML interactif avec Claude"""
     
     client_name = form_data.get('name', 'Client')
