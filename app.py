@@ -136,6 +136,7 @@ def generate_report():
         address = form_data.get('address-line1', 'Non spécifié')
         email = form_data.get('agency-email', 'Non spécifié')
         phone = form_data.get('phone', 'Non spécifié')
+        budget = form_data.get('budget-ideal', 'Non spécifié')
         local_factors = form_data.get('localFactors', [])
         
         # Google Maps
@@ -250,6 +251,13 @@ Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
    - Tendances actuelles du marché
 
 5. **ANALYSE DU PRODUIT** (700+ mots)
+   - **AJOUTE UNE GRILLE KPI** au début avec 4 cartes sur une ligne :
+     <div class="kpi-grid">
+       <div class="kpi-card"><div class="kpi-label">Prix d'acquisition estimé</div><div class="kpi-value">840K€</div></div>
+       <div class="kpi-card"><div class="kpi-label">Surface habitable</div><div class="kpi-value">80 m²</div></div>
+       <div class="kpi-card"><div class="kpi-label">Prix au m²</div><div class="kpi-value">10 500€</div></div>
+       <div class="kpi-card"><div class="kpi-label">Rendement locatif brut</div><div class="kpi-value">4.1%</div></div>
+     </div>
    - Caractéristiques du bien au {address}
    - Estimation de valeur avec TABLEAU comparatif:
      | Critère | Bien analysé | Moyenne quartier | Écart |
@@ -439,6 +447,38 @@ tr:nth-child(even) td {{
 .swot-box.opportunites {{ border-left: 4px solid #3b82f6; }}
 .swot-box.menaces {{ border-left: 4px solid #f59e0b; }}
 
+.kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 25px 0;
+    page-break-inside: avoid;
+}}
+
+.kpi-card {{
+    background: white;
+    border-left: 3px solid #3b82f6;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}}
+
+.kpi-label {{
+    font-size: 8pt;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}}
+
+.kpi-value {{
+    font-size: 22pt;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.2;
+}}
+
 .footer {{
     margin-top: 50px;
     padding-top: 20px;
@@ -462,6 +502,7 @@ tr:nth-child(even) td {{
     padding: 20px;
     margin: 30px 0;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    page-break-inside: avoid;
 }}
 
 .chart-title {{
@@ -530,7 +571,7 @@ Génère maintenant le HTML complet:"""
         
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=16000,
+            max_tokens=20000,
             temperature=0.5,
             messages=[{"role": "user", "content": mega_prompt}]
         )
