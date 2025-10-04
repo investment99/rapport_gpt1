@@ -130,13 +130,12 @@ def generate_report():
     try:
         form_data = request.json
         logging.info(f"Génération du rapport pour: {form_data.get('name', 'Client')}")
-
+        
         name = form_data.get('name', 'Client')
         city = form_data.get('city', 'Nice')
         address = form_data.get('address-line1', 'Non spécifié')
         email = form_data.get('agency-email', 'Non spécifié')
         phone = form_data.get('phone', 'Non spécifié')
-        budget = form_data.get('budget-ideal', 'Non spécifié')
         local_factors = form_data.get('localFactors', [])
         
         # Google Maps
@@ -186,12 +185,12 @@ Utilise ce HTML EXACTEMENT (après le bloc .client-info et AVANT la section 1) :
   <div class="map-box">
     <h3>Localisation</h3>
     {map_html}
-                </div>
+  </div>
   <div class="map-box">
     <h3>Vue de la rue</h3>
     {street_view_html}
-                </div>
-              </div>
+  </div>
+</div>
 
 Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
 {places_formatted if places_formatted else 'Aucune donnée de proximité disponible'}
@@ -223,17 +222,19 @@ Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
      | 2023  | 9 950€        | +5.9%     |
      | 2024  | 10 500€       | +5.5%     |
      | 2025  | 11 000€       | +4.8%     |
-   - **AJOUTE UN GRAPHIQUE EN BARRES HTML** dans un bloc .chart-container :
+   - **AJOUTE UN GRAPHIQUE ASCII** dans un bloc .chart-container :
      <div class="chart-container">
        <div class="chart-title">Évolution des prix (2020-2025)</div>
-       <div class="bar-chart">
-         <div class="bar" style="height: 40%;"><span class="bar-value">8 500€</span><span class="bar-label">2020</span></div>
-         <div class="bar" style="height: 50%;"><span class="bar-value">8 950€</span><span class="bar-label">2021</span></div>
-         <div class="bar" style="height: 60%;"><span class="bar-value">9 400€</span><span class="bar-label">2022</span></div>
-         <div class="bar" style="height: 75%;"><span class="bar-value">9 950€</span><span class="bar-label">2023</span></div>
-         <div class="bar" style="height: 90%;"><span class="bar-value">10 500€</span><span class="bar-label">2024</span></div>
-         <div class="bar" style="height: 100%;"><span class="bar-value">11 000€</span><span class="bar-label">2025</span></div>
-       </div>
+       <pre style="font-family: monospace; font-size: 9pt; line-height: 1.2;">
+       11000€ ┤                                    ●
+       10500€ ┤                            ●
+       9950€  ┤                    ●
+       9400€  ┤            ●
+       8950€  ┤    ●
+       8500€  ┤●
+              └────────────────────────────────────
+               2020 2021 2022 2023 2024 2025
+       </pre>
      </div>
    - Rendement locatif moyen
 
@@ -295,14 +296,7 @@ Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
      | 2028  | 12 700€       | +5.0%     | 4.1%      |
      | 2029  | 13 350€       | +5.1%     | 4.2%      |
      | 2030  | 14 000€       | +4.9%     | 4.3%      |
-   - **AJOUTE UN GRAPHIQUE EN BARRES** de projection (même format que section 3)
-   - **AJOUTE UNE GRILLE KPI** avec .kpi-grid pour montrer les chiffres clés :
-     <div class="kpi-grid">
-       <div class="kpi-card"><div class="kpi-label">Prix d'acquisition</div><div class="kpi-value">950K€</div></div>
-       <div class="kpi-card"><div class="kpi-label">Frais notaire (8%)</div><div class="kpi-value">75K€</div></div>
-       <div class="kpi-card"><div class="kpi-label">Investissement total</div><div class="kpi-value">1 025K€</div></div>
-       <div class="kpi-card"><div class="kpi-label">Loyer mensuel estimé</div><div class="kpi-value">2 000€</div></div>
-     </div>
+   - **AJOUTE UN GRAPHIQUE ASCII** de projection dans un bloc .chart-container
    - Scénarios optimiste/réaliste/pessimiste avec bloc .data-highlight
    - Meilleur type de bien pour investissement locatif
 
@@ -314,115 +308,32 @@ CSS À INTÉGRER DANS <style>:
 
 @page {{
     size: A4;
-    margin: 10mm;
+    margin: 15mm;
 }}
 
 body {{
     font-family: 'Arial', 'Helvetica', sans-serif;
-    font-size: 10pt;
-    line-height: 1.5;
+    font-size: 11pt;
+    line-height: 1.6;
     color: #1a1a1a;
     margin: 0;
-    padding: 0;
-    max-width: 100%;
+    padding: 20px;
 }}
 
-.cover-page {{
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 40px 30px;
-    page-break-after: always;
-    background: white;
-}}
-
-.cover-header {{
-    text-align: left;
-    margin-bottom: 30px;
-}}
-
-.cover-logo {{
-    font-size: 10pt;
-    color: #3b82f6;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 40px;
-}}
-
-.cover-title {{
-    font-size: 48pt;
-    font-weight: 900;
-    line-height: 1.1;
-    margin: 0;
-    background: linear-gradient(135deg, #1e293b 0%, #3b82f6 50%, #60a5fa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}}
-
-.cover-subtitle {{
-    font-size: 14pt;
-    color: #64748b;
-    margin-top: 15px;
-    font-weight: 400;
-}}
-
-.cover-info-grid {{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    margin: 30px 0;
-}}
-
-.cover-info-box {{
-    border-left: 2px solid #3b82f6;
-    padding-left: 15px;
-}}
-
-.cover-info-label {{
-    font-size: 10pt;
-    text-transform: uppercase;
-    color: #94a3b8;
-    letter-spacing: 2px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}}
-
-.cover-info-value {{
-    font-size: 20pt;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1.3;
-}}
-
-.cover-maps {{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin: 30px 0;
-}}
-
-.cover-map-box {{
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 15px;
+.header {{
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 30px;
     text-align: center;
-    background: white;
+    margin-bottom: 30px;
+    border-radius: 8px;
 }}
 
-.cover-map-box h3 {{
-    color: #1e40af;
-    font-size: 12pt;
-    margin: 0 0 10px 0;
-}}
-
-.cover-date {{
-    text-align: right;
-    color: #94a3b8;
-    font-size: 10pt;
-    margin-top: 20px;
+.header h1 {{
+    margin: 0;
+    font-size: 28pt;
+    font-weight: 300;
+    letter-spacing: 2px;
 }}
 
 .header .subtitle {{
@@ -439,14 +350,17 @@ body {{
 }}
 
 .section-title {{
-    color: #3b82f6;
-    font-size: 42pt;
-    font-weight: 800;
-    letter-spacing: -1px;
-    margin: 50px 0 40px 0;
+    background: #1e293b;
+    color: white;
+    padding: 12px 20px;
+    font-size: 16pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 30px 0 20px 0;
+    border-left: 6px solid #3b82f6;
     page-break-before: always;
-    text-align: left;
-    line-height: 1.2;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }}
 
 .section-content {{
@@ -457,23 +371,22 @@ body {{
 table {{
     width: 100%;
     border-collapse: collapse;
-    margin: 15px 0;
+    margin: 20px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     page-break-inside: avoid;
-    font-size: 9pt;
 }}
 
 th {{
     background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
     color: white;
-    padding: 10px 8px;
+    padding: 14px 12px;
     text-align: left;
     font-weight: 600;
-    font-size: 9pt;
+    font-size: 10pt;
 }}
 
 td {{
-    padding: 8px 6px;
+    padding: 12px;
     border: 1px solid #e2e8f0;
     background: white;
 }}
@@ -545,88 +458,18 @@ tr:nth-child(even) td {{
 .chart-container {{
     background: white;
     border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 30px;
+    border-radius: 8px;
+    padding: 20px;
     margin: 30px 0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }}
 
 .chart-title {{
     color: #1e40af;
-    font-size: 18pt;
-    font-weight: 700;
-    margin-bottom: 25px;
+    font-size: 14pt;
+    font-weight: 600;
+    margin-bottom: 15px;
     text-align: center;
-    letter-spacing: 0.5px;
-}}
-
-.bar-chart {{
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-around;
-    height: 180px;
-    margin: 20px 0;
-    border-bottom: 2px solid #cbd5e1;
-    padding: 20px 0;
-    page-break-inside: avoid;
-}}
-
-.bar {{
-    background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
-    width: 60px;
-    border-radius: 6px 6px 0 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
-}}
-
-.bar-value {{
-    position: absolute;
-    top: -30px;
-    font-size: 11pt;
-    font-weight: 700;
-    color: #1e40af;
-}}
-
-.bar-label {{
-    position: absolute;
-    bottom: -30px;
-    font-size: 10pt;
-    color: #64748b;
-    font-weight: 600;
-}}
-
-.kpi-grid {{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin: 30px 0;
-}}
-
-.kpi-card {{
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-    border-left: 4px solid #3b82f6;
-    border-radius: 8px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}}
-
-.kpi-value {{
-    font-size: 36pt;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 10px 0;
-    letter-spacing: -1px;
-}}
-
-.kpi-label {{
-    font-size: 10pt;
-    text-transform: uppercase;
-    color: #64748b;
-    font-weight: 600;
-    letter-spacing: 1px;
 }}
 
 .section-content {{
@@ -637,17 +480,6 @@ tr:nth-child(even) td {{
 .section-content p {{
     text-align: justify;
     line-height: 1.8;
-}}
-
-.section-subtitle {{
-    color: #1e40af;
-    font-size: 22pt;
-    font-weight: 700;
-    margin: 30px 0 20px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 3px solid #3b82f6;
-    padding-bottom: 10px;
 }}
 
 .data-highlight {{
@@ -668,73 +500,29 @@ tr:nth-child(even) td {{
    - <html><head> avec <style> intégré
    - <body> avec TOUT le contenu
 
-2. **PAGE DE COUVERTURE EN PREMIER** (fond blanc, tout sur 1 page!) :
-   <div class="cover-page">
-     <div class="cover-header">
-       <div class="cover-logo">IMMOBILIER ANALYTICS</div>
-       <h1 class="cover-title">RAPPORT D'ANALYSE<br>IMMOBILIER</h1>
-       <p class="cover-subtitle">Expertise Professionnelle - Analyse Complète du Marché</p>
-     </div>
-     <div class="cover-info-grid">
-       <div class="cover-info-box">
-         <div class="cover-info-label">CLIENT</div>
-         <div class="cover-info-value">{name}</div>
-       </div>
-       <div class="cover-info-box">
-         <div class="cover-info-label">BIEN</div>
-         <div class="cover-info-value">{address}, {city}</div>
-       </div>
-       <div class="cover-info-box">
-         <div class="cover-info-label">BUDGET</div>
-         <div class="cover-info-value">{budget} €</div>
-       </div>
-     </div>
-     <div class="cover-maps">
-       <div class="cover-map-box">
-         <h3>Localisation</h3>
-         {map_html}
-       </div>
-       <div class="cover-map-box">
-         <h3>Vue de la rue</h3>
-         {street_view_html}
-       </div>
-     </div>
-     <div class="cover-date">{datetime.now().strftime('%B %Y')}</div>
-   </div>
+2. INTÈGRE les images Google Maps avec les balises fournies ci-dessus
 
-3. Les sections 1-9 commencent à partir de la PAGE 2
+3. Génère TOUS les tableaux demandés avec des données réalistes
 
-4. Génère TOUS les tableaux demandés avec des données réalistes
+4. Les 9 sections DOIVENT être complètes et détaillées (pas de résumé!)
 
-5. Les 9 sections DOIVENT être complètes et détaillées (pas de résumé!)
+5. Utilise le design corporate fourni (bleu #1e40af, #3b82f6)
 
-6. Utilise le design corporate fourni (bleu #1e40af, #3b82f6)
+6. Ajoute un footer avec: "© {datetime.now().year} P&I Investment - Rapport confidentiel"
 
-7. Ajoute un footer avec: "© {datetime.now().year} P&I Investment - Rapport confidentiel"
+7. N'utilise PAS de markdown, UNIQUEMENT du HTML pur
 
-8. N'utilise PAS de markdown, UNIQUEMENT du HTML pur
+8. Les tableaux doivent être en HTML <table>
 
-9. Les tableaux doivent être en HTML <table>
+9. INTÈGRE les données Google Places dans la section Facteurs locaux
 
-10. INTÈGRE les données Google Places dans la section Facteurs locaux
+10. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
 
-11. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
+11. **AJOUTE DES GRAPHIQUES ASCII** dans les sections 3 et 9 avec la classe .chart-container
 
-12. **TITRES GÉANTS EN BLEU** : Utilise .section-title pour les titres de section (ex: "Analyse de Marché")
-    - Font-size: 42pt, couleur: #3b82f6, ultra-bold
-    - Pas de fond noir, juste du texte bleu géant !
+12. Utilise la classe .data-highlight pour mettre en valeur les données importantes
 
-13. **SOUS-TITRES** : Utilise .section-subtitle pour les sous-sections (ex: "Transports en commun")
-
-14. **GRAPHIQUES EN BARRES HTML** dans les sections 3 et 9 avec .bar-chart (pas ASCII!)
-
-15. **GRILLE KPI** avec chiffres géants (.kpi-grid) dans section 9 ou 5
-
-16. Utilise .data-highlight pour mettre en valeur les données importantes
-
-17. Texte justifié avec line-height: 1.8 pour un rendu ultra-pro
-
-18. **DESIGN MODERNE** : grandes ombres, dégradés bleus, spacing généreux, titres énormes
+13. Texte justifié avec line-height: 1.8 pour un rendu pro
 
 Génère maintenant le HTML complet:"""
 
@@ -742,7 +530,7 @@ Génère maintenant le HTML complet:"""
         
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=20000,
+            max_tokens=16000,
             temperature=0.5,
             messages=[{"role": "user", "content": mega_prompt}]
         )
