@@ -130,7 +130,7 @@ def generate_report():
     try:
         form_data = request.json
         logging.info(f"Génération du rapport pour: {form_data.get('name', 'Client')}")
-        
+
         name = form_data.get('name', 'Client')
         city = form_data.get('city', 'Nice')
         address = form_data.get('address-line1', 'Non spécifié')
@@ -185,12 +185,12 @@ Utilise ce HTML EXACTEMENT (après le bloc .client-info et AVANT la section 1) :
   <div class="map-box">
     <h3>Localisation</h3>
     {map_html}
-  </div>
+                </div>
   <div class="map-box">
     <h3>Vue de la rue</h3>
     {street_view_html}
-  </div>
-</div>
+                </div>
+              </div>
 
 Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
 {places_formatted if places_formatted else 'Aucune donnée de proximité disponible'}
@@ -313,32 +313,115 @@ CSS À INTÉGRER DANS <style>:
 
 @page {{
     size: A4;
-    margin: 15mm;
+    margin: 10mm;
 }}
 
 body {{
     font-family: 'Arial', 'Helvetica', sans-serif;
-    font-size: 11pt;
-    line-height: 1.6;
+    font-size: 10pt;
+    line-height: 1.5;
     color: #1a1a1a;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    max-width: 100%;
 }}
 
-.header {{
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    color: white;
-    padding: 30px;
-    text-align: center;
+.cover-page {{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 40px 30px;
+    page-break-after: always;
+    background: white;
+}}
+
+.cover-header {{
+    text-align: left;
     margin-bottom: 30px;
-    border-radius: 8px;
 }}
 
-.header h1 {{
+.cover-logo {{
+    font-size: 10pt;
+    color: #3b82f6;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+}}
+
+.cover-title {{
+    font-size: 48pt;
+    font-weight: 900;
+    line-height: 1.1;
     margin: 0;
-    font-size: 28pt;
-    font-weight: 300;
+    background: linear-gradient(135deg, #1e293b 0%, #3b82f6 50%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}}
+
+.cover-subtitle {{
+    font-size: 14pt;
+    color: #64748b;
+    margin-top: 15px;
+    font-weight: 400;
+}}
+
+.cover-info-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin: 30px 0;
+}}
+
+.cover-info-box {{
+    border-left: 2px solid #3b82f6;
+    padding-left: 15px;
+}}
+
+.cover-info-label {{
+    font-size: 10pt;
+    text-transform: uppercase;
+    color: #94a3b8;
     letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}}
+
+.cover-info-value {{
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+}}
+
+.cover-maps {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 30px 0;
+}}
+
+.cover-map-box {{
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background: white;
+}}
+
+.cover-map-box h3 {{
+    color: #1e40af;
+    font-size: 12pt;
+    margin: 0 0 10px 0;
+}}
+
+.cover-date {{
+    text-align: right;
+    color: #94a3b8;
+    font-size: 10pt;
+    margin-top: 20px;
 }}
 
 .header .subtitle {{
@@ -373,22 +456,23 @@ body {{
 table {{
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 15px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     page-break-inside: avoid;
+    font-size: 9pt;
 }}
 
 th {{
     background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
     color: white;
-    padding: 14px 12px;
+    padding: 10px 8px;
     text-align: left;
     font-weight: 600;
-    font-size: 10pt;
+    font-size: 9pt;
 }}
 
 td {{
-    padding: 12px;
+    padding: 8px 6px;
     border: 1px solid #e2e8f0;
     background: white;
 }}
@@ -479,21 +563,22 @@ tr:nth-child(even) td {{
     display: flex;
     align-items: flex-end;
     justify-content: space-around;
-    height: 250px;
+    height: 180px;
     margin: 20px 0;
     border-bottom: 2px solid #cbd5e1;
     padding: 20px 0;
+    page-break-inside: avoid;
 }}
 
 .bar {{
     background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
-    width: 80px;
-    border-radius: 8px 8px 0 0;
+    width: 60px;
+    border-radius: 6px 6px 0 0;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }}
 
 .bar-value {{
@@ -582,39 +667,73 @@ tr:nth-child(even) td {{
    - <html><head> avec <style> intégré
    - <body> avec TOUT le contenu
 
-2. INTÈGRE les images Google Maps avec les balises fournies ci-dessus
+2. **PAGE DE COUVERTURE EN PREMIER** (fond blanc, tout sur 1 page!) :
+   <div class="cover-page">
+     <div class="cover-header">
+       <div class="cover-logo">IMMOBILIER ANALYTICS</div>
+       <h1 class="cover-title">RAPPORT D'ANALYSE<br>IMMOBILIER</h1>
+       <p class="cover-subtitle">Expertise Professionnelle - Analyse Complète du Marché</p>
+     </div>
+     <div class="cover-info-grid">
+       <div class="cover-info-box">
+         <div class="cover-info-label">CLIENT</div>
+         <div class="cover-info-value">{name}</div>
+       </div>
+       <div class="cover-info-box">
+         <div class="cover-info-label">BIEN</div>
+         <div class="cover-info-value">{address}, {city}</div>
+       </div>
+       <div class="cover-info-box">
+         <div class="cover-info-label">BUDGET</div>
+         <div class="cover-info-value">{budget} €</div>
+       </div>
+     </div>
+     <div class="cover-maps">
+       <div class="cover-map-box">
+         <h3>Localisation</h3>
+         {map_html}
+       </div>
+       <div class="cover-map-box">
+         <h3>Vue de la rue</h3>
+         {street_view_html}
+       </div>
+     </div>
+     <div class="cover-date">{datetime.now().strftime('%B %Y')}</div>
+   </div>
 
-3. Génère TOUS les tableaux demandés avec des données réalistes
+3. Les sections 1-9 commencent à partir de la PAGE 2
 
-4. Les 9 sections DOIVENT être complètes et détaillées (pas de résumé!)
+4. Génère TOUS les tableaux demandés avec des données réalistes
 
-5. Utilise le design corporate fourni (bleu #1e40af, #3b82f6)
+5. Les 9 sections DOIVENT être complètes et détaillées (pas de résumé!)
 
-6. Ajoute un footer avec: "© {datetime.now().year} P&I Investment - Rapport confidentiel"
+6. Utilise le design corporate fourni (bleu #1e40af, #3b82f6)
 
-7. N'utilise PAS de markdown, UNIQUEMENT du HTML pur
+7. Ajoute un footer avec: "© {datetime.now().year} P&I Investment - Rapport confidentiel"
 
-8. Les tableaux doivent être en HTML <table>
+8. N'utilise PAS de markdown, UNIQUEMENT du HTML pur
 
-9. INTÈGRE les données Google Places dans la section Facteurs locaux
+9. Les tableaux doivent être en HTML <table>
 
-10. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
+10. INTÈGRE les données Google Places dans la section Facteurs locaux
 
-11. **TITRES GÉANTS EN BLEU** : Utilise .section-title pour les titres de section (ex: "Analyse de Marché")
+11. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
+
+12. **TITRES GÉANTS EN BLEU** : Utilise .section-title pour les titres de section (ex: "Analyse de Marché")
     - Font-size: 42pt, couleur: #3b82f6, ultra-bold
     - Pas de fond noir, juste du texte bleu géant !
 
-12. **SOUS-TITRES** : Utilise .section-subtitle pour les sous-sections (ex: "Transports en commun")
+13. **SOUS-TITRES** : Utilise .section-subtitle pour les sous-sections (ex: "Transports en commun")
 
-13. **GRAPHIQUES EN BARRES HTML** dans les sections 3 et 9 avec .bar-chart (pas ASCII!)
+14. **GRAPHIQUES EN BARRES HTML** dans les sections 3 et 9 avec .bar-chart (pas ASCII!)
 
-14. **GRILLE KPI** avec chiffres géants (.kpi-grid) dans section 9 ou 5
+15. **GRILLE KPI** avec chiffres géants (.kpi-grid) dans section 9 ou 5
 
-15. Utilise .data-highlight pour mettre en valeur les données importantes
+16. Utilise .data-highlight pour mettre en valeur les données importantes
 
-16. Texte justifié avec line-height: 1.8 pour un rendu ultra-pro
+17. Texte justifié avec line-height: 1.8 pour un rendu ultra-pro
 
-17. **DESIGN MODERNE** : grandes ombres, dégradés bleus, spacing généreux, titres énormes
+18. **DESIGN MODERNE** : grandes ombres, dégradés bleus, spacing généreux, titres énormes
 
 Génère maintenant le HTML complet:"""
 
@@ -622,7 +741,7 @@ Génère maintenant le HTML complet:"""
         
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=16000,
+            max_tokens=20000,
             temperature=0.5,
             messages=[{"role": "user", "content": mega_prompt}]
         )
