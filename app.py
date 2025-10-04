@@ -42,62 +42,63 @@ def create_styles():
     """Crée des styles professionnels pour le PDF"""
     styles = getSampleStyleSheet()
     
-    # Titre principal
-    styles.add(ParagraphStyle(
-        name='MainTitle',
-        parent=styles['Heading1'],
-        fontSize=24,
-        textColor=PRIMARY_COLOR,
-        spaceAfter=30,
-        alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
-    ))
+    # Vérifier si les styles existent déjà avant de les ajouter
+    if 'MainTitle' not in styles:
+        styles.add(ParagraphStyle(
+            name='MainTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=PRIMARY_COLOR,
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        ))
     
-    # Titre de section
-    styles.add(ParagraphStyle(
-        name='SectionTitle',
-        parent=styles['Heading2'],
-        fontSize=16,
-        textColor=PRIMARY_COLOR,
-        spaceBefore=20,
-        spaceAfter=12,
-        fontName='Helvetica-Bold',
-        borderWidth=0,
-        borderColor=PRIMARY_COLOR,
-        borderPadding=5
-    ))
+    if 'SectionTitle' not in styles:
+        styles.add(ParagraphStyle(
+            name='SectionTitle',
+            parent=styles['Heading2'],
+            fontSize=16,
+            textColor=PRIMARY_COLOR,
+            spaceBefore=20,
+            spaceAfter=12,
+            fontName='Helvetica-Bold',
+            borderWidth=0,
+            borderColor=PRIMARY_COLOR,
+            borderPadding=5
+        ))
     
-    # Sous-titre
-    styles.add(ParagraphStyle(
-        name='SubTitle',
-        parent=styles['Heading3'],
-        fontSize=13,
-        textColor=SECONDARY_COLOR,
-        spaceBefore=12,
-        spaceAfter=8,
-        fontName='Helvetica-Bold'
-    ))
+    if 'SubTitle' not in styles:
+        styles.add(ParagraphStyle(
+            name='SubTitle',
+            parent=styles['Heading3'],
+            fontSize=13,
+            textColor=SECONDARY_COLOR,
+            spaceBefore=12,
+            spaceAfter=8,
+            fontName='Helvetica-Bold'
+        ))
     
-    # Corps de texte
-    styles.add(ParagraphStyle(
-        name='BodyText',
-        parent=styles['Normal'],
-        fontSize=11,
-        leading=16,
-        alignment=TA_JUSTIFY,
-        spaceAfter=10,
-        textColor=colors.HexColor("#1e293b")
-    ))
+    if 'CustomBodyText' not in styles:
+        styles.add(ParagraphStyle(
+            name='CustomBodyText',
+            parent=styles['Normal'],
+            fontSize=11,
+            leading=16,
+            alignment=TA_JUSTIFY,
+            spaceAfter=10,
+            textColor=colors.HexColor("#1e293b")
+        ))
     
-    # Liste à puces
-    styles.add(ParagraphStyle(
-        name='BulletPoint',
-        parent=styles['Normal'],
-        fontSize=11,
-        leading=14,
-        leftIndent=20,
-        spaceAfter=6
-    ))
+    if 'BulletPoint' not in styles:
+        styles.add(ParagraphStyle(
+            name='BulletPoint',
+            parent=styles['Normal'],
+            fontSize=11,
+            leading=14,
+            leftIndent=20,
+            spaceAfter=6
+        ))
     
     return styles
 
@@ -616,11 +617,11 @@ def get_street_view_image(address, city, api_key, width=500, height=300):
     
     return None
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST', 'HEAD'])
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
-    # Si c'est un GET, retourner un message d'accueil
-    if request.method == 'GET':
+    # Si c'est un GET ou HEAD, retourner un message d'accueil
+    if request.method in ['GET', 'HEAD']:
         return "API de génération de rapports immobiliers avec Claude - Prête!"
     
     # Si c'est un POST, générer le rapport
@@ -708,7 +709,7 @@ def generate_report():
             # Diviser en paragraphes
             for para in content.split('\n\n'):
                 if para.strip():
-                    elements.append(Paragraph(para.strip(), styles['BodyText']))
+                    elements.append(Paragraph(para.strip(), styles['CustomBodyText']))
                     elements.append(Spacer(1, 0.3*cm))
             
             # Ajouter des graphiques avec DONNÉES RÉELLES
