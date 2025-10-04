@@ -136,6 +136,7 @@ def generate_report():
         address = form_data.get('address-line1', 'Non spécifié')
         email = form_data.get('agency-email', 'Non spécifié')
         phone = form_data.get('phone', 'Non spécifié')
+        budget = form_data.get('budget-ideal', 'Non spécifié')
         local_factors = form_data.get('localFactors', [])
         
         # Google Maps
