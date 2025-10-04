@@ -45,7 +45,7 @@ def get_google_static_map(address, city, api_key):
             return os.path.abspath(map_path)
     except Exception as e:
         logging.error(f"Erreur carte: {e}")
-        return None
+    return None
 
 def get_street_view_image(address, city, api_key):
     """Génère et télécharge une image Street View"""
@@ -72,7 +72,7 @@ def get_street_view_image(address, city, api_key):
             return os.path.abspath(sv_path)
     except Exception as e:
         logging.error(f"Erreur Street View: {e}")
-        return None
+    return None
 
 def get_google_places_data(address, city, factors, api_key):
     """Récupère les données Google Places pour les facteurs locaux"""
@@ -100,7 +100,7 @@ def get_google_places_data(address, city, factors, api_key):
         for factor in factors:
             if factor not in factor_mapping:
                 continue
-                
+            
             results[factor] = []
             
             for place_type in factor_mapping[factor]:
@@ -345,7 +345,6 @@ table {{
     border-collapse: collapse;
     margin: 20px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    page-break-inside: avoid;
 }}
 
 th {{
@@ -361,11 +360,6 @@ td {{
     padding: 12px;
     border: 1px solid #e2e8f0;
     background: white;
-    vertical-align: top;
-}}
-
-tr {{
-    page-break-inside: avoid;
 }}
 
 tr:nth-child(even) td {{
