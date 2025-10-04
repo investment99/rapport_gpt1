@@ -662,83 +662,97 @@ def generate_interactive_report():
         return jsonify({"error": str(e)}), 500
 
 def generate_interactive_html_with_claude(form_data, full_address, client_name, budget, analysis_date, google_api_key):
-    """Génère un rapport HTML interactif avec Claude"""
+    """Génère un rapport HTML interactif avec Claude - UTILISE LE MÊME CONTENU QUE LE PDF !"""
     
-    client_name = form_data.get('name', 'Client')
-    address = form_data.get('address-line1', 'Non spécifié')
+    # Extraction des données (comme dans generate_report)
+    name = form_data.get('name', 'Client')
     city = form_data.get('city', 'Nice')
+    address = form_data.get('address-line1', 'Non spécifié')
     email = form_data.get('agency-email', 'Non spécifié')
     phone = form_data.get('phone', 'Non spécifié')
-    investment_sector = form_data.get('investment-sector', 'IMMOBILIER')
     budget = form_data.get('budget-ideal', 'Non spécifié')
-    investment_reason = form_data.get('investment-reason', 'Non spécifié')
-    risk_tolerance = form_data.get('risk-tolerance', '5')
-    property_type = form_data.get('type-bien-recherche', 'Non spécifié')
-    surface_habitable = form_data.get('superficie-habitable', 'Non spécifié')
-    nombre_chambres = form_data.get('nombre-chambres', 'Non spécifié')
+    local_factors = form_data.get('localFactors', [])
     
-    # Google API Key
-    google_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+    # Google Places data (comme dans le PDF)
+    places_data = get_google_places_data(address, city, local_factors, google_api_key)
     
-    prompt = f"""
-Tu es un expert immobilier qui génère des rapports interactifs HTML ULTRA-MODERNES avec animations et graphiques.
+    # Formatage des données Google Places
+    places_formatted = ""
+    for factor, places in places_data.items():
+        factor_names = {
+            'transport': 'Transports en commun',
+            'schools': 'Établissements scolaires',
+            'shops': 'Commerces',
+            'security': 'Sécurité'
+        }
+        places_formatted += f"\n\n### {factor_names.get(factor, factor)}\n"
+        for place in places[:10]:
+            places_formatted += f"- **{place['name']}** - {place['address']}\n"
+    
+    # LE MÊME MEGA PROMPT QUE LE PDF !
+    prompt = f"""Tu es un expert immobilier de renommée mondiale. Génère un rapport d'analyse immobilier HTML INTERACTIF COMPLET ultra-professionnel.
 
 ═══════════════════════════════════════════════════════
 📋 DONNÉES CLIENT
 ═══════════════════════════════════════════════════════
-Nom: {client_name}
+Nom: {name}
 Adresse analysée: {address}, {city}
 Email: {email}
 Téléphone: {phone}
-Date de l'analyse: {analysis_date}
-Secteur d'investissement: {investment_sector}
-Budget idéal: {budget} €
-Raison de l'investissement: {investment_reason}
-Tolérance au risque (1-10): {risk_tolerance}
-Type de bien recherché: {property_type}
-Superficie habitable: {surface_habitable} m²
-Nombre de chambres: {nombre_chambres}
+Date: {datetime.now().strftime('%d/%m/%Y')}
+Facteurs locaux demandés: {', '.join(local_factors) if local_factors else 'Aucun'}
 
 ═══════════════════════════════════════════════════════
-🎨 DESIGN INTERACTIF ULTRA-MODERNE OBLIGATOIRE
+🗺️ GOOGLE MAPS INTERACTIF
+═══════════════════════════════════════════════════════
+Utilise cette iframe Google Maps interactif :
+<div class="map-container">
+  <iframe src="https://www.google.com/maps/embed/v1/place?key={google_api_key}&q={address.replace(' ', '+')},+{city.replace(' ', '+')},+France" 
+          allowfullscreen loading="lazy" style="width:100%; height:500px; border:none; border-radius:12px;"></iframe>
+</div>
+
+Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
+{places_formatted if places_formatted else 'Aucune donnée de proximité disponible'}
+
+═══════════════════════════════════════════════════════
+📊 LES 9 SECTIONS OBLIGATOIRES À GÉNÉRER (DÉTAILLÉES)
 ═══════════════════════════════════════════════════════
 
-Génère un rapport HTML COMPLET avec:
+1. **INTRODUCTION** (500+ mots) - Présentation personnalisée pour {name}, contexte, objectifs, méthodologie
+2. **CONTEXTE** (600+ mots) - Présentation de {city}, démographie, économie, infrastructures
+3. **SECTEUR D'INVESTISSEMENT** (700+ mots) - Marché de {city}, évolution prix avec TABLEAU + GRAPHIQUE Chart.js
+4. **ANALYSE DU MARCHÉ** (800+ mots) - Comparaison quartiers avec TABLEAU, tendances  
+5. **ANALYSE DU PRODUIT** (700+ mots) - KPI CARDS + caractéristiques {address} + TABLEAU comparatif
+6. **FACTEURS LOCAUX IMPORTANTS** (800+ mots) - INTÉGRER données Google Places ci-dessus avec tableaux
+7. **ÉVALUATION DES RISQUES** (600+ mots) - SWOT en 2 colonnes, risques quantifiés
+8. **CONCLUSION ET RECOMMANDATIONS** (500+ mots) - Synthèse + recommandation INVESTIR ou NON
+9. **ANALYSE PRÉDICTIVE** (700+ mots) - Projection 2025-2030 avec TABLEAU + GRAPHIQUE Chart.js
 
-1. **HEADER ANIMÉ** avec dégradé bleu
-2. **GOOGLE MAPS IFRAME INTERACTIF** (pas d'image statique!)
-3. **GRAPHIQUES ANIMÉS Chart.js** (pas d'ASCII!)
-4. **ANIMATIONS AU SCROLL** (fade-in, slide-up)
-5. **TABLEAUX TRIABLES** avec hover effects
-6. **KPI CARDS ANIMÉS** avec compteurs
-7. **DESIGN RESPONSIVE** pour mobile
-
-STRUCTURE HTML:
+═══════════════════════════════════════════════════════
+🎨 CSS INTERACTIF ULTRA-MODERNE OBLIGATOIRE
+═══════════════════════════════════════════════════════
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport Interactif - {client_name}</title>
+    <title>Rapport Interactif - {name}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
             overflow-x: hidden;
         }}
-        
         .container {{
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }}
-        
         .hero {{
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white;
@@ -747,39 +761,11 @@ STRUCTURE HTML:
             position: relative;
             overflow: hidden;
         }}
-        
-        .hero::before {{
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: moveBackground 20s linear infinite;
-        }}
-        
-        @keyframes moveBackground {{
-            0% {{ transform: translate(0, 0); }}
-            100% {{ transform: translate(50px, 50px); }}
-        }}
-        
         .hero h1 {{
             font-size: 48px;
             margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }}
-        
-        .hero p {{
-            font-size: 20px;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
-        }}
-        
         .client-info {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -787,7 +773,6 @@ STRUCTURE HTML:
             padding: 40px;
             background: #f8fafc;
         }}
-        
         .info-card {{
             background: white;
             padding: 25px;
@@ -795,26 +780,11 @@ STRUCTURE HTML:
             border-left: 4px solid #3b82f6;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
-            opacity: 0;
-            animation: fadeInUp 0.6s forwards;
         }}
-        
-        @keyframes fadeInUp {{
-            from {{
-                opacity: 0;
-                transform: translateY(30px);
-            }}
-            to {{
-                opacity: 1;
-                transform: translateY(0);
-            }}
-        }}
-        
         .info-card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
         }}
-        
         .info-card h3 {{
             font-size: 12px;
             text-transform: uppercase;
@@ -822,23 +792,17 @@ STRUCTURE HTML:
             letter-spacing: 1px;
             margin-bottom: 10px;
         }}
-        
         .info-card p {{
             font-size: 20px;
             font-weight: 700;
             color: #1e293b;
         }}
-        
         .section {{
             padding: 60px 40px;
-            opacity: 0;
-            animation: fadeInUp 0.8s forwards;
         }}
-        
         .section:nth-child(even) {{
             background: #f8fafc;
         }}
-        
         .section-title {{
             font-size: 36px;
             color: #1e40af;
@@ -846,7 +810,6 @@ STRUCTURE HTML:
             position: relative;
             padding-bottom: 15px;
         }}
-        
         .section-title::after {{
             content: '';
             position: absolute;
@@ -856,64 +819,6 @@ STRUCTURE HTML:
             height: 4px;
             background: linear-gradient(90deg, #3b82f6, #60a5fa);
         }}
-        
-        .map-container {{
-            width: 100%;
-            height: 500px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            margin: 30px 0;
-        }}
-        
-        .map-container iframe {{
-            width: 100%;
-            height: 100%;
-            border: none;
-        }}
-        
-        .chart-container {{
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin: 30px 0;
-        }}
-        
-        .kpi-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }}
-        
-        .kpi-card {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s ease;
-        }}
-        
-        .kpi-card:hover {{
-            transform: translateY(-10px) scale(1.05);
-        }}
-        
-        .kpi-value {{
-            font-size: 42px;
-            font-weight: 800;
-            margin: 10px 0;
-        }}
-        
-        .kpi-label {{
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
-        }}
-        
         table {{
             width: 100%;
             border-collapse: collapse;
@@ -923,37 +828,70 @@ STRUCTURE HTML:
             border-radius: 12px;
             overflow: hidden;
         }}
-        
         th {{
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white;
             padding: 15px;
             text-align: left;
             font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
         }}
-        
-        th:hover {{
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-        }}
-        
         td {{
             padding: 15px;
             border-bottom: 1px solid #e2e8f0;
         }}
-        
         tr:hover {{
             background: #f1f5f9;
         }}
-        
+        .kpi-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }}
+        .kpi-card {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }}
+        .kpi-card:hover {{
+            transform: translateY(-10px) scale(1.05);
+        }}
+        .kpi-value {{
+            font-size: 42px;
+            font-weight: 800;
+            margin: 10px 0;
+        }}
+        .kpi-label {{
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }}
+        .chart-container {{
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin: 30px 0;
+        }}
+        .map-container {{
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin: 30px 0;
+        }}
         .footer {{
             background: #1e293b;
             color: white;
             padding: 40px;
             text-align: center;
         }}
-        
         @media (max-width: 768px) {{
             .hero h1 {{ font-size: 32px; }}
             .section {{ padding: 40px 20px; }}
@@ -962,192 +900,38 @@ STRUCTURE HTML:
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- HERO SECTION -->
-        <div class="hero">
-            <h1>📊 RAPPORT D'ANALYSE IMMOBILIER</h1>
-            <p>Expertise Professionnelle - Analyse Interactive Complète</p>
-        </div>
-        
-        <!-- CLIENT INFO -->
-        <div class="client-info">
-            <div class="info-card" style="animation-delay: 0.1s;">
-                <h3>Client</h3>
-                <p>{client_name}</p>
-            </div>
-            <div class="info-card" style="animation-delay: 0.2s;">
-                <h3>Bien</h3>
-                <p>{address}, {city}</p>
-            </div>
-            <div class="info-card" style="animation-delay: 0.3s;">
-                <h3>Budget</h3>
-                <p>{budget} €</p>
-            </div>
-            <div class="info-card" style="animation-delay: 0.4s;">
-                <h3>Date</h3>
-                <p>{analysis_date}</p>
-            </div>
-        </div>
-        
-        <!-- GOOGLE MAPS INTERACTIF -->
-        <div class="section">
-            <h2 class="section-title">📍 Localisation</h2>
-            <div class="map-container">
-                <iframe src="https://www.google.com/maps/embed/v1/place?key={google_api_key}&q={full_address.replace(' ', '+')}" allowfullscreen loading="lazy"></iframe>
-            </div>
-        </div>
-        
-        <!-- KPI CARDS -->
-        <div class="section">
-            <h2 class="section-title">📈 Indicateurs Clés</h2>
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-label">Prix Moyen m²</div>
-                    <div class="kpi-value">4 250 €</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Rentabilité</div>
-                    <div class="kpi-value">4.8%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Évolution 5 ans</div>
-                    <div class="kpi-value">+18%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Note Quartier</div>
-                    <div class="kpi-value">8.5/10</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- GRAPHIQUE -->
-        <div class="section">
-            <h2 class="section-title">📊 Évolution des Prix</h2>
-            <div class="chart-container">
-                <canvas id="priceChart"></canvas>
-            </div>
-        </div>
-        
-        <!-- ANALYSE DÉTAILLÉE -->
-        <div class="section">
-            <h2 class="section-title">🔍 Analyse Complète du Marché</h2>
-            <p style="line-height: 1.8; margin-bottom: 30px;">
-                Le marché immobilier de <strong>{city}</strong> présente des opportunités exceptionnelles. 
-                L'analyse approfondie révèle une dynamique de croissance stable avec un excellent potentiel 
-                de valorisation à moyen terme. Le secteur ciblé bénéficie d'infrastructures modernes et 
-                d'un environnement résidentiel de qualité.
-            </p>
-            
-            <h3 style="color: #1e40af; margin: 30px 0 20px 0;">Comparatif des Transactions DVF</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Adresse</th>
-                        <th>Surface (m²)</th>
-                        <th>Prix</th>
-                        <th>Prix/m²</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>25 Avenue Victor Hugo</td>
-                        <td>75</td>
-                        <td>320 000 €</td>
-                        <td>4 267 €</td>
-                        <td>Mars 2024</td>
-                    </tr>
-                    <tr>
-                        <td>18 Rue de France</td>
-                        <td>82</td>
-                        <td>348 000 €</td>
-                        <td>4 244 €</td>
-                        <td>Février 2024</td>
-                    </tr>
-                    <tr>
-                        <td>42 Boulevard Jean Jaurès</td>
-                        <td>68</td>
-                        <td>289 000 €</td>
-                        <td>4 250 €</td>
-                        <td>Janvier 2024</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- FOOTER -->
-        <div class="footer">
-            <p>&copy; {datetime.now().year} P&I Investment - Rapport confidentiel</p>
-            <p style="margin-top: 10px; opacity: 0.7;">Généré le {analysis_date}</p>
-        </div>
+<div class="container">
+    <!-- HERO -->
+    <div class="hero">
+        <h1>📊 RAPPORT D'ANALYSE IMMOBILIER</h1>
+        <p>Expertise Professionnelle - Analyse Interactive Complète</p>
     </div>
     
-    <script>
-        // GRAPHIQUE CHART.JS
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        new Chart(ctx, {{
-            type: 'line',
-            data: {{
-                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
-                datasets: [{{
-                    label: 'Prix moyen au m² (€)',
-                    data: [3600, 3750, 3950, 4100, 4200, 4250],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    borderWidth: 3
-                }}]
-            }},
-            options: {{
-                responsive: true,
-                plugins: {{
-                    legend: {{
-                        display: true,
-                        position: 'top'
-                    }},
-                    title: {{
-                        display: false
-                    }}
-                }},
-                scales: {{
-                    y: {{
-                        beginAtZero: false,
-                        ticks: {{
-                            callback: function(value) {{
-                                return value.toLocaleString() + ' €';
-                            }}
-                        }}
-                    }}
-                }}
-            }}
-        }});
-        
-        // ANIMATIONS AU SCROLL
-        const observer = new IntersectionObserver((entries) => {{
-            entries.forEach(entry => {{
-                if (entry.isIntersecting) {{
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }}
-            }});
-        }}, {{ threshold: 0.1 }});
-        
-        document.querySelectorAll('.section, .info-card').forEach(el => {{
-            observer.observe(el);
-        }});
-    </script>
-</body>
-</html>
+    <!-- INFO CLIENT -->
+    <div class="client-info">
+        <div class="info-card"><h3>Client</h3><p>{name}</p></div>
+        <div class="info-card"><h3>Bien</h3><p>{address}, {city}</p></div>
+        <div class="info-card"><h3>Budget</h3><p>{budget} €</p></div>
+        <div class="info-card"><h3>Date</h3><p>{datetime.now().strftime('%d/%m/%Y')}</p></div>
+    </div>
 
-RETOURNE UNIQUEMENT LE HTML COMPLET, RIEN D'AUTRE !
+⚠️ MAINTENANT GÉNÈRE LES 9 SECTIONS COMPLÈTES avec:
+- GRAPHIQUES Chart.js (pas ASCII!) pour sections 3 et 9
+- TABLEAUX HTML pour toutes les données DVF, comparatifs, projections
+- KPI CARDS pour la section 5
+- GOOGLE MAPS IFRAME pour la localisation
+- Tout le contenu détaillé et professionnel comme dans un rapport PDF
+
+SCRIPT Chart.js à la fin pour animer les graphiques!
+
+RETOURNE UN SEUL FICHIER HTML COMPLET avec </body></html> à la fin !
 """
     
     try:
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=16000,
-            temperature=0.7,
+            temperature=0.5,
             messages=[{"role": "user", "content": prompt}]
         )
         
