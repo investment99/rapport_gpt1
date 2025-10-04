@@ -636,8 +636,8 @@ def generate_interactive_report():
         autres_pieces = ", ".join(form_data.get('autres-pieces', [])) if form_data.get('autres-pieces') else 'Aucune'
         local_factors_selected = ", ".join(form_data.get('localFactors', [])) if form_data.get('localFactors') else 'Aucun'
         
-        # Google Maps
-        google_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+        # Google Maps (avec clé par défaut si pas dans env)
+        google_api_key = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyAqcyOXDwvgVW4eYy5vqW8TXM5FQ3DKB9w')
         full_address = f"{address}, {city}, France"
         
         # Génération du contenu avec Claude
