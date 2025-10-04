@@ -222,19 +222,17 @@ Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
      | 2023  | 9 950€        | +5.9%     |
      | 2024  | 10 500€       | +5.5%     |
      | 2025  | 11 000€       | +4.8%     |
-   - **AJOUTE UN GRAPHIQUE ASCII** dans un bloc .chart-container :
+   - **AJOUTE UN GRAPHIQUE EN BARRES HTML** dans un bloc .chart-container :
      <div class="chart-container">
        <div class="chart-title">Évolution des prix (2020-2025)</div>
-       <pre style="font-family: monospace; font-size: 9pt; line-height: 1.2;">
-       11000€ ┤                                    ●
-       10500€ ┤                            ●
-       9950€  ┤                    ●
-       9400€  ┤            ●
-       8950€  ┤    ●
-       8500€  ┤●
-              └────────────────────────────────────
-               2020 2021 2022 2023 2024 2025
-       </pre>
+       <div class="bar-chart">
+         <div class="bar" style="height: 40%;"><span class="bar-value">8 500€</span><span class="bar-label">2020</span></div>
+         <div class="bar" style="height: 50%;"><span class="bar-value">8 950€</span><span class="bar-label">2021</span></div>
+         <div class="bar" style="height: 60%;"><span class="bar-value">9 400€</span><span class="bar-label">2022</span></div>
+         <div class="bar" style="height: 75%;"><span class="bar-value">9 950€</span><span class="bar-label">2023</span></div>
+         <div class="bar" style="height: 90%;"><span class="bar-value">10 500€</span><span class="bar-label">2024</span></div>
+         <div class="bar" style="height: 100%;"><span class="bar-value">11 000€</span><span class="bar-label">2025</span></div>
+       </div>
      </div>
    - Rendement locatif moyen
 
@@ -296,7 +294,14 @@ Données lieux à proximité (à utiliser dans la section 6 - Facteurs locaux):
      | 2028  | 12 700€       | +5.0%     | 4.1%      |
      | 2029  | 13 350€       | +5.1%     | 4.2%      |
      | 2030  | 14 000€       | +4.9%     | 4.3%      |
-   - **AJOUTE UN GRAPHIQUE ASCII** de projection dans un bloc .chart-container
+   - **AJOUTE UN GRAPHIQUE EN BARRES** de projection (même format que section 3)
+   - **AJOUTE UNE GRILLE KPI** avec .kpi-grid pour montrer les chiffres clés :
+     <div class="kpi-grid">
+       <div class="kpi-card"><div class="kpi-label">Prix d'acquisition</div><div class="kpi-value">950K€</div></div>
+       <div class="kpi-card"><div class="kpi-label">Frais notaire (8%)</div><div class="kpi-value">75K€</div></div>
+       <div class="kpi-card"><div class="kpi-label">Investissement total</div><div class="kpi-value">1 025K€</div></div>
+       <div class="kpi-card"><div class="kpi-label">Loyer mensuel estimé</div><div class="kpi-value">2 000€</div></div>
+     </div>
    - Scénarios optimiste/réaliste/pessimiste avec bloc .data-highlight
    - Meilleur type de bien pour investissement locatif
 
@@ -350,17 +355,14 @@ body {{
 }}
 
 .section-title {{
-    background: #1e293b;
-    color: white;
-    padding: 12px 20px;
-    font-size: 16pt;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 30px 0 20px 0;
-    border-left: 6px solid #3b82f6;
+    color: #3b82f6;
+    font-size: 42pt;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 50px 0 40px 0;
     page-break-before: always;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: left;
+    line-height: 1.2;
 }}
 
 .section-content {{
@@ -458,18 +460,87 @@ tr:nth-child(even) td {{
 .chart-container {{
     background: white;
     border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 30px;
     margin: 30px 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }}
 
 .chart-title {{
     color: #1e40af;
-    font-size: 14pt;
-    font-weight: 600;
-    margin-bottom: 15px;
+    font-size: 18pt;
+    font-weight: 700;
+    margin-bottom: 25px;
     text-align: center;
+    letter-spacing: 0.5px;
+}}
+
+.bar-chart {{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 250px;
+    margin: 20px 0;
+    border-bottom: 2px solid #cbd5e1;
+    padding: 20px 0;
+}}
+
+.bar {{
+    background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+    width: 80px;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}}
+
+.bar-value {{
+    position: absolute;
+    top: -30px;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1e40af;
+}}
+
+.bar-label {{
+    position: absolute;
+    bottom: -30px;
+    font-size: 10pt;
+    color: #64748b;
+    font-weight: 600;
+}}
+
+.kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}}
+
+.kpi-card {{
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}}
+
+.kpi-value {{
+    font-size: 36pt;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 10px 0;
+    letter-spacing: -1px;
+}}
+
+.kpi-label {{
+    font-size: 10pt;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 1px;
 }}
 
 .section-content {{
@@ -480,6 +551,17 @@ tr:nth-child(even) td {{
 .section-content p {{
     text-align: justify;
     line-height: 1.8;
+}}
+
+.section-subtitle {{
+    color: #1e40af;
+    font-size: 22pt;
+    font-weight: 700;
+    margin: 30px 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #3b82f6;
+    padding-bottom: 10px;
 }}
 
 .data-highlight {{
@@ -518,11 +600,21 @@ tr:nth-child(even) td {{
 
 10. **CHAQUE SECTION (1-9) COMMENCE SUR UNE NOUVELLE PAGE** grâce au .section-title
 
-11. **AJOUTE DES GRAPHIQUES ASCII** dans les sections 3 et 9 avec la classe .chart-container
+11. **TITRES GÉANTS EN BLEU** : Utilise .section-title pour les titres de section (ex: "Analyse de Marché")
+    - Font-size: 42pt, couleur: #3b82f6, ultra-bold
+    - Pas de fond noir, juste du texte bleu géant !
 
-12. Utilise la classe .data-highlight pour mettre en valeur les données importantes
+12. **SOUS-TITRES** : Utilise .section-subtitle pour les sous-sections (ex: "Transports en commun")
 
-13. Texte justifié avec line-height: 1.8 pour un rendu pro
+13. **GRAPHIQUES EN BARRES HTML** dans les sections 3 et 9 avec .bar-chart (pas ASCII!)
+
+14. **GRILLE KPI** avec chiffres géants (.kpi-grid) dans section 9 ou 5
+
+15. Utilise .data-highlight pour mettre en valeur les données importantes
+
+16. Texte justifié avec line-height: 1.8 pour un rendu ultra-pro
+
+17. **DESIGN MODERNE** : grandes ombres, dégradés bleus, spacing généreux, titres énormes
 
 Génère maintenant le HTML complet:"""
 
